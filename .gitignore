@@ -1,0 +1,62 @@
+# Environment
+.env
+.env.*
+.env.local
+.env.production
+
+# Scaffold docs (local AI agent context, not committed)
+docs/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Angular
+dist/
+.angular/
+tmp/
+
+# TypeScript
+*.js.map
+*.d.ts
+!src/**/*.d.ts
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Testing
+coverage/
+cypress/screenshots/
+cypress/videos/
+
+# Build
+*.tgz
+*.tar.gz
+
+# Python (if scripts)
+__pycache__/
+*.pyc
+.venv/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+
+# Logs
+logs/
+*.log

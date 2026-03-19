@@ -1,0 +1,73 @@
+---
+description: Enforce the locked technology stack decisions from Pre-Search
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Technology Stack Lock
+
+## Locked Decisions
+
+### Frontend Framework
+- **LOCKED:** Angular 17 with standalone components
+- **DO NOT** switch to React, Vue, Svelte, or any other framework
+- **DO NOT** use React Native or Capacitor for mobile — PWA only
+
+### State Management
+- **LOCKED:** NgRx (actions, reducers, effects, selectors)
+- **DO NOT** switch to Akita, NGXS, or plain RxJS subjects for global state
+
+### Backend Runtime
+- **LOCKED:** Node.js + TypeScript
+- **DO NOT** switch to Python, Go, Java, or Deno
+
+### Backend Architecture
+- **LOCKED:** 6 microservices (Auth, Time Tracking, Dispatcher, Payroll, Notifications, Integration)
+- **DO NOT** merge into a monolith or split into more services without explicit approval
+
+### Database
+- **LOCKED:** PostgreSQL with Row-Level Security
+- **DO NOT** switch to MongoDB, DynamoDB, MySQL, or SQLite
+- **DO NOT** remove org_id from any table
+
+### Cache
+- **LOCKED:** Redis (ElastiCache)
+- **DO NOT** switch to Memcached or in-memory caching
+
+### Queue
+- **LOCKED:** AWS SQS (FIFO)
+- **DO NOT** switch to RabbitMQ, Redis Pub/Sub, or Kafka
+
+### SMS/IVR
+- **LOCKED:** Twilio
+- **DO NOT** switch to Vonage, AWS SNS for SMS, or other providers
+
+### Email
+- **LOCKED:** SendGrid
+- **DO NOT** switch to AWS SES, Mailgun, or Postmark
+
+### Real-Time
+- **LOCKED:** Socket.io (WebSocket)
+- **DO NOT** switch to SSE, long polling, or GraphQL subscriptions
+
+### Cloud Provider
+- **LOCKED:** AWS (ECS/Fargate, RDS, ElastiCache, SQS, S3, CloudFront, ALB)
+- **DO NOT** switch to GCP, Azure, or Vercel
+
+### Testing
+- **LOCKED:** Jasmine/Karma (unit) + Cypress (E2E)
+- **DO NOT** switch to Jest for Angular tests (Angular CLI default is Jasmine/Karma)
+
+### Billing
+- **LOCKED:** Stripe
+- **DO NOT** switch to Paddle, Chargebee, or custom billing
+
+### Payroll Integration
+- **LOCKED:** QuickBooks (primary), with ADP/Gusto planned for Phase 3
+- **DO NOT** build custom payroll processing
+
+## Adding New Dependencies
+1. Check if existing locked technology can solve the problem first
+2. Document rationale in `docs/MEMO.md` under a new architecture decision
+3. Add to `docs/TECH_STACK.md` key dependencies section
+4. Get explicit user approval before introducing any new runtime dependency

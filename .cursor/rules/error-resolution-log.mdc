@@ -1,0 +1,50 @@
+---
+description: Log errors and fixes to docs/ERROR_FIX_LOG.md when resolving issues
+globs: ["**/*"]
+alwaysApply: false
+---
+
+# Error Resolution Logging
+
+## When to Log
+- Build failures (Angular CLI, TypeScript compilation, Docker build)
+- Runtime errors (API crashes, unhandled exceptions, database errors)
+- API/integration errors (Twilio, SendGrid, QuickBooks, Stripe failures)
+- Database errors (migration failures, RLS violations, connection issues)
+- Deployment errors (ECS, CloudFront, RDS configuration)
+- Offline sync errors (IndexedDB, Service Worker, deduplication)
+- WebSocket errors (connection drops, auth failures)
+- Any issue that takes >5 minutes to diagnose
+
+## When NOT to Log
+- Simple typos caught by linter
+- ESLint/Prettier formatting warnings
+- Expected test failures during TDD red phase
+- Known issues already documented
+
+## Category Prefixes
+- `DB` — PostgreSQL, migrations, RLS, PgBouncer
+- `AUTH` — JWT, refresh tokens, SSO, MFA
+- `SYNC` — Offline sync, IndexedDB, Service Worker
+- `SMS` — Twilio SMS/IVR
+- `WS` — WebSocket/Socket.io
+- `QB` — QuickBooks integration
+- `NOTIF` — Email/push notifications, SQS
+- `UI` — Angular components, NgRx, responsive
+- `DEPLOY` — Docker, ECS, AWS infrastructure
+- `PERF` — Performance, scaling, connection pools
+- `SEC` — Security, multi-tenant isolation, encryption
+
+## Log Location
+`docs/ERROR_FIX_LOG.md`
+
+## Format
+```
+### [CATEGORY-NNN] Error Title
+**Date:** YYYY-MM-DD
+**Error:** What happened
+**Context:** What was being done
+**Root Cause:** Why it happened
+**Fix:** What was changed
+**Prevention:** How to avoid this in the future
+```

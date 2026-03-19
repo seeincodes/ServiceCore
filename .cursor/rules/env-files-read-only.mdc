@@ -1,0 +1,40 @@
+---
+description: Protect environment files from accidental modification or exposure
+globs: [".env", ".env.*", ".env.local", ".env.production"]
+alwaysApply: true
+---
+
+# Environment File Protection
+
+## Rules
+- NEVER modify `.env` files without explicit user confirmation
+- NEVER commit `.env` files to git
+- NEVER display API key values, tokens, or secrets in output
+- NEVER hardcode secrets in source code — always reference env vars
+
+## Required Environment Variables (ServiceCore)
+```
+DATABASE_URL=
+REDIS_URL=
+JWT_SECRET=
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE_NUMBER=
+SENDGRID_API_KEY=
+AWS_REGION=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+SQS_NOTIFICATION_QUEUE_URL=
+SQS_PAYROLL_QUEUE_URL=
+S3_EXPORTS_BUCKET=
+QB_CLIENT_ID=
+QB_CLIENT_SECRET=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+```
+
+## Adding New Environment Variables
+1. Add to `.env` with empty value and comment
+2. Add to `docs/TECH_STACK.md` environment variables section
+3. Document purpose and format in a comment above the variable
+4. If required at startup, add validation in config loader
