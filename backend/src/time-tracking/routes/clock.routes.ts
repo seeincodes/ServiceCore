@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import * as clockService from '../services/clock.service';
+import * as syncService from '../services/sync.service';
 import { authenticate, AuthenticatedRequest } from '../../auth/middleware/authenticate';
 import { sendSuccess, sendError } from '../../shared/utils/response';
 import logger from '../../shared/utils/logger';
@@ -90,6 +91,40 @@ router.get('/status', authenticate, async (req: Request, res: Response) => {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Status check failed';
     sendError(res, message);
+  }
+});
+
+// POST /timesheets/sync — batch sync offline entries
+const syncSchema = z.array(
+  z.object({
+    action: z.enum(['clock_in', 'clock_out']),
+    timestamp: z.string(),
+    projectId: z.string().optional(),
+    routeId: z.string().optional(),
+    locationLat: z.number().optional(),
+    locationLon: z.number().optional(),
+    idempotencyKey: z.string(),
+    entryId: z.string().optional(),
+  }),
+);
+
+router.post('/sync', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const entries = syncSchema.parse(req.body);
+
+    const result = await syncService.syncBatch(user.orgId, user.id, entries);
+
+    logger.info('Batch sync', {
+      userId: user.id,
+      orgId: user.orgId,
+      synced: result.syncedCount,
+      errors: result.errors.length,
+    });
+    sendSuccess(res, result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Sync failed';
+    sendError(res, message, 400);
   }
 });
 
