@@ -78,7 +78,6 @@ describe('AuthService', () => {
   describe('logout', () => {
     it('clears token, user, and navigates to /login', () => {
       localStorage.setItem('tk_token', 'x');
-      service.currentUser$; // ensure subject exists
       service.logout();
 
       expect(service.getToken()).toBeNull();
