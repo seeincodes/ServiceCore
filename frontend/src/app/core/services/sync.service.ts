@@ -3,6 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Subject, fromEvent, merge, takeUntil } from 'rxjs';
 import { OfflineStoreService, OfflineClockEntry } from './offline-store.service';
 
+interface SyncResponse {
+  success: boolean;
+  data: {
+    syncedCount: number;
+    errors: { index: number; error: string }[];
+  };
+  timestamp: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SyncService implements OnDestroy {
   private apiUrl = 'http://localhost:3000/timesheets';
@@ -19,7 +28,6 @@ export class SyncService implements OnDestroy {
     private http: HttpClient,
     private offlineStore: OfflineStoreService,
   ) {
-    // Listen for online/offline events
     merge(fromEvent(window, 'online'), fromEvent(window, 'offline'))
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
@@ -74,36 +82,45 @@ export class SyncService implements OnDestroy {
     if (entries.length === 0) return;
 
     this.syncingSubject.next(true);
-    let synced = 0;
 
-    for (const entry of entries) {
-      try {
-        if (entry.action === 'clock_in') {
-          await this.http
-            .post(`${this.apiUrl}/clock-in`, {
-              projectId: entry.projectId,
-              routeId: entry.routeId,
-              location: entry.location,
-              idempotencyKey: entry.idempotencyKey,
-            })
-            .toPromise();
-        } else {
-          await this.http.post(`${this.apiUrl}/clock-out`, { entryId: entry.entryId }).toPromise();
+    try {
+      // Use batch sync endpoint
+      const syncPayload = entries.map((e) => ({
+        action: e.action,
+        timestamp: e.timestamp,
+        projectId: e.projectId,
+        routeId: e.routeId,
+        locationLat: e.location?.lat,
+        locationLon: e.location?.lon,
+        idempotencyKey: e.idempotencyKey,
+        entryId: e.entryId,
+      }));
+
+      const res = await this.http
+        .post<SyncResponse>(`${this.apiUrl}/sync`, syncPayload)
+        .toPromise();
+
+      if (res) {
+        // Remove successfully synced entries
+        const errorIndices = new Set(res.data.errors.map((e) => e.index));
+        for (let i = 0; i < entries.length; i++) {
+          if (!errorIndices.has(i)) {
+            await this.offlineStore.removeEntry(entries[i].id);
+          }
         }
-        await this.offlineStore.removeEntry(entry.id);
-        synced++;
-      } catch {
-        // Stop on first failure — will retry later
-        break;
+
+        const synced = res.data.syncedCount;
+        if (synced > 0) {
+          this.lastSyncResultSubject.next(
+            `Synced. ${synced} ${synced === 1 ? 'entry' : 'entries'} uploaded.`,
+          );
+        }
       }
+    } catch {
+      // Will retry on next reconnect
     }
 
     this.syncingSubject.next(false);
-    if (synced > 0) {
-      this.lastSyncResultSubject.next(
-        `Synced. ${synced} ${synced === 1 ? 'entry' : 'entries'} uploaded.`,
-      );
-    }
   }
 
   async getPendingCount(): Promise<number> {
