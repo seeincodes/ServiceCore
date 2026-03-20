@@ -14,6 +14,7 @@ import reportRoutes from './payroll/routes/report.routes';
 import timesheetRoutes from './time-tracking/routes/timesheet.routes';
 import dispatcherRoutes from './dispatcher/routes/dispatcher.routes';
 import { startDispatcherPolling } from './dispatcher/services/dispatcher.service';
+import { scheduleNightlySync } from './integration/services/quickbooks.service';
 
 dotenv.config({ path: '../.env' });
 
@@ -49,6 +50,7 @@ app.use('/dispatcher', dispatcherRoutes);
 httpServer.listen(PORT, () => {
   logger.info(`TimeKeeper API running on port ${PORT}`);
   startDispatcherPolling();
+  scheduleNightlySync();
 });
 
 export default app;
