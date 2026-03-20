@@ -31,6 +31,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
+// Input sanitization
+import { sanitizeInput } from './shared/middleware/sanitize';
+app.use(sanitizeInput);
+
 // Health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
