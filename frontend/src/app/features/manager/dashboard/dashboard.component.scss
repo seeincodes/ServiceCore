@@ -1,9 +1,14 @@
 @use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
 
 .dashboard {
-  padding: $spacing-lg;
-  max-width: 1024px;
+  padding: $spacing-md;
+  max-width: 1200px;
   margin: 0 auto;
+
+  @include tablet-up {
+    padding: $spacing-lg;
+  }
 }
 
 .dashboard-header {
@@ -15,9 +20,13 @@
   gap: $spacing-sm;
 
   h1 {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 600;
     margin: 0;
+
+    @include tablet-up {
+      font-size: 24px;
+    }
   }
 }
 
@@ -39,6 +48,11 @@
 .refresh-time {
   font-size: $font-size-sm;
   color: $neutral-500;
+  display: none;
+
+  @include tablet-up {
+    display: inline;
+  }
 }
 
 .error-banner {
@@ -55,9 +69,62 @@
   color: $neutral-500;
 }
 
+// Mobile: card-based layout
+.driver-cards {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+
+  @include tablet-up {
+    display: none;
+  }
+}
+
+.driver-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-md;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+
+  &:active {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &.active {
+    border-left: 4px solid $success;
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+}
+
+.card-name {
+  font-weight: 600;
+  font-size: $font-size-base;
+}
+
+.card-details {
+  display: flex;
+  gap: $spacing-md;
+  font-size: $font-size-sm;
+  color: $neutral-700;
+}
+
+// Tablet/Desktop: table layout
 .driver-table {
   width: 100%;
   border-collapse: collapse;
+  display: none;
+
+  @include tablet-up {
+    display: table;
+  }
 
   th {
     text-align: left;

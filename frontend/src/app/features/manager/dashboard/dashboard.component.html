@@ -11,6 +11,33 @@
 
   <div class="loading" *ngIf="loading">Loading...</div>
 
+  <!-- Mobile: Card layout -->
+  <div class="driver-cards" *ngIf="!loading && drivers.length > 0">
+    <div
+      *ngFor="let driver of drivers"
+      class="driver-card"
+      [class.active]="driver.status === 'clocked_in'"
+      (click)="onDriverClick(driver)"
+    >
+      <div class="card-header">
+        <span class="card-name">{{ driver.name }}</span>
+        <span
+          class="status-badge"
+          [class.status-in]="driver.status === 'clocked_in'"
+          [class.status-out]="driver.status === 'clocked_out'"
+        >
+          {{ driver.status === 'clocked_in' ? 'In' : 'Out' }}
+        </span>
+      </div>
+      <div class="card-details">
+        <span>{{ driver.hours }}h</span>
+        <span *ngIf="driver.route">Route {{ driver.route }}</span>
+        <span>{{ formatTime(driver.lastUpdate) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tablet/Desktop: Table layout -->
   <table class="driver-table" *ngIf="!loading && drivers.length > 0">
     <thead>
       <tr>
