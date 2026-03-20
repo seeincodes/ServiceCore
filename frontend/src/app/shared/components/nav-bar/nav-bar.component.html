@@ -1,0 +1,49 @@
+<nav class="nav-bar" *ngIf="isAuthenticated">
+  <div class="nav-content">
+    <div class="nav-brand">
+      <span class="brand-name">TimeKeeper</span>
+    </div>
+
+    <!-- Desktop links -->
+    <div class="nav-links desktop-only">
+      <a
+        *ngFor="let link of links"
+        [routerLink]="link.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: link.path === '/manager' }"
+        class="nav-link"
+      >
+        <span class="nav-icon">{{ link.icon }}</span>
+        {{ link.label }}
+      </a>
+    </div>
+
+    <div class="nav-right desktop-only">
+      <span class="user-info">{{ user?.firstName }} {{ user?.lastName }}</span>
+      <button class="logout-btn" (click)="logout()">Log out</button>
+    </div>
+
+    <!-- Mobile hamburger -->
+    <button class="hamburger mobile-only" (click)="toggleMenu()" [class.open]="menuOpen">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </div>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" *ngIf="menuOpen">
+    <div class="mobile-user">{{ user?.firstName }} {{ user?.lastName }}</div>
+    <a
+      *ngFor="let link of links"
+      [routerLink]="link.path"
+      routerLinkActive="active"
+      class="mobile-link"
+      (click)="closeMenu()"
+    >
+      <span class="nav-icon">{{ link.icon }}</span>
+      {{ link.label }}
+    </a>
+    <button class="mobile-link mobile-logout" (click)="logout()">Log out</button>
+  </div>
+</nav>
