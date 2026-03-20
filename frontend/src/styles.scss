@@ -1,0 +1,22 @@
+@use 'styles/variables' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: $font-size-base;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: $font-family;
+  color: $neutral-900;
+  background-color: $neutral-50;
+  line-height: 1.5;
+  min-height: 100vh;
+}
