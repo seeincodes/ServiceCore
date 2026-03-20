@@ -8,6 +8,11 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'login',
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+  },
+  {
     path: 'clock',
     loadComponent: () =>
       import('./features/driver/clock-button/clock-button.component').then(
