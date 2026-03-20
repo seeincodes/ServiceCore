@@ -1,0 +1,19 @@
+{
+  "name": "timekeeper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Waste services employee time tracking platform",
+  "scripts": {
+    "dev:api": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npx ng serve",
+    "build:api": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npx ng build",
+    "lint:backend": "cd backend && npx eslint src/ --ext .ts",
+    "lint": "npm run lint:backend",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  }
+}
