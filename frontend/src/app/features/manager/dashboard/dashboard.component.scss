@@ -55,6 +55,51 @@
   }
 }
 
+.alerts {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+}
+
+.alert-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+
+  &.alert-approaching {
+    background-color: rgba($warning, 0.15);
+    color: darken($warning, 25%);
+  }
+
+  &.alert-threshold {
+    background-color: rgba(#f57c00, 0.15);
+    color: #e65100;
+  }
+
+  &.alert-exceeded {
+    background-color: rgba($danger, 0.15);
+    color: darken($danger, 10%);
+  }
+
+  .dismiss {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 0 4px;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
 .error-banner {
   background-color: rgba($danger, 0.1);
   color: $danger;

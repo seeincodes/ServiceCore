@@ -9,6 +9,20 @@
 
   <div class="error-banner" *ngIf="error">{{ error }}</div>
 
+  <!-- OT Alerts -->
+  <div class="alerts" *ngIf="alerts.length > 0">
+    <div
+      *ngFor="let alert of alerts; let i = index"
+      class="alert-item"
+      [class.alert-approaching]="alert.type === 'approaching'"
+      [class.alert-threshold]="alert.type === 'threshold'"
+      [class.alert-exceeded]="alert.type === 'exceeded'"
+    >
+      <span>{{ alert.message }}</span>
+      <button class="dismiss" (click)="dismissAlert(i)">&times;</button>
+    </div>
+  </div>
+
   <div class="loading" *ngIf="loading">Loading...</div>
 
   <!-- Mobile: Card layout -->

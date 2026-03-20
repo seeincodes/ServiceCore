@@ -1,5 +1,6 @@
 import db from '../../shared/database/connection';
 import logger from '../../shared/utils/logger';
+import { emitToOrg } from '../../shared/websocket/socket';
 
 const MAX_HOURS_PER_DAY = 16;
 
@@ -81,13 +82,17 @@ export async function clockIn(params: ClockInParams): Promise<ClockInResult> {
     })
     .returning(['id', 'clock_in', 'route_id', 'project_id']);
 
-  return {
+  const result = {
     entryId: entry.id,
-    status: 'clocked_in',
+    status: 'clocked_in' as const,
     timestamp: entry.clock_in.toISOString(),
     routeId: entry.route_id,
     projectId: entry.project_id,
   };
+
+  emitToOrg(orgId, 'clock_in', { userId, ...result });
+
+  return result;
 }
 
 export async function clockOut(
@@ -115,12 +120,27 @@ export async function clockOut(
 
   await db('clock_entries').where({ id: entry.id }).update({ clock_out: now });
 
-  return {
+  const result = {
     entryId: entry.id,
-    status: 'clocked_out',
+    status: 'clocked_out' as const,
     hoursWorked: Math.round(hoursWorked * 100) / 100,
     timestamp: now.toISOString(),
   };
+
+  emitToOrg(orgId, 'clock_out', { userId, ...result });
+
+  // Emit OT alert if approaching threshold
+  if (result.hoursWorked >= 38) {
+    const alertType =
+      result.hoursWorked >= 45
+        ? 'exceeded'
+        : result.hoursWorked >= 40
+          ? 'threshold'
+          : 'approaching';
+    emitToOrg(orgId, 'ot_alert', { userId, hours: result.hoursWorked, alertType });
+  }
+
+  return result;
 }
 
 export async function getActiveEntry(orgId: string, userId: string) {
