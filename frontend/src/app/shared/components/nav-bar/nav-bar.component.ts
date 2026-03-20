@@ -81,7 +81,13 @@ export class NavBarComponent implements OnInit, OnDestroy {
           { path: '/manager/approvals', label: 'Approvals', icon: '✓' },
         ];
       case 'org_admin':
-        return [...managerLinks, ...driverLinks];
+        return [
+          { path: '/admin', label: 'Dashboard', icon: '🏢' },
+          { path: '/admin/users', label: 'Users', icon: '👥' },
+          { path: '/admin/settings', label: 'Settings', icon: '⚙' },
+          { path: '/manager', label: 'Drivers', icon: '📊' },
+          { path: '/manager/approvals', label: 'Approvals', icon: '✓' },
+        ];
       default:
         return driverLinks;
     }

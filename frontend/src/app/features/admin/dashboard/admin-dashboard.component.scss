@@ -1,0 +1,71 @@
+@use '../../../../styles/variables' as *;
+
+.admin-dash {
+  padding: $spacing-md;
+  max-width: 800px;
+  margin: 0 auto;
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 $spacing-lg;
+  }
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: $spacing-md;
+  margin-bottom: $spacing-xl;
+}
+
+.stat-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  text-align: center;
+  &.highlight {
+    border-color: $success;
+    background: rgba($success, 0.03);
+  }
+  &.alert {
+    border-color: #f57c00;
+    background: rgba(#f57c00, 0.03);
+  }
+}
+
+.stat-value {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: $neutral-900;
+}
+.stat-label {
+  font-size: 12px;
+  color: $neutral-500;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: $spacing-sm;
+}
+
+.quick-link {
+  display: block;
+  padding: $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 10px;
+  text-decoration: none;
+  color: $primary;
+  font-weight: 500;
+  font-size: $font-size-sm;
+  text-align: center;
+  transition: background 0.15s;
+  &:hover {
+    background: $neutral-50;
+  }
+}

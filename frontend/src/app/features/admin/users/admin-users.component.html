@@ -1,0 +1,140 @@
+<div class="admin-users">
+  <div class="page-header">
+    <h1>Users</h1>
+    <button class="add-btn" (click)="toggleAddForm()">
+      {{ showAddForm ? 'Cancel' : '+ Add User' }}
+    </button>
+  </div>
+
+  <div
+    class="message"
+    *ngIf="message"
+    [class.success]="message.type === 'success'"
+    [class.error]="message.type === 'error'"
+  >
+    {{ message.text }}
+  </div>
+
+  <!-- Add user form -->
+  <div class="form-card" *ngIf="showAddForm">
+    <h2>New User</h2>
+    <form (ngSubmit)="addUser()" class="user-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>First Name</label>
+          <input [(ngModel)]="newUser.firstName" name="firstName" required />
+        </div>
+        <div class="form-field">
+          <label>Last Name</label>
+          <input [(ngModel)]="newUser.lastName" name="lastName" required />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="newUser.email" name="email" required />
+        </div>
+        <div class="form-field">
+          <label>Password</label>
+          <input
+            type="password"
+            [(ngModel)]="newUser.password"
+            name="password"
+            required
+            minlength="8"
+          />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Role</label>
+          <select [(ngModel)]="newUser.role" name="role">
+            <option value="employee">Driver</option>
+            <option value="manager">Manager</option>
+            <option value="payroll_admin">Payroll Admin</option>
+            <option value="org_admin">Admin</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Phone</label>
+          <input [(ngModel)]="newUser.phone" name="phone" placeholder="+15551234567" />
+        </div>
+      </div>
+      <button type="submit" class="save-btn" [disabled]="saving">
+        {{ saving ? 'Creating...' : 'Create User' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Edit user form -->
+  <div class="form-card" *ngIf="editingUser">
+    <h2>Edit {{ editingUser.first_name }} {{ editingUser.last_name }}</h2>
+    <form (ngSubmit)="saveEdit()" class="user-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>First Name</label>
+          <input [(ngModel)]="editingUser.first_name" name="firstName" />
+        </div>
+        <div class="form-field">
+          <label>Last Name</label>
+          <input [(ngModel)]="editingUser.last_name" name="lastName" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Role</label>
+          <select [(ngModel)]="editingUser.role" name="role">
+            <option value="employee">Driver</option>
+            <option value="manager">Manager</option>
+            <option value="payroll_admin">Payroll Admin</option>
+            <option value="org_admin">Admin</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Phone</label>
+          <input [(ngModel)]="editingUser.phone" name="phone" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="save-btn" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+        <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- User list -->
+  <div class="loading" *ngIf="loading">Loading...</div>
+  <table class="user-table" *ngIf="!loading && users.length > 0">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users" [class.inactive]="!user.is_active">
+        <td class="user-name">{{ user.first_name }} {{ user.last_name }}</td>
+        <td>{{ user.email }}</td>
+        <td>
+          <span class="role-badge">{{ roleLabel(user.role) }}</span>
+        </td>
+        <td>
+          <span class="status" [class.active]="user.is_active" [class.disabled]="!user.is_active">
+            {{ user.is_active ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+        <td class="actions">
+          <button class="action-btn" (click)="editUser(user)">Edit</button>
+          <button class="action-btn toggle" (click)="toggleActive(user)">
+            {{ user.is_active ? 'Deactivate' : 'Activate' }}
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
