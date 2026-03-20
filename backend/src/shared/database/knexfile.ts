@@ -52,7 +52,7 @@ const knexConfig: Record<string, Knex.Config> = {
     connection: process.env.DATABASE_URL,
     migrations: {
       directory: path.resolve(__dirname, 'migrations'),
-      extension: 'ts',
+      extension: 'js',
     },
     seeds: {
       directory: path.resolve(__dirname, 'seeds/production'),

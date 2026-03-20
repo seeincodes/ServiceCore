@@ -8,7 +8,7 @@ terraform {
   }
 
   backend "s3" {
-    bucket = "timekeeper-terraform-state"
+    bucket = "timekeeper-terraform-state-xian"
     key    = "prod/terraform.tfstate"
     region = "us-east-1"
   }
@@ -50,28 +50,27 @@ module "vpc" {
   single_nat_gateway = true
 }
 
-# RDS PostgreSQL (Multi-AZ, encrypted)
+# RDS PostgreSQL (free-tier compatible)
 resource "aws_db_instance" "postgres" {
   identifier     = "${var.app_name}-db"
   engine         = "postgres"
   engine_version = "15"
-  instance_class = "db.r6g.large"
+  instance_class = "db.t4g.micro"
 
-  allocated_storage     = 100
-  max_allocated_storage = 500
+  allocated_storage     = 20
+  max_allocated_storage = 100
   storage_encrypted     = true
 
   db_name  = "timekeeper"
   username = "postgres"
   password = var.db_password
 
-  multi_az               = true
+  multi_az               = false
   db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.db.id]
 
-  backup_retention_period = 30
-  skip_final_snapshot     = false
-  final_snapshot_identifier = "${var.app_name}-final-snapshot"
+  backup_retention_period = 1
+  skip_final_snapshot     = true
 
   tags = { Environment = var.environment }
 }
@@ -86,7 +85,7 @@ resource "aws_elasticache_cluster" "redis" {
   cluster_id           = "${var.app_name}-redis"
   engine               = "redis"
   engine_version       = "7.0"
-  node_type            = "cache.r6g.large"
+  node_type            = "cache.t4g.micro"
   num_cache_nodes      = 1
   parameter_group_name = "default.redis7"
   subnet_group_name    = aws_elasticache_subnet_group.main.name

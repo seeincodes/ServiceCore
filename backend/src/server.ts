@@ -54,10 +54,45 @@ app.use('/manager', timesheetRoutes);
 app.use('/dispatcher', dispatcherRoutes);
 // app.use('/admin', adminRoutes);
 
-httpServer.listen(PORT, () => {
-  logger.info(`TimeKeeper API running on port ${PORT}`);
-  startDispatcherPolling();
-  scheduleNightlySync();
-});
+// Run migrations before starting
+import db from './shared/database/connection';
+
+db.migrate
+  .latest({
+    directory: __dirname + '/shared/database/migrations',
+    loadExtensions: ['.js'],
+  })
+  .then(([_batch, migrations]) => {
+    if (migrations.length) {
+      logger.info(`Migrations applied: ${migrations.length}`);
+    } else {
+      logger.info('Database is up to date');
+    }
+
+    // Auto-seed if database is empty
+    return db('orgs')
+      .count('id as count')
+      .first()
+      .then(async (result) => {
+        if (Number(result?.count) === 0) {
+          logger.info('Empty database detected, running seed...');
+          await db.seed.run({
+            directory: __dirname + '/shared/database/seeds/production',
+            loadExtensions: ['.js'],
+          });
+          logger.info('Production seed complete');
+        }
+
+        httpServer.listen(PORT, () => {
+          logger.info(`TimeKeeper API running on port ${PORT}`);
+          startDispatcherPolling();
+          scheduleNightlySync();
+        });
+      });
+  })
+  .catch((err) => {
+    logger.error(`Migration failed: ${err.message}`);
+    process.exit(1);
+  });
 
 export default app;
