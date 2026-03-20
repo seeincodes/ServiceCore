@@ -1,0 +1,66 @@
+<div class="approval-queue">
+  <h2>Approval Queue</h2>
+
+  <div
+    class="message"
+    *ngIf="message"
+    [class.success]="message.type === 'success'"
+    [class.error]="message.type === 'error'"
+  >
+    {{ message.text }}
+  </div>
+
+  <div class="loading" *ngIf="loading">Loading...</div>
+
+  <div class="empty" *ngIf="!loading && timesheets.length === 0">
+    No timesheets pending approval.
+  </div>
+
+  <div class="ts-list" *ngIf="!loading && timesheets.length > 0">
+    <div *ngFor="let ts of timesheets" class="ts-card">
+      <div class="ts-info">
+        <span class="ts-name">{{ ts.userName }}</span>
+        <span class="ts-week">Week ending {{ formatDate(ts.weekEnding) }}</span>
+        <div class="ts-hours">
+          <span>{{ ts.hoursWorked }}h total</span>
+          <span class="ot" *ngIf="ts.otHours > 0">{{ ts.otHours }}h OT</span>
+        </div>
+      </div>
+
+      <div class="ts-actions" *ngIf="showNotesFor !== ts.id">
+        <button
+          class="btn btn-approve"
+          (click)="approve(ts)"
+          [disabled]="actionInProgress === ts.id"
+        >
+          Approve
+        </button>
+        <button
+          class="btn btn-revision"
+          (click)="requestRevision(ts)"
+          [disabled]="actionInProgress === ts.id"
+        >
+          Revise
+        </button>
+        <button class="btn btn-reject" (click)="reject(ts)" [disabled]="actionInProgress === ts.id">
+          Reject
+        </button>
+      </div>
+
+      <div class="notes-form" *ngIf="showNotesFor === ts.id">
+        <textarea
+          [(ngModel)]="rejectNotes[ts.id]"
+          placeholder="Add notes (required for reject/revise)..."
+          rows="2"
+        ></textarea>
+        <div class="notes-actions">
+          <button class="btn btn-revision" (click)="submitRevisionRequest(ts.id)">
+            Send for Revision
+          </button>
+          <button class="btn btn-reject" (click)="submitRejection(ts.id)">Reject</button>
+          <button class="btn btn-cancel" (click)="cancelNotes()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
