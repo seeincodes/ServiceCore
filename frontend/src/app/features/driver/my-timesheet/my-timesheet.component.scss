@@ -1,0 +1,177 @@
+@use '../../../../styles/variables' as *;
+
+.my-timesheet {
+  padding: $spacing-md;
+  max-width: 600px;
+  margin: 0 auto;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 $spacing-lg;
+  }
+}
+
+.message {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+  &.success {
+    background: rgba($success, 0.1);
+    color: darken($success, 10%);
+  }
+  &.error {
+    background: rgba($danger, 0.1);
+    color: $danger;
+  }
+}
+
+.current-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-xl;
+}
+
+.current-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  h2 {
+    font-size: 18px;
+    margin: 0;
+  }
+}
+
+.current-details {
+  display: flex;
+  gap: $spacing-xl;
+  margin-bottom: $spacing-lg;
+}
+
+.detail {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-value {
+  font-size: 22px;
+  font-weight: 700;
+  &.ot {
+    color: #f57c00;
+  }
+}
+
+.detail-label {
+  font-size: 12px;
+  color: $neutral-500;
+  text-transform: uppercase;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 14px;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: $font-size-base;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover:not(:disabled) {
+    background: $primary-dark;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.status-message {
+  text-align: center;
+  padding: $spacing-sm;
+  font-size: $font-size-sm;
+  color: $neutral-500;
+  &.approved {
+    color: $success;
+  }
+  &.locked {
+    color: $neutral-700;
+  }
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+
+  &[data-status='draft'] {
+    background: $neutral-100;
+    color: $neutral-500;
+  }
+  &[data-status='submitted'] {
+    background: rgba($primary, 0.1);
+    color: $primary;
+  }
+  &[data-status='approved'] {
+    background: rgba($success, 0.1);
+    color: darken($success, 10%);
+  }
+  &[data-status='locked'] {
+    background: $neutral-200;
+    color: $neutral-700;
+  }
+
+  &.small {
+    font-size: 11px;
+    padding: 1px 8px;
+  }
+}
+
+.history-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 $spacing-md;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: $spacing-lg;
+  color: $neutral-500;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+}
+
+.history-week {
+  flex: 1;
+  color: $neutral-700;
+}
+.history-hours {
+  font-weight: 600;
+}
+.history-ot {
+  color: #f57c00;
+  font-size: 12px;
+}

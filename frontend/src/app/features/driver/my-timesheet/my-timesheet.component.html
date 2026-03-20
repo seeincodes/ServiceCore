@@ -1,0 +1,68 @@
+<div class="my-timesheet">
+  <h1>My Timesheet</h1>
+
+  <div
+    class="message"
+    *ngIf="message"
+    [class.success]="message.type === 'success'"
+    [class.error]="message.type === 'error'"
+  >
+    {{ message.text }}
+  </div>
+
+  <!-- Current week -->
+  <div class="current-card" *ngIf="current">
+    <div class="current-header">
+      <h2>This Week</h2>
+      <span class="status-badge" [attr.data-status]="current.status">
+        {{ statusLabel(current.status) }}
+      </span>
+    </div>
+    <div class="current-details">
+      <div class="detail">
+        <span class="detail-value">{{ current.hoursWorked }}h</span>
+        <span class="detail-label">Total Hours</span>
+      </div>
+      <div class="detail" *ngIf="current.otHours > 0">
+        <span class="detail-value ot">{{ current.otHours }}h</span>
+        <span class="detail-label">Overtime</span>
+      </div>
+      <div class="detail">
+        <span class="detail-value">{{ formatDate(current.weekEnding) }}</span>
+        <span class="detail-label">Week Ending</span>
+      </div>
+    </div>
+    <button
+      class="submit-btn"
+      *ngIf="canSubmit"
+      (click)="submitTimesheet()"
+      [disabled]="submitting"
+    >
+      {{ submitting ? 'Submitting...' : 'Submit Timesheet' }}
+    </button>
+    <div class="status-message" *ngIf="current.status === 'submitted'">
+      Waiting for manager approval
+    </div>
+    <div class="status-message approved" *ngIf="current.status === 'approved'">
+      Approved by manager
+    </div>
+    <div class="status-message locked" *ngIf="current.status === 'locked'">
+      Locked — sent to payroll
+    </div>
+  </div>
+
+  <!-- History -->
+  <h2 class="history-title">History</h2>
+  <div class="loading" *ngIf="loading">Loading...</div>
+  <div class="history-list" *ngIf="!loading">
+    <div *ngFor="let ts of history" class="history-row">
+      <span class="history-week">Week ending {{ formatDate(ts.weekEnding) }}</span>
+      <span class="history-hours">{{ ts.hoursWorked }}h</span>
+      <span class="history-ot" *ngIf="ts.otHours > 0">+{{ ts.otHours }}h OT</span>
+      <span class="status-badge small" [attr.data-status]="ts.status">
+        {{ statusLabel(ts.status) }}
+      </span>
+    </div>
+    <div class="empty" *ngIf="history.length === 0">No timesheet history yet.</div>
+  </div>
+</div>
