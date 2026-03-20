@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import logger from './shared/utils/logger';
 import authRoutes from './auth/routes/auth.routes';
+import clockRoutes from './time-tracking/routes/clock.routes';
 
 dotenv.config({ path: '../.env' });
 
@@ -23,7 +24,7 @@ app.get('/health', (_req, res) => {
 
 // Routes
 app.use('/auth', authRoutes);
-// app.use('/timesheets', timeTrackingRoutes);
+app.use('/timesheets', clockRoutes);
 // app.use('/manager', managerRoutes);
 // app.use('/admin', adminRoutes);
 
