@@ -22,6 +22,14 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('manager', 'org_admin')],
   },
   {
+    path: 'manager/approvals',
+    loadComponent: () =>
+      import('./features/manager/approval-queue/approval-queue.component').then(
+        (m) => m.ApprovalQueueComponent,
+      ),
+    canActivate: [authGuard, roleGuard('manager', 'org_admin')],
+  },
+  {
     path: 'manager/driver/:userId',
     loadComponent: () =>
       import('./features/manager/driver-detail/driver-detail.component').then(

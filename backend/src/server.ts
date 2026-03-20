@@ -11,6 +11,7 @@ import clockRoutes from './time-tracking/routes/clock.routes';
 import smsRoutes from './time-tracking/routes/sms.routes';
 import dashboardRoutes from './time-tracking/routes/dashboard.routes';
 import reportRoutes from './payroll/routes/report.routes';
+import timesheetRoutes from './time-tracking/routes/timesheet.routes';
 
 dotenv.config({ path: '../.env' });
 
@@ -35,9 +36,11 @@ app.get('/health', (_req, res) => {
 // Routes
 app.use('/auth', authRoutes);
 app.use('/timesheets', clockRoutes);
+app.use('/timesheets', timesheetRoutes);
 app.use('/sms', smsRoutes);
 app.use('/manager', dashboardRoutes);
 app.use('/manager', reportRoutes);
+app.use('/manager', timesheetRoutes);
 // app.use('/admin', adminRoutes);
 
 httpServer.listen(PORT, () => {

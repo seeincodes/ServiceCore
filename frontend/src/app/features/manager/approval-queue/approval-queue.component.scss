@@ -1,0 +1,134 @@
+@use '../../../../styles/variables' as *;
+
+.approval-queue {
+  padding: $spacing-lg;
+  max-width: 800px;
+  margin: 0 auto;
+
+  h2 {
+    margin: 0 0 $spacing-lg;
+    font-size: 24px;
+  }
+}
+
+.message {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+
+  &.success {
+    background-color: rgba($success, 0.1);
+    color: darken($success, 10%);
+  }
+
+  &.error {
+    background-color: rgba($danger, 0.1);
+    color: $danger;
+  }
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}
+
+.ts-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.ts-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.ts-info {
+  margin-bottom: $spacing-md;
+}
+
+.ts-name {
+  display: block;
+  font-weight: 600;
+  font-size: $font-size-base;
+}
+
+.ts-week {
+  display: block;
+  font-size: $font-size-sm;
+  color: $neutral-500;
+  margin-bottom: $spacing-xs;
+}
+
+.ts-hours {
+  font-size: $font-size-sm;
+  display: flex;
+  gap: $spacing-md;
+
+  .ot {
+    color: #f57c00;
+    font-weight: 600;
+  }
+}
+
+.ts-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.btn {
+  padding: $spacing-sm $spacing-md;
+  border: none;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
+
+  &.btn-approve {
+    background-color: $success;
+    color: $white;
+  }
+
+  &.btn-revision {
+    background-color: #f57c00;
+    color: $white;
+  }
+
+  &.btn-reject {
+    background-color: $danger;
+    color: $white;
+  }
+
+  &.btn-cancel {
+    background-color: $neutral-200;
+    color: $neutral-700;
+  }
+}
+
+.notes-form {
+  textarea {
+    width: 100%;
+    padding: $spacing-sm;
+    border: 1px solid $neutral-300;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: $font-size-sm;
+    resize: vertical;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.notes-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
