@@ -54,26 +54,30 @@ app.use('/manager', timesheetRoutes);
 app.use('/dispatcher', dispatcherRoutes);
 // app.use('/admin', adminRoutes);
 
-// Run migrations before starting
-import db from './shared/database/connection';
+// Start server — run migrations in production only
+const startServer = () => {
+  httpServer.listen(PORT, () => {
+    logger.info(`TimeKeeper API running on port ${PORT}`);
+    startDispatcherPolling();
+    scheduleNightlySync();
+  });
+};
 
-db.migrate
-  .latest({
-    directory: __dirname + '/shared/database/migrations',
-    loadExtensions: ['.js'],
-  })
-  .then(([_batch, migrations]) => {
-    if (migrations.length) {
-      logger.info(`Migrations applied: ${migrations.length}`);
-    } else {
-      logger.info('Database is up to date');
-    }
+if (env === 'production') {
+  import('./shared/database/connection').then(({ default: db }) => {
+    db.migrate
+      .latest({
+        directory: __dirname + '/shared/database/migrations',
+        loadExtensions: ['.js'],
+      })
+      .then(async ([_batch, migrations]) => {
+        if (migrations.length) {
+          logger.info(`Migrations applied: ${migrations.length}`);
+        } else {
+          logger.info('Database is up to date');
+        }
 
-    // Auto-seed if database is empty
-    return db('orgs')
-      .count('id as count')
-      .first()
-      .then(async (result) => {
+        const result = await db('orgs').count('id as count').first();
         if (Number(result?.count) === 0) {
           logger.info('Empty database detected, running seed...');
           await db.seed.run({
@@ -83,16 +87,15 @@ db.migrate
           logger.info('Production seed complete');
         }
 
-        httpServer.listen(PORT, () => {
-          logger.info(`TimeKeeper API running on port ${PORT}`);
-          startDispatcherPolling();
-          scheduleNightlySync();
-        });
+        startServer();
+      })
+      .catch((err) => {
+        logger.error(`Migration failed: ${err.message}`);
+        process.exit(1);
       });
-  })
-  .catch((err) => {
-    logger.error(`Migration failed: ${err.message}`);
-    process.exit(1);
   });
+} else {
+  startServer();
+}
 
 export default app;
