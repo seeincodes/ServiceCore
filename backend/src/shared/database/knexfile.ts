@@ -9,7 +9,7 @@ const knexConfig: Record<string, Knex.Config> = {
     client: 'pg',
     connection: process.env.DATABASE_URL || {
       host: 'localhost',
-      port: 5432,
+      port: Number(process.env.DB_PORT) || 5433,
       database: 'timekeeper_dev',
       user: 'postgres',
       password: 'postgres',
@@ -28,7 +28,7 @@ const knexConfig: Record<string, Knex.Config> = {
     client: 'pg',
     connection: process.env.DATABASE_URL || {
       host: 'localhost',
-      port: 5432,
+      port: Number(process.env.DB_PORT) || 5433,
       database: 'timekeeper_test',
       user: 'postgres',
       password: 'postgres',
