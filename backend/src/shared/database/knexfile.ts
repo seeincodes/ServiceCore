@@ -2,7 +2,11 @@ import { Knex } from 'knex';
 import dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '../../../../.env') });
+// Load environment-specific .env file
+const env = process.env.NODE_ENV || 'development';
+const envFile = `.env.${env}`;
+dotenv.config({ path: path.resolve(__dirname, '../../../../', envFile) });
+dotenv.config({ path: path.resolve(__dirname, '../../../../.env') }); // fallback
 
 const knexConfig: Record<string, Knex.Config> = {
   development: {
@@ -19,7 +23,7 @@ const knexConfig: Record<string, Knex.Config> = {
       extension: 'ts',
     },
     seeds: {
-      directory: path.resolve(__dirname, 'seeds'),
+      directory: path.resolve(__dirname, 'seeds/development'),
       extension: 'ts',
     },
     pool: { min: 2, max: 10 },
@@ -38,7 +42,7 @@ const knexConfig: Record<string, Knex.Config> = {
       extension: 'ts',
     },
     seeds: {
-      directory: path.resolve(__dirname, 'seeds'),
+      directory: path.resolve(__dirname, 'seeds/development'),
       extension: 'ts',
     },
     pool: { min: 2, max: 10 },
@@ -48,6 +52,10 @@ const knexConfig: Record<string, Knex.Config> = {
     connection: process.env.DATABASE_URL,
     migrations: {
       directory: path.resolve(__dirname, 'migrations'),
+      extension: 'ts',
+    },
+    seeds: {
+      directory: path.resolve(__dirname, 'seeds/production'),
       extension: 'ts',
     },
     pool: { min: 5, max: 30 },

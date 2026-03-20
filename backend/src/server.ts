@@ -16,6 +16,9 @@ import dispatcherRoutes from './dispatcher/routes/dispatcher.routes';
 import { startDispatcherPolling } from './dispatcher/services/dispatcher.service';
 import { scheduleNightlySync } from './integration/services/quickbooks.service';
 
+// Load environment-specific .env file, then fall back to .env
+const env = process.env.NODE_ENV || 'development';
+dotenv.config({ path: `../.env.${env}` });
 dotenv.config({ path: '../.env' });
 
 const app = express();
