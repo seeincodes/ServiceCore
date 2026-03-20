@@ -21,6 +21,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'profile',
+    loadComponent: () =>
+      import('./features/profile/profile.component').then((m) => m.ProfileComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'my-hours',
     loadComponent: () =>
       import('./features/driver/my-hours/my-hours.component').then((m) => m.MyHoursComponent),

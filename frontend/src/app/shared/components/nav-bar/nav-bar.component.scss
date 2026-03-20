@@ -68,9 +68,13 @@
   gap: $spacing-md;
 }
 
-.user-info {
+.user-info-link {
   font-size: $font-size-sm;
   color: $neutral-500;
+  text-decoration: none;
+  &:hover {
+    color: $primary;
+  }
 }
 
 .logout-btn {

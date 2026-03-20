@@ -1,0 +1,109 @@
+<div class="profile-page">
+  <h1>Profile</h1>
+
+  <div
+    class="message"
+    *ngIf="message"
+    [class.success]="message.type === 'success'"
+    [class.error]="message.type === 'error'"
+  >
+    {{ message.text }}
+  </div>
+
+  <!-- Profile Info -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Personal Information</h2>
+      <button class="edit-btn" (click)="toggleEditProfile()">
+        {{ editingProfile ? 'Cancel' : 'Edit' }}
+      </button>
+    </div>
+
+    <div class="field-group" *ngIf="!editingProfile">
+      <div class="field">
+        <span class="field-label">Name</span>
+        <span class="field-value">{{ profile.firstName }} {{ profile.lastName }}</span>
+      </div>
+      <div class="field">
+        <span class="field-label">Email</span>
+        <span class="field-value">{{ profile.email }}</span>
+      </div>
+      <div class="field">
+        <span class="field-label">Phone</span>
+        <span class="field-value">{{ profile.phone || 'Not set' }}</span>
+      </div>
+      <div class="field">
+        <span class="field-label">Role</span>
+        <span class="field-value">{{ roleLabel(profile.role) }}</span>
+      </div>
+      <div class="field">
+        <span class="field-label">Organization</span>
+        <span class="field-value">{{ profile.orgName }}</span>
+      </div>
+    </div>
+
+    <form class="edit-form" *ngIf="editingProfile" (ngSubmit)="saveProfile()">
+      <div class="form-field">
+        <label>First Name</label>
+        <input [(ngModel)]="profile.firstName" name="firstName" required />
+      </div>
+      <div class="form-field">
+        <label>Last Name</label>
+        <input [(ngModel)]="profile.lastName" name="lastName" required />
+      </div>
+      <div class="form-field">
+        <label>Phone</label>
+        <input [(ngModel)]="profile.phone" name="phone" placeholder="+15551234567" />
+      </div>
+      <button type="submit" class="save-btn" [disabled]="savingProfile">
+        {{ savingProfile ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Password -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Password</h2>
+      <button class="edit-btn" (click)="toggleChangePassword()">
+        {{ changingPassword ? 'Cancel' : 'Change' }}
+      </button>
+    </div>
+
+    <form class="edit-form" *ngIf="changingPassword" (ngSubmit)="savePassword()">
+      <div class="form-field">
+        <label>Current Password</label>
+        <input
+          type="password"
+          [(ngModel)]="passwords.currentPassword"
+          name="currentPassword"
+          required
+        />
+      </div>
+      <div class="form-field">
+        <label>New Password</label>
+        <input
+          type="password"
+          [(ngModel)]="passwords.newPassword"
+          name="newPassword"
+          required
+          minlength="8"
+        />
+      </div>
+      <div class="form-field">
+        <label>Confirm New Password</label>
+        <input
+          type="password"
+          [(ngModel)]="passwords.confirmPassword"
+          name="confirmPassword"
+          required
+        />
+      </div>
+      <button type="submit" class="save-btn" [disabled]="savingPassword">
+        {{ savingPassword ? 'Changing...' : 'Change Password' }}
+      </button>
+    </form>
+
+    <p class="hint" *ngIf="!changingPassword">Last changed: unknown</p>
+  </div>
+</div>

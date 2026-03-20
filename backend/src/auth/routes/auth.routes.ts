@@ -141,6 +141,78 @@ router.post('/register', authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// PUT /auth/profile — update profile fields
+const profileSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  phone: z.string().optional(),
+});
+
+router.put('/profile', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = (req as AuthenticatedRequest).user;
+    const data = profileSchema.parse(req.body);
+
+    const updates: Record<string, string> = {};
+    if (data.firstName !== undefined) updates.first_name = data.firstName;
+    if (data.lastName !== undefined) updates.last_name = data.lastName;
+    if (data.phone !== undefined) updates.phone = data.phone;
+
+    if (Object.keys(updates).length === 0) {
+      sendError(res, 'No fields to update', 400);
+      return;
+    }
+
+    await import('../../shared/database/connection').then(({ default: db }) =>
+      db('users')
+        .where({ id })
+        .update({ ...updates, updated_at: new Date() }),
+    );
+
+    const user = await authService.getUserById(id);
+    sendSuccess(res, { user });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Profile update failed';
+    sendError(res, message, 400);
+  }
+});
+
+// PUT /auth/password — change password
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+});
+
+router.put('/password', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = (req as AuthenticatedRequest).user;
+    const { currentPassword, newPassword } = passwordSchema.parse(req.body);
+
+    const { default: db } = await import('../../shared/database/connection');
+    const { default: bcrypt } = await import('bcrypt');
+
+    const user = await db('users').where({ id }).first();
+    if (!user) {
+      sendError(res, 'User not found', 404);
+      return;
+    }
+
+    const valid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!valid) {
+      sendError(res, 'Current password is incorrect', 401);
+      return;
+    }
+
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await db('users').where({ id }).update({ password_hash: newHash, updated_at: new Date() });
+
+    sendSuccess(res, { message: 'Password updated' });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Password change failed';
+    sendError(res, message, 400);
+  }
+});
+
 // POST /auth/logout
 router.post('/logout', (_req: Request, res: Response) => {
   res.clearCookie('refreshToken', { path: '/auth/refresh' });

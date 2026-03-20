@@ -19,7 +19,7 @@
     </div>
 
     <div class="nav-right desktop-only">
-      <span class="user-info">{{ user?.firstName }} {{ user?.lastName }}</span>
+      <a routerLink="/profile" class="user-info-link">{{ user?.firstName }} {{ user?.lastName }}</a>
       <button class="logout-btn" (click)="logout()">Log out</button>
     </div>
 
@@ -33,7 +33,9 @@
 
   <!-- Mobile menu -->
   <div class="mobile-menu" *ngIf="menuOpen">
-    <div class="mobile-user">{{ user?.firstName }} {{ user?.lastName }}</div>
+    <a routerLink="/profile" class="mobile-user" (click)="closeMenu()"
+      >{{ user?.firstName }} {{ user?.lastName }}</a
+    >
     <a
       *ngFor="let link of links"
       [routerLink]="link.path"
