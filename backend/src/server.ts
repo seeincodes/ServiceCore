@@ -12,6 +12,8 @@ import smsRoutes from './time-tracking/routes/sms.routes';
 import dashboardRoutes from './time-tracking/routes/dashboard.routes';
 import reportRoutes from './payroll/routes/report.routes';
 import timesheetRoutes from './time-tracking/routes/timesheet.routes';
+import dispatcherRoutes from './dispatcher/routes/dispatcher.routes';
+import { startDispatcherPolling } from './dispatcher/services/dispatcher.service';
 
 dotenv.config({ path: '../.env' });
 
@@ -41,10 +43,12 @@ app.use('/sms', smsRoutes);
 app.use('/manager', dashboardRoutes);
 app.use('/manager', reportRoutes);
 app.use('/manager', timesheetRoutes);
+app.use('/dispatcher', dispatcherRoutes);
 // app.use('/admin', adminRoutes);
 
 httpServer.listen(PORT, () => {
   logger.info(`TimeKeeper API running on port ${PORT}`);
+  startDispatcherPolling();
 });
 
 export default app;

@@ -1,6 +1,7 @@
 import db from '../../shared/database/connection';
 import logger from '../../shared/utils/logger';
 import { emitToOrg } from '../../shared/websocket/socket';
+import { postClockEvent } from '../../dispatcher/services/dispatcher.service';
 
 const MAX_HOURS_PER_DAY = 16;
 
@@ -91,6 +92,12 @@ export async function clockIn(params: ClockInParams): Promise<ClockInResult> {
   };
 
   emitToOrg(orgId, 'clock_in', { userId, ...result });
+  postClockEvent(orgId, {
+    type: 'clock_in',
+    userId,
+    routeId: result.routeId,
+    timestamp: result.timestamp,
+  }).catch(() => {});
 
   return result;
 }
@@ -128,6 +135,7 @@ export async function clockOut(
   };
 
   emitToOrg(orgId, 'clock_out', { userId, ...result });
+  postClockEvent(orgId, { type: 'clock_out', userId, timestamp: result.timestamp }).catch(() => {});
 
   // Emit OT alert if approaching threshold
   if (result.hoursWorked >= 38) {
