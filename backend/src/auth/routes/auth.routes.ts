@@ -1,9 +1,23 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
 import * as authService from '../services/auth.service';
 import { authenticate, AuthenticatedRequest } from '../middleware/authenticate';
 import { sendSuccess, sendError } from '../../shared/utils/response';
 import logger from '../../shared/utils/logger';
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per window
+  message: {
+    success: false,
+    data: null,
+    error: 'Too many login attempts. Try again in 15 minutes.',
+    timestamp: new Date().toISOString(),
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const router = Router();
 
@@ -23,7 +37,7 @@ const registerSchema = z.object({
 });
 
 // POST /auth/login
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', authLimiter, async (req: Request, res: Response) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
     const result = await authService.login(email, password);
