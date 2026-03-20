@@ -1,0 +1,29 @@
+<div class="clock-container">
+  <button
+    class="clock-button"
+    [class.clocked-in]="status.clockedIn"
+    [class.loading]="loading"
+    [disabled]="loading"
+    (click)="onClockAction()"
+  >
+    <span class="clock-label">
+      {{ status.clockedIn ? 'CLOCK OUT' : 'CLOCK IN' }}
+    </span>
+    <span class="clock-elapsed" *ngIf="status.clockedIn && elapsedDisplay">
+      {{ elapsedDisplay }}
+    </span>
+  </button>
+
+  <div
+    class="confirmation"
+    *ngIf="confirmation"
+    [class.success]="confirmation.type === 'success'"
+    [class.error]="confirmation.type === 'error'"
+  >
+    {{ confirmation.message }}
+  </div>
+
+  <div class="route-info" *ngIf="status.clockedIn && status.routeId">
+    Route #{{ status.routeId }}
+  </div>
+</div>

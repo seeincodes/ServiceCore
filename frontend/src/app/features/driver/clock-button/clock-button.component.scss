@@ -1,0 +1,86 @@
+@use '../../../../styles/variables' as *;
+
+.clock-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+  min-height: 100vh;
+  gap: $spacing-lg;
+}
+
+.clock-button {
+  width: 100%;
+  max-width: 400px;
+  height: $clock-button-height;
+  font-size: $clock-button-font-size;
+  font-weight: 700;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    transform 0.1s;
+  color: $white;
+  background-color: $success;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs;
+
+  &.clocked-in {
+    background-color: $danger;
+  }
+
+  &.loading {
+    opacity: 0.7;
+    cursor: wait;
+  }
+
+  &:active:not(.loading) {
+    transform: scale(0.97);
+  }
+}
+
+.clock-label {
+  line-height: 1.2;
+}
+
+.clock-elapsed {
+  font-size: $font-size-base;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.confirmation {
+  padding: $spacing-md $spacing-lg;
+  border-radius: 8px;
+  font-size: $font-size-base;
+  font-weight: 500;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+
+  &.success {
+    background-color: rgba($success, 0.1);
+    color: darken($success, 10%);
+    border: 1px solid rgba($success, 0.3);
+  }
+
+  &.error {
+    background-color: rgba($danger, 0.1);
+    color: darken($danger, 10%);
+    border: 1px solid rgba($danger, 0.3);
+  }
+}
+
+.route-info {
+  font-size: $font-size-sm;
+  color: $neutral-500;
+  font-weight: 500;
+}
