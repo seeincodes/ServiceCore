@@ -1,11 +1,12 @@
 import { Routes } from '@angular/router';
 import { authGuard, roleGuard } from './core/guards/auth.guard';
+import { roleRedirectGuard } from './core/guards/role-redirect.guard';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'clock',
-    pathMatch: 'full',
+    canActivate: [authGuard, roleRedirectGuard],
+    children: [],
   },
   {
     path: 'login',
@@ -39,6 +40,28 @@ export const routes: Routes = [
         (m) => m.MyTimesheetComponent,
       ),
     canActivate: [authGuard],
+  },
+  {
+    path: 'admin',
+    loadComponent: () =>
+      import('./features/admin/dashboard/admin-dashboard.component').then(
+        (m) => m.AdminDashboardComponent,
+      ),
+    canActivate: [authGuard, roleGuard('org_admin')],
+  },
+  {
+    path: 'admin/users',
+    loadComponent: () =>
+      import('./features/admin/users/admin-users.component').then((m) => m.AdminUsersComponent),
+    canActivate: [authGuard, roleGuard('org_admin')],
+  },
+  {
+    path: 'admin/settings',
+    loadComponent: () =>
+      import('./features/admin/settings/admin-settings.component').then(
+        (m) => m.AdminSettingsComponent,
+      ),
+    canActivate: [authGuard, roleGuard('org_admin')],
   },
   {
     path: 'manager',

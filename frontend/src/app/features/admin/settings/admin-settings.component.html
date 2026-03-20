@@ -1,0 +1,73 @@
+<div class="admin-settings">
+  <h1>Organization Settings</h1>
+  <p class="org-name">{{ orgName }}</p>
+
+  <div
+    class="message"
+    *ngIf="message"
+    [class.success]="message.type === 'success'"
+    [class.error]="message.type === 'error'"
+  >
+    {{ message.text }}
+  </div>
+
+  <form (ngSubmit)="save()">
+    <!-- Branding -->
+    <div class="card">
+      <h2>Branding</h2>
+      <div class="form-field">
+        <label>Primary Color</label>
+        <div class="color-row">
+          <input type="color" [(ngModel)]="branding.primaryColor" name="primaryColor" />
+          <input type="text" [(ngModel)]="branding.primaryColor" name="primaryColorText" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Secondary Color</label>
+        <div class="color-row">
+          <input type="color" [(ngModel)]="branding.secondaryColor" name="secondaryColor" />
+          <input type="text" [(ngModel)]="branding.secondaryColor" name="secondaryColorText" />
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Logo URL</label>
+        <input type="text" [(ngModel)]="branding.logo" name="logo" placeholder="/assets/logo.png" />
+      </div>
+    </div>
+
+    <!-- Overtime Rules -->
+    <div class="card">
+      <h2>Overtime Rules</h2>
+      <div class="form-field">
+        <label>OT Calculation</label>
+        <select [(ngModel)]="config.ot_rules" name="otRules">
+          <option value="federal">Federal (40h/week)</option>
+          <option value="california">California (8h/day + 40h/week)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Feature Toggles -->
+    <div class="card">
+      <h2>Features</h2>
+      <div class="toggle-list">
+        <label class="toggle">
+          <input type="checkbox" [(ngModel)]="config.approval_required" name="approvalRequired" />
+          <span>Require timesheet approval</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" [(ngModel)]="config.sms_enabled" name="smsEnabled" />
+          <span>SMS clock in/out</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" [(ngModel)]="config.qb_enabled" name="qbEnabled" />
+          <span>QuickBooks sync</span>
+        </label>
+      </div>
+    </div>
+
+    <button type="submit" class="save-btn" [disabled]="saving">
+      {{ saving ? 'Saving...' : 'Save Settings' }}
+    </button>
+  </form>
+</div>

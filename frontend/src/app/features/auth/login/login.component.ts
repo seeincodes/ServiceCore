@@ -37,7 +37,9 @@ export class LoginComponent {
       next: (res) => {
         this.loading = false;
         const role = res.data.user.role;
-        if (role === 'manager' || role === 'org_admin' || role === 'payroll_admin') {
+        if (role === 'org_admin') {
+          this.router.navigate(['/admin']);
+        } else if (role === 'manager' || role === 'payroll_admin') {
           this.router.navigate(['/manager']);
         } else {
           this.router.navigate(['/clock']);
