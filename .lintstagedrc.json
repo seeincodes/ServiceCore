@@ -1,4 +1,4 @@
 {
-  "backend/**/*.ts": ["eslint --fix", "prettier --write"],
-  "frontend/**/*.{ts,html,scss}": ["prettier --write"]
+  "backend/**/*.ts": ["cd backend && npx eslint --fix", "npx prettier --write"],
+  "frontend/**/*.{ts,html,scss}": ["npx prettier --write"]
 }
