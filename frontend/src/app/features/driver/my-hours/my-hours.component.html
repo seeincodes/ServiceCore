@@ -1,0 +1,68 @@
+<div class="my-hours">
+  <header class="hours-header">
+    <h1>My Hours</h1>
+    <div class="week-nav">
+      <button class="week-btn" (click)="previousWeek()">&larr;</button>
+      <span class="week-label" *ngIf="week">{{ week.weekStart }} - {{ week.weekEnd }}</span>
+      <button class="week-btn" (click)="nextWeek()" [disabled]="isCurrentWeek">&rarr;</button>
+    </div>
+  </header>
+
+  <!-- OT Warning -->
+  <div
+    class="ot-warning"
+    *ngIf="otWarning"
+    [class.approaching]="otWarningLevel === 'approaching'"
+    [class.threshold]="otWarningLevel === 'threshold'"
+    [class.exceeded]="otWarningLevel === 'exceeded'"
+  >
+    {{ otWarning }}
+  </div>
+
+  <div class="loading" *ngIf="loading">Loading...</div>
+
+  <div *ngIf="!loading && week">
+    <!-- Week summary -->
+    <div class="week-summary">
+      <div class="summary-item">
+        <span class="summary-value">{{ week.weekTotal }}h</span>
+        <span class="summary-label">Total</span>
+      </div>
+      <div class="summary-item" *ngIf="week.otHours > 0">
+        <span class="summary-value ot">{{ week.otHours }}h</span>
+        <span class="summary-label">Overtime</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-value status-{{ week.timesheet.status }}">{{
+          week.timesheet.status
+        }}</span>
+        <span class="summary-label">Timesheet</span>
+      </div>
+    </div>
+
+    <!-- Daily breakdown -->
+    <div class="days">
+      <div *ngFor="let day of week.days" class="day-card">
+        <div class="day-header">
+          <span class="day-name">{{ day.dayName }}</span>
+          <span class="day-date">{{ day.date }}</span>
+          <span class="day-total">{{ day.totalHours }}h</span>
+        </div>
+        <div class="day-entries">
+          <div *ngFor="let entry of day.entries" class="entry-row">
+            <span class="entry-time"
+              >{{ formatTime(entry.clockIn) }} - {{ formatTime(entry.clockOut) }}</span
+            >
+            <span class="entry-hours">{{
+              entry.hours !== null ? entry.hours + 'h' : 'Active'
+            }}</span>
+            <span class="entry-route" *ngIf="entry.routeId">Route {{ entry.routeId }}</span>
+            <span class="entry-source">{{ entry.source }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="week.days.length === 0">No clock entries this week.</div>
+  </div>
+</div>

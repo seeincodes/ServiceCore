@@ -1,0 +1,201 @@
+@use '../../../../styles/variables' as *;
+
+.my-hours {
+  padding: $spacing-md;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.hours-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.week-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid $neutral-300;
+  border-radius: 8px;
+  background: $white;
+  cursor: pointer;
+  font-size: 16px;
+  &:hover:not(:disabled) {
+    background: $neutral-100;
+  }
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+}
+
+.week-label {
+  font-size: $font-size-sm;
+  color: $neutral-700;
+  font-weight: 500;
+}
+
+.ot-warning {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  margin-bottom: $spacing-md;
+
+  &.approaching {
+    background: rgba(#fbbc04, 0.15);
+    color: darken(#fbbc04, 25%);
+  }
+  &.threshold {
+    background: rgba(#f57c00, 0.15);
+    color: #e65100;
+  }
+  &.exceeded {
+    background: rgba($danger, 0.15);
+    color: darken($danger, 10%);
+  }
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}
+
+.week-summary {
+  display: flex;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+  background: $white;
+  border-radius: 12px;
+  border: 1px solid $neutral-200;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.summary-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: $neutral-900;
+  &.ot {
+    color: #f57c00;
+  }
+  &.status-draft {
+    color: $neutral-500;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  &.status-submitted {
+    color: $primary;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  &.status-approved {
+    color: $success;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+  &.status-locked {
+    color: $neutral-700;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+}
+
+.summary-label {
+  font-size: 12px;
+  color: $neutral-500;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.days {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.day-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-sm $spacing-md;
+  background: $neutral-50;
+  border-bottom: 1px solid $neutral-100;
+}
+
+.day-name {
+  font-weight: 600;
+  font-size: $font-size-sm;
+}
+.day-date {
+  font-size: 12px;
+  color: $neutral-500;
+}
+.day-total {
+  font-weight: 600;
+  font-size: $font-size-sm;
+  color: $primary;
+}
+
+.day-entries {
+  padding: $spacing-xs $spacing-md;
+}
+
+.entry-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $spacing-xs 0;
+  border-bottom: 1px solid $neutral-50;
+  font-size: $font-size-sm;
+  gap: $spacing-sm;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.entry-time {
+  color: $neutral-700;
+}
+.entry-hours {
+  font-weight: 500;
+}
+.entry-route {
+  color: $neutral-500;
+  font-size: 12px;
+}
+.entry-source {
+  color: $neutral-500;
+  font-size: 11px;
+  text-transform: uppercase;
+}

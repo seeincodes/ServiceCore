@@ -21,6 +21,20 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'my-hours',
+    loadComponent: () =>
+      import('./features/driver/my-hours/my-hours.component').then((m) => m.MyHoursComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'my-timesheet',
+    loadComponent: () =>
+      import('./features/driver/my-timesheet/my-timesheet.component').then(
+        (m) => m.MyTimesheetComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'manager',
     loadComponent: () =>
       import('./features/manager/dashboard/dashboard.component').then((m) => m.DashboardComponent),
