@@ -40,6 +40,7 @@ resource "aws_ecs_task_definition" "api" {
       environment = [
         { name = "NODE_ENV", value = "production" },
         { name = "PORT", value = "3000" },
+        { name = "CORS_ORIGIN", value = "http://timekeeper-frontend-prod.s3-website-us-east-1.amazonaws.com" },
       ]
       secrets = [
         { name = "DATABASE_URL", valueFrom = "${aws_ssm_parameter.db_url.arn}" },
@@ -54,13 +55,7 @@ resource "aws_ecs_task_definition" "api" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
-      healthCheck = {
-        command     = ["CMD-SHELL", "curl -f http://localhost:3000/health || exit 1"]
-        interval    = 30
-        timeout     = 5
-        retries     = 3
-        startPeriod = 60
-      }
+      # Health check handled by ALB target group (/health endpoint)
     }
   ])
 }
@@ -175,7 +170,7 @@ resource "aws_lb_listener" "http" {
 resource "aws_ssm_parameter" "db_url" {
   name  = "/${var.app_name}/${var.environment}/DATABASE_URL"
   type  = "SecureString"
-  value = "postgresql://postgres:${var.db_password}@${aws_db_instance.postgres.endpoint}/timekeeper"
+  value = "postgresql://postgres:${var.db_password}@${aws_db_instance.postgres.endpoint}/timekeeper?sslmode=no-verify"
 }
 
 resource "aws_ssm_parameter" "redis_url" {

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 interface TimesheetHistory {
   id: string;
@@ -32,7 +33,7 @@ export class MyTimesheetComponent implements OnInit {
   submitting = false;
   message: { text: string; type: 'success' | 'error' } | null = null;
 
-  private apiUrl = 'http://localhost:3000/timesheets';
+  private apiUrl = `${environment.apiUrl}/timesheets`;
 
   constructor(private http: HttpClient) {}
 
