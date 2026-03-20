@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface ClockStatus {
   clockedIn: boolean;
@@ -42,7 +43,7 @@ interface StatusResponse {
 
 @Injectable({ providedIn: 'root' })
 export class ClockService {
-  private apiUrl = 'http://localhost:3000/timesheets';
+  private apiUrl = `${environment.apiUrl}/timesheets`;
 
   constructor(private http: HttpClient) {}
 

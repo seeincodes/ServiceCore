@@ -40,6 +40,7 @@ resource "aws_ecs_task_definition" "api" {
       environment = [
         { name = "NODE_ENV", value = "production" },
         { name = "PORT", value = "3000" },
+        { name = "CORS_ORIGIN", value = "http://timekeeper-frontend-prod.s3-website-us-east-1.amazonaws.com" },
       ]
       secrets = [
         { name = "DATABASE_URL", valueFrom = "${aws_ssm_parameter.db_url.arn}" },

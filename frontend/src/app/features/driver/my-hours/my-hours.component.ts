@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 interface DayEntry {
   id: string;
@@ -88,7 +89,7 @@ export class MyHoursComponent implements OnInit {
       .get<{
         success: boolean;
         data: WeekData;
-      }>(`http://localhost:3000/timesheets/my-entries?weekOffset=${this.weekOffset}`)
+      }>(`${environment.apiUrl}/timesheets/my-entries?weekOffset=${this.weekOffset}`)
       .subscribe({
         next: (res) => {
           this.week = res.data;

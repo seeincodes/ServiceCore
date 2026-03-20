@@ -29,7 +29,12 @@ const PORT = process.env.PORT || 3000;
 initWebSocket(httpServer);
 
 app.use(helmet());
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:4200', credentials: true }));
+const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4200')
+  .split(',')
+  .map((o) => o.trim());
+app.use(
+  cors({ origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins, credentials: true }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());

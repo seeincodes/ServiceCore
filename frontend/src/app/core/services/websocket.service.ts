@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 
 export interface WsEvent {
   type: string;
@@ -25,7 +26,7 @@ export class WebSocketService implements OnDestroy {
     const token = this.authService.getToken();
     if (!token) return;
 
-    this.socket = io('http://localhost:3000', {
+    this.socket = io(environment.apiUrl, {
       auth: { token },
       transports: ['websocket'],
     });

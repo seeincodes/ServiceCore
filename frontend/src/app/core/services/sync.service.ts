@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Subject, fromEvent, merge, takeUntil } from 'rxjs';
 import { OfflineStoreService, OfflineClockEntry } from './offline-store.service';
+import { environment } from '../../../environments/environment';
 
 interface SyncResponse {
   success: boolean;
@@ -14,7 +15,7 @@ interface SyncResponse {
 
 @Injectable({ providedIn: 'root' })
 export class SyncService implements OnDestroy {
-  private apiUrl = 'http://localhost:3000/timesheets';
+  private apiUrl = `${environment.apiUrl}/timesheets`;
   private destroy$ = new Subject<void>();
   private isOnlineSubject = new BehaviorSubject<boolean>(navigator.onLine);
   private syncingSubject = new BehaviorSubject<boolean>(false);
