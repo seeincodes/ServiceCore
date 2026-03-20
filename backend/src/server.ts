@@ -7,6 +7,7 @@ import logger from './shared/utils/logger';
 import authRoutes from './auth/routes/auth.routes';
 import clockRoutes from './time-tracking/routes/clock.routes';
 import smsRoutes from './time-tracking/routes/sms.routes';
+import dashboardRoutes from './time-tracking/routes/dashboard.routes';
 
 dotenv.config({ path: '../.env' });
 
@@ -28,7 +29,7 @@ app.get('/health', (_req, res) => {
 app.use('/auth', authRoutes);
 app.use('/timesheets', clockRoutes);
 app.use('/sms', smsRoutes);
-// app.use('/manager', managerRoutes);
+app.use('/manager', dashboardRoutes);
 // app.use('/admin', adminRoutes);
 
 app.listen(PORT, () => {

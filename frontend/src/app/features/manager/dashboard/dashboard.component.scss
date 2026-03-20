@@ -1,0 +1,116 @@
+@use '../../../../styles/variables' as *;
+
+.dashboard {
+  padding: $spacing-lg;
+  max-width: 1024px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.header-meta {
+  display: flex;
+  gap: $spacing-md;
+  align-items: center;
+}
+
+.active-count {
+  background-color: $success;
+  color: $white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+}
+
+.refresh-time {
+  font-size: $font-size-sm;
+  color: $neutral-500;
+}
+
+.error-banner {
+  background-color: rgba($danger, 0.1);
+  color: $danger;
+  padding: $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+}
+
+.loading {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}
+
+.driver-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    padding: $spacing-sm $spacing-md;
+    border-bottom: 2px solid $neutral-200;
+    font-size: $font-size-sm;
+    color: $neutral-700;
+    font-weight: 600;
+  }
+
+  td {
+    padding: $spacing-sm $spacing-md;
+    border-bottom: 1px solid $neutral-100;
+  }
+
+  tr {
+    cursor: pointer;
+    transition: background-color 0.15s;
+
+    &:hover {
+      background-color: $neutral-50;
+    }
+
+    &.active {
+      background-color: rgba($success, 0.04);
+    }
+  }
+}
+
+.driver-name {
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+
+  &.status-in {
+    background-color: rgba($success, 0.15);
+    color: darken($success, 10%);
+  }
+
+  &.status-out {
+    background-color: $neutral-100;
+    color: $neutral-500;
+  }
+}
+
+.empty {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}

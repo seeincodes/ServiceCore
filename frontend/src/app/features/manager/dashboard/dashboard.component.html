@@ -1,0 +1,48 @@
+<div class="dashboard">
+  <header class="dashboard-header">
+    <h1>Driver Dashboard</h1>
+    <div class="header-meta">
+      <span class="active-count">{{ activeCount }} active</span>
+      <span class="refresh-time" *ngIf="lastRefresh">Updated {{ lastRefresh }}</span>
+    </div>
+  </header>
+
+  <div class="error-banner" *ngIf="error">{{ error }}</div>
+
+  <div class="loading" *ngIf="loading">Loading...</div>
+
+  <table class="driver-table" *ngIf="!loading && drivers.length > 0">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Hours</th>
+        <th>Route</th>
+        <th>Last Update</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let driver of drivers"
+        [class.active]="driver.status === 'clocked_in'"
+        (click)="onDriverClick(driver)"
+      >
+        <td class="driver-name">{{ driver.name }}</td>
+        <td>
+          <span
+            class="status-badge"
+            [class.status-in]="driver.status === 'clocked_in'"
+            [class.status-out]="driver.status === 'clocked_out'"
+          >
+            {{ driver.status === 'clocked_in' ? 'In' : 'Out' }}
+          </span>
+        </td>
+        <td>{{ driver.hours }}h</td>
+        <td>{{ driver.route || '-' }}</td>
+        <td>{{ formatTime(driver.lastUpdate) }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="empty" *ngIf="!loading && drivers.length === 0">No drivers found.</div>
+</div>
