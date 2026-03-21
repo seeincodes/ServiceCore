@@ -49,72 +49,71 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.confirmation = null;
 
-    if (this.status.clockedIn) {
-      this.clockService
-        .clockOut(this.status.entryId)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (res) => {
-            this.status = { clockedIn: false };
-            this.stopTimer();
-            const time = new Date(res.data.timestamp).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            });
-            this.confirmation = {
-              message: `Clocked out at ${time}. Total: ${res.data.hoursWorked}h`,
-              type: 'success',
-            };
-            this.loading = false;
-          },
-          error: (err) => {
-            this.confirmation = {
-              message: err.error?.error || 'Clock-out failed',
-              type: 'error',
-            };
-            this.loading = false;
-          },
-        });
-    } else {
-      this.getCurrentLocation().then((location) => {
-        this.clockService
-          .clockIn({
-            location,
-            idempotencyKey: crypto.randomUUID(),
-          })
-          .pipe(takeUntil(this.destroy$))
-          .subscribe({
-            next: (res) => {
-              this.status = {
-                clockedIn: true,
-                entryId: res.data.entryId,
-                clockInTime: res.data.timestamp,
-                elapsedHours: 0,
-                routeId: res.data.routeId,
-                projectId: res.data.projectId,
-              };
-              this.startTimer();
-              const time = new Date(res.data.timestamp).toLocaleTimeString([], {
-                hour: '2-digit',
-                minute: '2-digit',
-              });
-              const route = res.data.routeId ? `, Route #${res.data.routeId}` : '';
-              this.confirmation = {
-                message: `Clocked in at ${time}${route}`,
-                type: 'success',
-              };
-              this.loading = false;
-            },
-            error: (err) => {
-              this.confirmation = {
-                message: err.error?.error || 'Clock-in failed',
-                type: 'error',
-              };
-              this.loading = false;
-            },
+    // Clock in immediately — don't wait for GPS
+    this.clockService
+      .clockIn({ idempotencyKey: crypto.randomUUID() })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.status = {
+            clockedIn: true,
+            entryId: res.data.entryId,
+            clockInTime: res.data.timestamp,
+            elapsedHours: 0,
+            routeId: res.data.routeId,
+            projectId: res.data.projectId,
+          };
+          this.startTimer();
+          this.confirmation = {
+            message: `Clocked in at ${this.formatTime(res.data.timestamp)}`,
+            type: 'success',
+          };
+          this.loading = false;
+
+          // Send GPS in background
+          this.getCurrentLocation().then((loc) => {
+            if (loc) {
+              this.http.post(`${environment.apiUrl}/timesheets/location-ping`, loc).subscribe();
+            }
           });
+        },
+        error: (err) => {
+          this.confirmation = {
+            message: err.error?.error || 'Clock-in failed',
+            type: 'error',
+          };
+          this.loading = false;
+        },
       });
-    }
+  }
+
+  onClockOut(type: 'break' | 'end_of_day'): void {
+    if (this.loading) return;
+    this.loading = true;
+    this.confirmation = null;
+
+    this.clockService
+      .clockOut(this.status.entryId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.status = { clockedIn: false };
+          this.stopTimer();
+          const label = type === 'break' ? 'Break' : 'End of day';
+          this.confirmation = {
+            message: `${label} — ${res.data.hoursWorked}h logged`,
+            type: 'success',
+          };
+          this.loading = false;
+        },
+        error: (err) => {
+          this.confirmation = {
+            message: err.error?.error || 'Clock-out failed',
+            type: 'error',
+          };
+          this.loading = false;
+        },
+      });
   }
 
   private loadStatus(): void {

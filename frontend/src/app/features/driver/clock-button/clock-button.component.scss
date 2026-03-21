@@ -123,14 +123,21 @@
   font-weight: 700;
 }
 
-// Clock button — intentionally moderate size, not screen-filling
+// Clock out options
+.clock-out-options {
+  display: flex;
+  gap: $spacing-sm;
+  width: 100%;
+}
+
+// Clock button — intentionally moderate size
 .clock-btn {
   width: 100%;
   padding: 18px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -143,16 +150,19 @@
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 
-  &.clock-out {
+  &.clock-out-break {
+    background: #f57c00;
+    flex: 1;
+    font-size: 13px;
+  }
+
+  &.clock-out-day {
     background: $danger;
+    flex: 1;
+    font-size: 13px;
   }
 
-  &.loading {
-    opacity: 0.7;
-    cursor: wait;
-  }
-
-  &:active:not(.loading) {
+  &:active {
     transform: scale(0.98);
   }
 }

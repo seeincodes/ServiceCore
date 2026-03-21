@@ -43,6 +43,8 @@
     "since": "Since",
     "clockingIn": "Clocking in...",
     "clockingOut": "Clocking out...",
+    "breakOut": "BREAK",
+    "endDay": "END DAY",
     "clockedInAt": "Clocked in at {{time}}",
     "clockedOutAt": "Clocked out at {{time}}. Total: {{hours}}h",
     "route": "Route #{{routeId}}",

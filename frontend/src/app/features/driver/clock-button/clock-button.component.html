@@ -41,16 +41,25 @@
     </div>
   </div>
 
-  <!-- Clock action button -->
+  <!-- Clock in button -->
   <button
     class="clock-btn"
-    [class.clock-out]="status.clockedIn"
     [disabled]="loading"
     (click)="onClockAction()"
-    *ngIf="!loading"
+    *ngIf="!loading && !status.clockedIn"
   >
-    {{ (status.clockedIn ? 'clock.clockOut' : 'clock.clockIn') | translate }}
+    {{ 'clock.clockIn' | translate }}
   </button>
+
+  <!-- Clock out options (when clocked in) -->
+  <div class="clock-out-options" *ngIf="!loading && status.clockedIn">
+    <button class="clock-btn clock-out-break" (click)="onClockOut('break')">
+      {{ 'clock.breakOut' | translate }}
+    </button>
+    <button class="clock-btn clock-out-day" (click)="onClockOut('end_of_day')">
+      {{ 'clock.endDay' | translate }}
+    </button>
+  </div>
 
   <!-- Confirmation message -->
   <div

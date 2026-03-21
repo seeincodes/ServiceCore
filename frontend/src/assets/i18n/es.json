@@ -43,6 +43,8 @@
     "since": "Desde",
     "clockingIn": "Registrando entrada...",
     "clockingOut": "Registrando salida...",
+    "breakOut": "DESCANSO",
+    "endDay": "FIN DEL DÍA",
     "clockedInAt": "Entrada registrada a las {{time}}",
     "clockedOutAt": "Salida registrada a las {{time}}. Total: {{hours}}h",
     "route": "Ruta #{{routeId}}",
