@@ -37,7 +37,7 @@
   <div class="today-summary" *ngIf="!status.clockedIn && !loading">
     <div class="summary-row">
       <span class="summary-label">{{ 'clock.today' | translate }}</span>
-      <span class="summary-value">{{ todayHours }}h</span>
+      <span class="summary-value">{{ todayHoursNum | hoursDisplay }}</span>
     </div>
   </div>
 
@@ -80,13 +80,13 @@
     {{ confirmation.message }}
   </div>
 
-  <!-- Undo clock-out -->
-  <button class="undo-btn" *ngIf="canUndo" (click)="undoClockOut()">
-    {{ 'clock.undo' | translate }}
-  </button>
-
   <!-- Time format toggle -->
   <button class="time-format-toggle" (click)="toggleTimeFormat()">
     {{ use24Hour ? ('clock.switchTo12' | translate) : ('clock.switchTo24' | translate) }}
+  </button>
+
+  <!-- Undo clock-out (bottom of page) -->
+  <button class="undo-btn" *ngIf="canUndo" (click)="undoClockOut()">
+    {{ 'clock.undo' | translate }}
   </button>
 </div>

@@ -5,11 +5,12 @@ import { TranslateModule } from '@ngx-translate/core';
 import { ClockService, ClockStatus } from '../../../core/services/clock.service';
 import { Subject, takeUntil, interval, switchMap, startWith } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { HoursDisplayPipe } from '../../../shared/pipes/hours.pipe';
 
 @Component({
   selector: 'app-clock-button',
   standalone: true,
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslateModule, HoursDisplayPipe],
   templateUrl: './clock-button.component.html',
   styleUrls: ['./clock-button.component.scss'],
 })
@@ -19,6 +20,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   confirmation: { message: string; type: 'success' | 'error' } | null = null;
   elapsedDisplay = '';
   todayHours = '0.0';
+  todayHoursNum = 0;
   use24Hour = false;
   canUndo = false;
   showEndDayConfirm = false;
@@ -108,8 +110,9 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           this.status = { clockedIn: false };
           this.stopTimer();
           const label = type === 'break' ? 'Break' : 'Done for today';
+          const pipe = new HoursDisplayPipe();
           this.confirmation = {
-            message: `${label} — ${res.data.hoursWorked}h logged`,
+            message: `${label} — ${pipe.transform(res.data.hoursWorked)} logged`,
             type: 'success',
           };
           this.loading = false;
@@ -123,7 +126,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
               this.canUndo = false;
               this.lastClockOutEntryId = null;
             },
-            5 * 60 * 1000,
+            2 * 60 * 1000,
           );
         },
         error: (err) => {
@@ -213,6 +216,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     const minutes = Math.floor((elapsed - hours) * 60);
     this.elapsedDisplay = `${hours}h ${minutes}m`;
     this.todayHours = elapsed.toFixed(1);
+    this.todayHoursNum = elapsed;
   }
 
   formatTime(iso: string): string {

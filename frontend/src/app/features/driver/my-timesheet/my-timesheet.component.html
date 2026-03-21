@@ -20,11 +20,11 @@
     </div>
     <div class="current-details">
       <div class="detail">
-        <span class="detail-value">{{ current.hoursWorked }}h</span>
+        <span class="detail-value">{{ current.hoursWorked | hoursDisplay }}</span>
         <span class="detail-label">{{ 'timesheet.totalHours' | translate }}</span>
       </div>
       <div class="detail" *ngIf="current.otHours > 0">
-        <span class="detail-value ot">{{ current.otHours }}h</span>
+        <span class="detail-value ot">{{ current.otHours | hoursDisplay }}</span>
         <span class="detail-label">{{ 'hours.overtime' | translate }}</span>
       </div>
       <div class="detail">
@@ -59,9 +59,9 @@
       <span class="history-week"
         >{{ 'timesheet.weekEndingPrefix' | translate }} {{ formatDate(ts.weekEnding) }}</span
       >
-      <span class="history-hours">{{ ts.hoursWorked }}h</span>
+      <span class="history-hours">{{ ts.hoursWorked | hoursDisplay }}</span>
       <span class="history-ot" *ngIf="ts.otHours > 0"
-        >+{{ ts.otHours }}h {{ 'timesheet.ot' | translate }}</span
+        >+{{ ts.otHours | hoursDisplay }} {{ 'timesheet.ot' | translate }}</span
       >
       <span class="status-badge small" [attr.data-status]="ts.status">
         {{ statusLabel(ts.status) }}

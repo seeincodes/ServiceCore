@@ -173,9 +173,9 @@ router.post('/undo-clock-out', authenticate, async (req: Request, res: Response)
 
     // Only allow undo within 5 minutes of clock-out
     const clockOutTime = new Date(entry.clock_out).getTime();
-    const fiveMinAgo = Date.now() - 5 * 60 * 1000;
+    const fiveMinAgo = Date.now() - 2 * 60 * 1000;
     if (clockOutTime < fiveMinAgo) {
-      sendError(res, 'Undo window expired (5 minutes)', 400);
+      sendError(res, 'Undo window expired (2 minutes)', 400);
       return;
     }
 

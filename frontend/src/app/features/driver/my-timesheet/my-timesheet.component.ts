@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../environments/environment';
+import { HoursDisplayPipe } from '../../../shared/pipes/hours.pipe';
 
 interface TimesheetHistory {
   id: string;
@@ -23,7 +24,7 @@ interface CurrentTimesheet {
 @Component({
   selector: 'app-my-timesheet',
   standalone: true,
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, TranslateModule, HoursDisplayPipe],
   templateUrl: './my-timesheet.component.html',
   styleUrls: ['./my-timesheet.component.scss'],
 })

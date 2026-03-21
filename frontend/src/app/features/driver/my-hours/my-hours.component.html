@@ -25,11 +25,11 @@
     <!-- Week summary -->
     <div class="week-summary">
       <div class="summary-item">
-        <span class="summary-value">{{ week.weekTotal }}h</span>
+        <span class="summary-value">{{ week.weekTotal | hoursDisplay }}</span>
         <span class="summary-label">{{ 'hours.total' | translate }}</span>
       </div>
       <div class="summary-item" *ngIf="week.otHours > 0">
-        <span class="summary-value ot">{{ week.otHours }}h</span>
+        <span class="summary-value ot">{{ week.otHours | hoursDisplay }}</span>
         <span class="summary-label">{{ 'hours.overtime' | translate }}</span>
       </div>
       <div class="summary-item">
@@ -46,7 +46,7 @@
         <div class="day-header">
           <span class="day-name">{{ day.dayName }}</span>
           <span class="day-date">{{ day.date }}</span>
-          <span class="day-total">{{ day.totalHours }}h</span>
+          <span class="day-total">{{ day.totalHours | hoursDisplay }}</span>
         </div>
         <div class="day-entries">
           <div *ngFor="let entry of day.entries" class="entry-row">
@@ -54,7 +54,7 @@
               >{{ formatTime(entry.clockIn) }} - {{ formatTime(entry.clockOut) }}</span
             >
             <span class="entry-hours">{{
-              entry.hours !== null ? entry.hours + 'h' : ('hours.active' | translate)
+              entry.hours !== null ? (entry.hours | hoursDisplay) : ('hours.active' | translate)
             }}</span>
             <span class="entry-route" *ngIf="entry.routeId"
               >{{ 'hours.route' | translate }} {{ entry.routeId }}</span
