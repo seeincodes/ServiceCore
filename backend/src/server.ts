@@ -83,14 +83,15 @@ if (env === 'production') {
           logger.info('Database is up to date');
         }
 
+        // Auto-seed if database is empty
         const result = await db('orgs').count('id as count').first();
         if (Number(result?.count) === 0) {
           logger.info('Empty database detected, running seed...');
           await db.seed.run({
-            directory: __dirname + '/shared/database/seeds/production',
+            directory: __dirname + '/shared/database/seeds/development',
             loadExtensions: ['.js'],
           });
-          logger.info('Production seed complete');
+          logger.info('Seed complete');
         }
 
         startServer();
