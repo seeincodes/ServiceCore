@@ -39,6 +39,8 @@
       <button type="submit" class="login-btn" [disabled]="loading || !email || !password">
         {{ loading ? 'Signing in...' : 'Sign In' }}
       </button>
+
+      <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
     </form>
 
     <div class="demo-accounts">

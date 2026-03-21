@@ -105,6 +105,18 @@
   }
 }
 
+.forgot-link {
+  display: block;
+  text-align: center;
+  margin-top: $spacing-md;
+  color: $primary;
+  font-size: $font-size-sm;
+  text-decoration: none;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .demo-accounts {
   margin-top: $spacing-xl;
   padding-top: $spacing-lg;
