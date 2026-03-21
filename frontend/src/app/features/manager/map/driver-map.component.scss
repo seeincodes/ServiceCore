@@ -1,0 +1,78 @@
+@use '../../../../styles/variables' as *;
+
+.map-page {
+  padding: $spacing-md;
+  max-width: 1000px;
+  margin: 0 auto;
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.map-stats {
+  display: flex;
+  gap: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.stat {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  &.active {
+    background: rgba($success, 0.15);
+    color: darken($success, 10%);
+  }
+  &.total {
+    background: $neutral-100;
+    color: $neutral-700;
+  }
+  &.alerts {
+    background: rgba($danger, 0.15);
+    color: $danger;
+  }
+}
+
+.driver-list {
+  margin-top: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.driver-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  padding: $spacing-sm $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+
+  &.active {
+    border-left: 3px solid $success;
+  }
+}
+
+.driver-name {
+  font-weight: 500;
+  flex: 1;
+}
+.driver-status {
+  color: $neutral-500;
+}
+.driver-hours {
+  font-weight: 600;
+}
+.driver-route {
+  color: $neutral-500;
+  font-size: 12px;
+}
+.driver-loc {
+  color: $danger;
+  font-size: 12px;
+}
