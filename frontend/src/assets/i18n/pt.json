@@ -1,0 +1,131 @@
+{
+  "app": {
+    "name": "TimeKeeper"
+  },
+  "nav": {
+    "clock": "Relógio",
+    "myHours": "Minhas Horas",
+    "timesheet": "Folha de Ponto",
+    "dashboard": "Painel",
+    "approvals": "Aprovações",
+    "reports": "Relatórios",
+    "users": "Usuários",
+    "settings": "Configurações",
+    "drivers": "Motoristas",
+    "profile": "Perfil",
+    "logout": "Sair"
+  },
+  "login": {
+    "title": "TimeKeeper",
+    "subtitle": "Controle de Tempo para Serviços de Resíduos",
+    "email": "E-mail",
+    "password": "Senha",
+    "signIn": "Entrar",
+    "signingIn": "Entrando...",
+    "forgotPassword": "Esqueceu a senha?",
+    "demoAccounts": "Contas de demonstração",
+    "demoPassword": "senha",
+    "driver": "Motorista",
+    "manager": "Gerente",
+    "admin": "Administrador"
+  },
+  "clock": {
+    "clockIn": "ENTRADA",
+    "clockOut": "SAÍDA",
+    "clockedInAt": "Entrada registrada às {{time}}",
+    "clockedOutAt": "Saída registrada às {{time}}. Total: {{hours}}h",
+    "route": "Rota #{{routeId}}",
+    "offline": "Sem conexão - sincronizará quando o sinal retornar",
+    "syncing": "Sincronizando...",
+    "synced": "Sincronizado. {{count}} entradas enviadas."
+  },
+  "hours": {
+    "title": "Minhas Horas",
+    "total": "Total",
+    "overtime": "Horas Extras",
+    "timesheet": "Folha de Ponto",
+    "noEntries": "Nenhuma entrada de relógio nesta semana.",
+    "active": "Ativo",
+    "otApproaching": "Aproximando-se das horas extras: {{hours}}h de {{threshold}}h",
+    "otThreshold": "{{hours}}h horas extras — no limite",
+    "otExceeded": "{{hours}}h horas extras — excedido"
+  },
+  "timesheet": {
+    "title": "Minha Folha de Ponto",
+    "thisWeek": "Esta Semana",
+    "totalHours": "Horas Totais",
+    "weekEnding": "Semana Terminando",
+    "submit": "Enviar Folha de Ponto",
+    "submitting": "Enviando...",
+    "submitted": "Folha de ponto enviada para aprovação",
+    "waitingApproval": "Aguardando aprovação do gerente",
+    "approved": "Aprovado pelo gerente",
+    "locked": "Bloqueado — enviado para folha de pagamento",
+    "history": "Histórico",
+    "noHistory": "Nenhum histórico de folha de ponto.",
+    "status": {
+      "draft": "Rascunho",
+      "submitted": "Enviado",
+      "approved": "Aprovado",
+      "locked": "Bloqueado"
+    }
+  },
+  "forgotPassword": {
+    "title": "Redefinir Senha",
+    "subtitle": "Digite seu e-mail e enviaremos um link de redefinição.",
+    "send": "Enviar Link",
+    "sending": "Enviando...",
+    "backToLogin": "Voltar ao login"
+  },
+  "resetPassword": {
+    "title": "Nova Senha",
+    "newPassword": "Nova Senha",
+    "confirmPassword": "Confirmar Senha",
+    "reset": "Redefinir Senha",
+    "resetting": "Redefinindo...",
+    "invalidLink": "Link inválido. Por favor solicite um novo.",
+    "requestNew": "Solicitar novo link",
+    "goToLogin": "Ir para o login",
+    "mismatch": "As senhas não coincidem"
+  },
+  "profile": {
+    "title": "Perfil",
+    "personalInfo": "Informações Pessoais",
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "save": "Salvar Alterações",
+    "saving": "Salvando...",
+    "updated": "Perfil atualizado",
+    "password": "Senha",
+    "change": "Alterar",
+    "currentPassword": "Senha Atual",
+    "newPassword": "Nova Senha",
+    "confirmPassword": "Confirmar Nova Senha",
+    "changePassword": "Alterar Senha",
+    "changing": "Alterando...",
+    "passwordChanged": "Senha alterada com sucesso",
+    "name": "Nome",
+    "email": "E-mail",
+    "phone": "Telefone",
+    "role": "Função",
+    "organization": "Organização",
+    "notSet": "Não definido",
+    "roles": {
+      "employee": "Motorista",
+      "manager": "Gerente",
+      "payroll_admin": "Admin de Folha",
+      "org_admin": "Admin da Organização"
+    }
+  },
+  "common": {
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "yes": "Sim",
+    "no": "Não"
+  }
+}

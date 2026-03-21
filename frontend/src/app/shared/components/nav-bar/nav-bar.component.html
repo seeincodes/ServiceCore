@@ -19,8 +19,18 @@
     </div>
 
     <div class="nav-right desktop-only">
+      <div class="lang-switcher">
+        <button
+          *ngFor="let lang of languages"
+          class="lang-btn"
+          [class.active]="currentLang === lang.code"
+          (click)="switchLanguage(lang.code)"
+        >
+          {{ lang.label }}
+        </button>
+      </div>
       <a routerLink="/profile" class="user-info-link">{{ user?.firstName }} {{ user?.lastName }}</a>
-      <button class="logout-btn" (click)="logout()">Log out</button>
+      <button class="logout-btn" (click)="logout()">{{ 'nav.logout' | translate }}</button>
     </div>
 
     <!-- Mobile hamburger -->
@@ -46,6 +56,18 @@
       <span class="nav-icon">{{ link.icon }}</span>
       {{ link.label }}
     </a>
-    <button class="mobile-link mobile-logout" (click)="logout()">Log out</button>
+    <div class="mobile-lang">
+      <button
+        *ngFor="let lang of languages"
+        class="lang-btn"
+        [class.active]="currentLang === lang.code"
+        (click)="switchLanguage(lang.code)"
+      >
+        {{ lang.label }}
+      </button>
+    </div>
+    <button class="mobile-link mobile-logout" (click)="logout()">
+      {{ 'nav.logout' | translate }}
+    </button>
   </div>
 </nav>
