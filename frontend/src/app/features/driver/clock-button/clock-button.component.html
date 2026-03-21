@@ -1,6 +1,6 @@
 <div class="clock-page">
   <!-- Status card -->
-  <div class="status-card" [class.active]="status.clockedIn">
+  <div class="status-card" [class.active]="status.clockedIn" *ngIf="!loading">
     <div class="status-indicator">
       <span class="status-dot" [class.in]="status.clockedIn"></span>
       <span class="status-text">{{
@@ -25,8 +25,16 @@
     </div>
   </div>
 
+  <!-- Loading state -->
+  <div class="loading-card" *ngIf="loading">
+    <div class="spinner"></div>
+    <span class="loading-text">{{
+      status.clockedIn ? ('clock.clockingOut' | translate) : ('clock.clockingIn' | translate)
+    }}</span>
+  </div>
+
   <!-- Today's summary (when clocked out) -->
-  <div class="today-summary" *ngIf="!status.clockedIn">
+  <div class="today-summary" *ngIf="!status.clockedIn && !loading">
     <div class="summary-row">
       <span class="summary-label">{{ 'clock.today' | translate }}</span>
       <span class="summary-value">{{ todayHours }}h</span>
@@ -37,9 +45,9 @@
   <button
     class="clock-btn"
     [class.clock-out]="status.clockedIn"
-    [class.loading]="loading"
     [disabled]="loading"
     (click)="onClockAction()"
+    *ngIf="!loading"
   >
     {{ (status.clockedIn ? 'clock.clockOut' : 'clock.clockIn') | translate }}
   </button>
@@ -53,4 +61,9 @@
   >
     {{ confirmation.message }}
   </div>
+
+  <!-- Time format toggle -->
+  <button class="time-format-toggle" (click)="toggleTimeFormat()">
+    {{ use24Hour ? '12h' : '24h' }}
+  </button>
 </div>

@@ -41,6 +41,8 @@
     "todayHours": "Horas de Hoje",
     "today": "Hoje",
     "since": "Desde",
+    "clockingIn": "Registrando entrada...",
+    "clockingOut": "Registrando saída...",
     "clockedInAt": "Entrada registrada às {{time}}",
     "clockedOutAt": "Saída registrada às {{time}}. Total: {{hours}}h",
     "route": "Rota #{{routeId}}",

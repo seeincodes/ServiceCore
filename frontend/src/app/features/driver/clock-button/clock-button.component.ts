@@ -19,6 +19,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   confirmation: { message: string; type: 'success' | 'error' } | null = null;
   elapsedDisplay = '';
   todayHours = '0.0';
+  use24Hour = false;
 
   private destroy$ = new Subject<void>();
   private timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -26,7 +27,9 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   constructor(
     private clockService: ClockService,
     private http: HttpClient,
-  ) {}
+  ) {
+    this.use24Hour = localStorage.getItem('tk_time_format') === '24';
+  }
 
   ngOnInit(): void {
     this.loadStatus();
@@ -154,7 +157,16 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   }
 
   formatTime(iso: string): string {
-    return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    return new Date(iso).toLocaleTimeString([], {
+      hour: this.use24Hour ? '2-digit' : 'numeric',
+      minute: '2-digit',
+      hour12: !this.use24Hour,
+    });
+  }
+
+  toggleTimeFormat(): void {
+    this.use24Hour = !this.use24Hour;
+    localStorage.setItem('tk_time_format', this.use24Hour ? '24' : '12');
   }
 
   /** Silent GPS ping every 2 minutes for zero-touch clock-in/out. */

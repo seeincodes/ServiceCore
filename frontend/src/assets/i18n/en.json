@@ -41,6 +41,8 @@
     "todayHours": "Today's Hours",
     "today": "Today",
     "since": "Since",
+    "clockingIn": "Clocking in...",
+    "clockingOut": "Clocking out...",
     "clockedInAt": "Clocked in at {{time}}",
     "clockedOutAt": "Clocked out at {{time}}. Total: {{hours}}h",
     "route": "Route #{{routeId}}",
