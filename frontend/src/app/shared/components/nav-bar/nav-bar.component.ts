@@ -5,6 +5,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService, AuthUser } from '../../../core/services/auth.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 
 interface NavLink {
   path: string;
@@ -37,9 +38,9 @@ export class NavBarComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private translate: TranslateService,
     private sanitizer: DomSanitizer,
+    private prefsService: PreferencesService,
   ) {
-    const saved = localStorage.getItem('tk_lang');
-    this.currentLang = saved || 'en';
+    this.currentLang = this.prefsService.language;
     this.translate.use(this.currentLang);
   }
 
@@ -47,13 +48,16 @@ export class NavBarComponent implements OnInit, OnDestroy {
     this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       this.user = user;
       this.links = this.getLinksForRole(user?.role);
+      if (user) {
+        this.prefsService.load(); // Sync preferences from server on login
+      }
     });
   }
 
   switchLanguage(lang: string): void {
     this.currentLang = lang;
     this.translate.use(lang);
-    localStorage.setItem('tk_lang', lang);
+    this.prefsService.setLanguage(lang);
   }
 
   ngOnDestroy(): void {

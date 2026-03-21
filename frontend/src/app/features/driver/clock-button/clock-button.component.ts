@@ -6,6 +6,7 @@ import { ClockService, ClockStatus } from '../../../core/services/clock.service'
 import { Subject, takeUntil, interval } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { HoursDisplayPipe } from '../../../shared/pipes/hours.pipe';
+import { PreferencesService } from '../../../core/services/preferences.service';
 
 interface AvailableRoute {
   id: string;
@@ -33,11 +34,16 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   confirmation: { message: string; type: 'success' | 'error' } | null = null;
   elapsedDisplay = '';
   todayHoursNum = 0;
-  use24Hour = false;
   onBreak = false;
   showEndDayConfirm = false;
   showRouteSwitch = false;
-  useMiles = true;
+
+  get use24Hour(): boolean {
+    return this.prefs.use24Hour;
+  }
+  get useMiles(): boolean {
+    return this.prefs.useMiles;
+  }
 
   // Route picker
   availableRoutes: AvailableRoute[] = [];
@@ -58,10 +64,8 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   constructor(
     private clockService: ClockService,
     private http: HttpClient,
-  ) {
-    this.use24Hour = localStorage.getItem('tk_time_format') === '24';
-    this.useMiles = localStorage.getItem('tk_distance_unit') !== 'km';
-  }
+    private prefs: PreferencesService,
+  ) {}
 
   ngOnInit(): void {
     this.loadStatus();
@@ -215,8 +219,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   }
 
   toggleTimeFormat(): void {
-    this.use24Hour = !this.use24Hour;
-    localStorage.setItem('tk_time_format', this.use24Hour ? '24' : '12');
+    this.prefs.toggleTimeFormat();
   }
 
   private showToast(message: string, type: 'success' | 'error'): void {

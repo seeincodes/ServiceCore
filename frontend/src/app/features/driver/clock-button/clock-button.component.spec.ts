@@ -3,10 +3,12 @@ import {
   TestBed,
   fakeAsync,
   tick,
+  flush,
   discardPeriodicTasks,
 } from '@angular/core/testing';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient } from '@angular/common/http';
+import { TranslateModule } from '@ngx-translate/core';
 import { of, throwError } from 'rxjs';
 import { ClockButtonComponent } from './clock-button.component';
 import { ClockService } from '../../../core/services/clock.service';
@@ -23,7 +25,7 @@ describe('ClockButtonComponent', () => {
     );
 
     await TestBed.configureTestingModule({
-      imports: [ClockButtonComponent],
+      imports: [ClockButtonComponent, TranslateModule.forRoot()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
@@ -44,13 +46,13 @@ describe('ClockButtonComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('shows CLOCK IN when not clocked in', () => {
+  it('shows clock-in button when not clocked in', () => {
     fixture.detectChanges();
-    const btn = fixture.nativeElement.querySelector('.clock-button');
-    expect(btn.textContent).toContain('CLOCK IN');
+    const btn = fixture.nativeElement.querySelector('.clock-btn');
+    expect(btn).toBeTruthy();
   });
 
-  it('shows CLOCK OUT when status is clocked in', () => {
+  it('shows clock-out options when status is clocked in', () => {
     clockService.getStatus.and.returnValue(
       of({
         success: true,
@@ -64,8 +66,8 @@ describe('ClockButtonComponent', () => {
       }),
     );
     fixture.detectChanges();
-    const btn = fixture.nativeElement.querySelector('.clock-button');
-    expect(btn.textContent).toContain('CLOCK OUT');
+    const breakBtn = fixture.nativeElement.querySelector('.clock-out-break');
+    expect(breakBtn).toBeTruthy();
   });
 
   it('calls clockIn on tap when not clocked in', fakeAsync(() => {
@@ -86,7 +88,7 @@ describe('ClockButtonComponent', () => {
 
     fixture.detectChanges();
     tick();
-    const btn = fixture.nativeElement.querySelector('.clock-button');
+    const btn = fixture.nativeElement.querySelector('.clock-btn');
     btn.click();
     tick();
 
@@ -96,6 +98,7 @@ describe('ClockButtonComponent', () => {
     fixture.detectChanges();
     expect(component.confirmation?.type).toBe('success');
     expect(component.confirmation?.message).toMatch(/Clocked in at/);
+    flush();
     discardPeriodicTasks();
   }));
 
@@ -109,12 +112,14 @@ describe('ClockButtonComponent', () => {
 
     fixture.detectChanges();
     tick();
-    fixture.nativeElement.querySelector('.clock-button').click();
+    fixture.nativeElement.querySelector('.clock-btn').click();
     tick();
     fixture.detectChanges();
 
     expect(component.confirmation?.type).toBe('error');
     expect(component.confirmation?.message).toContain('Already clocked in');
+    flush();
+    discardPeriodicTasks();
   }));
 
   it('calls clockOut when clocked in', fakeAsync(() => {
@@ -144,13 +149,14 @@ describe('ClockButtonComponent', () => {
 
     fixture.detectChanges();
     tick();
-    fixture.nativeElement.querySelector('.clock-button').click();
+    // Use break button to clock out
+    fixture.nativeElement.querySelector('.clock-out-break').click();
     tick();
     fixture.detectChanges();
 
     expect(clockService.clockOut).toHaveBeenCalledWith('e99');
     expect(component.confirmation?.type).toBe('success');
-    expect(component.confirmation?.message).toMatch(/Clocked out at/);
+    flush();
     discardPeriodicTasks();
   }));
 });

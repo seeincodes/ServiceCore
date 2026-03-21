@@ -6,6 +6,7 @@ import { TranslateModule } from '@ngx-translate/core';
 import { MapComponent, MapMarker } from '../../../shared/components/map/map.component';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { environment } from '../../../../environments/environment';
+import { PreferencesService } from '../../../core/services/preferences.service';
 
 interface RouteStop {
   id: string;
@@ -50,7 +51,10 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   totalDuration = 0;
   loading = true;
   showDirections = false;
-  useMiles = true;
+
+  get useMiles(): boolean {
+    return this.prefs.useMiles;
+  }
 
   get totalDistance(): string {
     if (this.useMiles) {
@@ -82,9 +86,8 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private wsService: WebSocketService,
-  ) {
-    this.useMiles = localStorage.getItem('tk_distance_unit') !== 'km';
-  }
+    private prefs: PreferencesService,
+  ) {}
 
   ngOnInit(): void {
     this.loadRoute();
@@ -144,8 +147,7 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   }
 
   toggleUnit(): void {
-    this.useMiles = !this.useMiles;
-    localStorage.setItem('tk_distance_unit', this.useMiles ? 'mi' : 'km');
+    this.prefs.toggleDistanceUnit();
   }
 
   markComplete(index: number, event: Event): void {

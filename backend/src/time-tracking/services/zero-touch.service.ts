@@ -142,8 +142,8 @@ async function storeLocationPing(
 async function confirmZonePresence(
   orgId: string,
   userId: string,
-  lat: number,
-  lon: number,
+  _lat: number,
+  _lon: number,
 ): Promise<boolean> {
   const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000);
 

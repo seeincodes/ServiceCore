@@ -350,7 +350,7 @@ export async function seed(knex: Knex): Promise<void> {
   const weekEnding = lastFriday.toISOString().split('T')[0];
 
   const org1Manager = org1Users.find((u) => u.role === 'manager')!;
-  const org2Manager = org2Users.find((u) => u.role === 'manager')!;
+  const _org2Manager = org2Users.find((u) => u.role === 'manager')!;
 
   // Org 1 timesheets
   for (let i = 0; i < org1Drivers.length; i++) {

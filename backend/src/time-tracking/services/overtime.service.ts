@@ -1,5 +1,5 @@
 import db from '../../shared/database/connection';
-import logger from '../../shared/utils/logger';
+import _logger from '../../shared/utils/logger';
 import { emitToOrg } from '../../shared/websocket/socket';
 
 export interface OTConfig {

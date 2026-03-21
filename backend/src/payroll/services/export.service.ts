@@ -83,8 +83,8 @@ export async function generatePdf(
 
 export async function generateExcel(
   rows: PayrollRow[],
-  startDate: Date,
-  endDate: Date,
+  _startDate: Date,
+  _endDate: Date,
 ): Promise<Buffer> {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'TimeKeeper';
