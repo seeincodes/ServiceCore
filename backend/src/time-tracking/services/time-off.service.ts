@@ -258,6 +258,30 @@ export async function getAllBalances(
 }
 
 /**
+ * Get all employees' balances for an org (manager/admin view).
+ */
+export async function getAllEmployeeBalances(orgId: string, year?: number): Promise<any[]> {
+  const y = year || new Date().getFullYear();
+
+  const employees = await db('users')
+    .where({ org_id: orgId, is_active: true })
+    .select('id', 'first_name', 'last_name', 'role');
+
+  const result = [];
+  for (const emp of employees) {
+    const balances = await getAllBalances(orgId, emp.id, y);
+    result.push({
+      id: emp.id,
+      name: `${emp.first_name} ${emp.last_name}`,
+      role: emp.role,
+      ...balances,
+    });
+  }
+
+  return result;
+}
+
+/**
  * List time-off requests for an org (manager view) or user.
  */
 export async function listRequests(

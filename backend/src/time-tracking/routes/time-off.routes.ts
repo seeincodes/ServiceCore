@@ -145,4 +145,19 @@ router.put('/balances', authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// GET /time-off/all-balances — get all employees' balances (manager/admin)
+router.get('/all-balances', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    if (user.role !== 'manager' && user.role !== 'org_admin') {
+      sendError(res, 'Only managers and admins can view all balances', 403);
+      return;
+    }
+    const balances = await timeOffService.getAllEmployeeBalances(user.orgId);
+    sendSuccess(res, { employees: balances });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message);
+  }
+});
+
 export default router;

@@ -6,11 +6,15 @@
       Pending ({{ pendingCount }})
     </button>
     <button [class.active]="tab === 'all'" (click)="tab = 'all'; loadRequests()">All</button>
+    <button [class.active]="tab === 'balances'" (click)="tab = 'balances'; loadEmployeeBalances()">
+      Balances
+    </button>
   </div>
 
   <div class="loading" *ngIf="loading">Loading...</div>
 
-  <div class="request-list" *ngIf="!loading">
+  <!-- Requests view -->
+  <div class="request-list" *ngIf="!loading && tab !== 'balances'">
     <div *ngFor="let req of requests" class="request-card">
       <div class="card-header">
         <span class="employee-name">{{ req.userName }}</span>
@@ -19,6 +23,11 @@
       <div class="card-type">{{ typeLabel(req.type) }}</div>
       <div class="card-dates">
         {{ req.start_date }} — {{ req.end_date }} ({{ req.hours_requested }}h)
+      </div>
+      <div class="card-balance" *ngIf="req.status === 'pending' && employeeBalanceMap[req.user_id]">
+        Balance: {{ employeeBalanceMap[req.user_id][req.type]?.available || 0 }}h available ({{
+          employeeBalanceMap[req.user_id][req.type]?.used || 0
+        }}h used of {{ employeeBalanceMap[req.user_id][req.type]?.total || 0 }}h)
       </div>
       <div class="card-notes" *ngIf="req.notes">{{ req.notes }}</div>
 
@@ -36,5 +45,39 @@
     <div class="empty" *ngIf="requests.length === 0">
       {{ tab === 'pending' ? 'No pending requests.' : 'No time-off requests.' }}
     </div>
+  </div>
+
+  <!-- Balances view -->
+  <div class="balances-view" *ngIf="!loading && tab === 'balances'">
+    <table class="balances-table">
+      <thead>
+        <tr>
+          <th>Employee</th>
+          <th>PTO</th>
+          <th>Sick</th>
+          <th>Personal</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let emp of employeeBalanceList">
+          <td class="emp-name">{{ emp.name }}</td>
+          <td>
+            <span class="bal-available">{{ emp.pto.available }}h</span>
+            <span class="bal-detail">/ {{ emp.pto.total }}h ({{ emp.pto.used }}h used)</span>
+          </td>
+          <td>
+            <span class="bal-available">{{ emp.sick.available }}h</span>
+            <span class="bal-detail">/ {{ emp.sick.total }}h ({{ emp.sick.used }}h used)</span>
+          </td>
+          <td>
+            <span class="bal-available">{{ emp.personal.available }}h</span>
+            <span class="bal-detail"
+              >/ {{ emp.personal.total }}h ({{ emp.personal.used }}h used)</span
+            >
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="empty" *ngIf="employeeBalanceList.length === 0">No employees found.</div>
   </div>
 </div>
