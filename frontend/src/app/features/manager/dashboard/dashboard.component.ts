@@ -13,6 +13,7 @@ interface ProjectAllocation {
   hours: number;
   percentage: number;
   driverCount: number;
+  color: string | null;
 }
 
 @Component({

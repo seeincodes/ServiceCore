@@ -11,10 +11,20 @@ import { PreferencesService } from '../../../core/services/preferences.service';
 interface AvailableRoute {
   id: string;
   name: string;
+  projectId?: string;
+  projectCode?: string;
+}
+
+interface Project {
+  id: string;
+  code: string;
+  name: string;
+  color: string | null;
 }
 
 interface RouteStop {
   name: string;
+  notes?: string;
   eta?: string;
   lat: number;
   lon: number;
@@ -46,14 +56,23 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     return this.prefs.useMiles;
   }
 
-  // Route picker
+  // Project + Route picker
+  projects: Project[] = [];
+  selectedProjectId = '';
   availableRoutes: AvailableRoute[] = [];
+  filteredRoutes: AvailableRoute[] = [];
   selectedRouteId = '';
+  activeProjectName = '';
   activeRouteName = '';
 
   // Shift dashboard
   routeStops: RouteStop[] = [];
   completedStops = 0;
+  showAllStops = false;
+
+  get upcomingStops(): RouteStop[] {
+    return this.routeStops.filter((s) => !s.completed);
+  }
   remainingDistance = 0;
   nextStop: RouteStop | null = null;
 
@@ -70,6 +89,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadStatus();
+    this.loadProjects();
     this.loadAvailableRoutes();
     this.startSilentTracking();
   }
@@ -88,6 +108,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.clockService
       .clockIn({
         idempotencyKey: crypto.randomUUID(),
+        projectId: this.selectedProjectId || undefined,
         routeId: this.selectedRouteId || undefined,
       })
       .pipe(takeUntil(this.destroy$))
@@ -207,6 +228,23 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
       });
   }
 
+  completeCurrentStop(): void {
+    const idx = this.routeStops.findIndex((s) => !s.completed);
+    if (idx >= 0) this.completeStop(idx);
+  }
+
+  completeStop(index: number): void {
+    this.routeStops[index].completed = true;
+    this.updateStopProgress();
+    this.saveStopProgress();
+  }
+
+  private saveStopProgress(): void {
+    if (!this.status.routeId) return;
+    const completed = this.routeStops.filter((s) => s.completed).map((s) => s.name);
+    localStorage.setItem(`stops-${this.status.routeId}`, JSON.stringify(completed));
+  }
+
   navigateToStop(): void {
     if (!this.nextStop) return;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${this.nextStop.lat},${this.nextStop.lon}&travelmode=driving`;
@@ -250,6 +288,27 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
       });
   }
 
+  private loadProjects(): void {
+    this.http.get<any>(`${environment.apiUrl}/admin/projects`).subscribe({
+      next: (res) => {
+        this.projects = (res.data.projects || []).filter((p: any) => p.is_active);
+      },
+    });
+  }
+
+  selectProject(projectId: string): void {
+    this.selectedProjectId = projectId;
+    this.selectedRouteId = '';
+    this.filteredRoutes = this.availableRoutes.filter(
+      (r) =>
+        r.projectId === projectId ||
+        r.projectCode === this.projects.find((p) => p.id === projectId)?.code,
+    );
+    if (this.filteredRoutes.length > 0) {
+      this.selectedRouteId = this.filteredRoutes[0].id;
+    }
+  }
+
   private loadAvailableRoutes(): void {
     this.http.get<any>(`${environment.apiUrl}/dispatcher/routes`).subscribe({
       next: (res) => {
@@ -257,16 +316,21 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
         this.availableRoutes = routes.map((r: any) => ({
           id: r.id,
           name: r.name,
+          projectId: r.projectId,
+          projectCode: r.projectCode,
         }));
-        // Pre-select first route
-        if (this.availableRoutes.length > 0 && !this.selectedRouteId) {
-          this.selectedRouteId = this.availableRoutes[0].id;
-        }
+        this.filteredRoutes = [];
       },
     });
   }
 
   private loadRouteDetails(): void {
+    // Set project name
+    if (this.status.projectId) {
+      const project = this.projects.find((p) => p.id === this.status.projectId);
+      this.activeProjectName = project?.name || this.status.projectId;
+    }
+
     if (!this.status.routeId) {
       this.activeRouteName = '';
       this.routeStops = [];
@@ -285,6 +349,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
         if (myRoute?.waypoints) {
           this.routeStops = myRoute.waypoints.map((wp: any) => ({
             name: wp.name,
+            notes: wp.notes,
             lat: wp.lat,
             lon: wp.lon,
             completed: false,

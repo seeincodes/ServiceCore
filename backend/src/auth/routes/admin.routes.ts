@@ -361,4 +361,100 @@ router.delete(
   },
 );
 
+// ============================================================
+// PROJECTS
+// ============================================================
+
+// GET /admin/projects — list all projects
+router.get('/projects', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { orgId } = (req as AuthenticatedRequest).user;
+    const projects = await db('projects').where({ org_id: orgId }).orderBy('code');
+    sendSuccess(res, { projects });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message);
+  }
+});
+
+// POST /admin/projects — create a project
+const createProjectSchema = z.object({
+  code: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().optional(),
+  color: z.string().optional(),
+});
+
+router.post(
+  '/projects',
+  authenticate,
+  authorize('org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const { orgId } = (req as AuthenticatedRequest).user;
+      const data = createProjectSchema.parse(req.body);
+      const [project] = await db('projects')
+        .insert({ org_id: orgId, ...data })
+        .returning('*');
+      sendSuccess(res, { project }, 201);
+    } catch (err: unknown) {
+      sendError(res, (err as Error).message, 400);
+    }
+  },
+);
+
+// PUT /admin/projects/:id — update a project
+router.put(
+  '/projects/:id',
+  authenticate,
+  authorize('org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const { orgId } = (req as AuthenticatedRequest).user;
+      const id = req.params.id as string;
+      const data = req.body;
+
+      const project = await db('projects').where({ id, org_id: orgId }).first();
+      if (!project) {
+        sendError(res, 'Project not found', 404);
+        return;
+      }
+
+      const updates: Record<string, unknown> = { updated_at: new Date() };
+      if (data.name) updates.name = data.name;
+      if (data.code) updates.code = data.code;
+      if (data.description !== undefined) updates.description = data.description;
+      if (data.color !== undefined) updates.color = data.color;
+      if (data.isActive !== undefined) updates.is_active = data.isActive;
+
+      await db('projects').where({ id }).update(updates);
+      const updated = await db('projects').where({ id }).first();
+      sendSuccess(res, { project: updated });
+    } catch (err: unknown) {
+      sendError(res, (err as Error).message, 400);
+    }
+  },
+);
+
+// DELETE /admin/projects/:id
+router.delete(
+  '/projects/:id',
+  authenticate,
+  authorize('org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const { orgId } = (req as AuthenticatedRequest).user;
+      const deleted = await db('projects')
+        .where({ id: req.params.id as string, org_id: orgId })
+        .del();
+      if (!deleted) {
+        sendError(res, 'Project not found', 404);
+        return;
+      }
+      sendSuccess(res, { status: 'deleted' });
+    } catch (err: unknown) {
+      sendError(res, (err as Error).message);
+    }
+  },
+);
+
 export default router;

@@ -252,6 +252,28 @@ export async function seed(knex: Knex): Promise<void> {
     .returning(['id', 'role']);
 
   // ============================================================
+  // PROJECTS (must be before clock entries for project_id FK)
+  // ============================================================
+  await knex('projects').del();
+  const org1Projects = await knex('projects')
+    .insert([
+      { org_id: org1.id, code: 'RES-PICKUP', name: 'Residential Pickup', color: '#2e7d32' },
+      { org_id: org1.id, code: 'COM-PICKUP', name: 'Commercial Pickup', color: '#1565c0' },
+      { org_id: org1.id, code: 'RECYCLING', name: 'Recycling Collection', color: '#00897b' },
+      { org_id: org1.id, code: 'BULK-WASTE', name: 'Bulk Waste Removal', color: '#6a1b9a' },
+      { org_id: org1.id, code: 'YARD-WORK', name: 'Yard Maintenance', color: '#ef6c00' },
+    ])
+    .returning(['id', 'code']);
+  const org1ProjectMap = new Map(org1Projects.map((p) => [p.code, p.id]));
+
+  await knex('projects').insert([
+    { org_id: org2.id, code: 'RES-PICKUP', name: 'Residential Pickup', color: '#2e7d32' },
+    { org_id: org2.id, code: 'COM-PICKUP', name: 'Commercial Pickup', color: '#1565c0' },
+    { org_id: org2.id, code: 'HAZ-WASTE', name: 'Hazardous Waste', color: '#c62828' },
+    { org_id: org3.id, code: 'GENERAL', name: 'General Pickup', color: '#2e7d32' },
+  ]);
+
+  // ============================================================
   // CLOCK ENTRIES — Last 2 weeks of realistic data
   // ============================================================
   const now = new Date();
@@ -259,7 +281,8 @@ export async function seed(knex: Knex): Promise<void> {
   const org2Drivers = org2Users.filter((u) => u.role === 'employee');
   const org3Drivers = org3Users.filter((u) => u.role === 'employee');
 
-  const routes = ['101', '102', '103', '104', '105', '42', '77', '88'];
+  const routes = ['RES-01', 'RES-02', 'COM-01', 'COM-02', 'RCY-01', 'BLK-01', 'YRD-01'];
+  const org1ProjectCodes = ['RES-PICKUP', 'COM-PICKUP', 'RECYCLING', 'BULK-WASTE', 'YARD-WORK'];
 
   // Generate 2 weeks of clock entries for each driver
   for (let dayOffset = 13; dayOffset >= 0; dayOffset--) {
@@ -282,13 +305,16 @@ export async function seed(knex: Knex): Promise<void> {
       const clockOut = new Date(clockIn);
       clockOut.setTime(clockIn.getTime() + workHours * 60 * 60 * 1000);
 
+      const projectCode = org1ProjectCodes[Math.floor(Math.random() * org1ProjectCodes.length)];
+      const projectId = org1ProjectMap.get(projectCode);
+
       await knex('clock_entries').insert({
         org_id: org1.id,
         user_id: driver.id,
         clock_in: clockIn,
         clock_out: clockOut,
         route_id: routeId,
-        project_id: `PRJ-${routeId}`,
+        project_id: projectId,
         location_lat: 37.7749 + (Math.random() - 0.5) * 0.1,
         location_lon: -122.4194 + (Math.random() - 0.5) * 0.1,
         source: Math.random() > 0.8 ? 'sms' : 'app',

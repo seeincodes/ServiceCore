@@ -150,12 +150,25 @@ export async function getProjectAllocation(orgId: string): Promise<ProjectAlloca
     totalHours += hours;
   }
 
+  // Resolve project IDs to names
+  const projectIds = [...projectMap.keys()].filter((k) => k !== 'Unassigned');
+  const projectRecords =
+    projectIds.length > 0
+      ? await db('projects').whereIn('id', projectIds).select('id', 'name', 'code', 'color')
+      : [];
+  const projectNameMap = new Map(projectRecords.map((p) => [p.id, p]));
+
   return Array.from(projectMap.entries())
-    .map(([project, data]) => ({
-      project,
-      hours: Math.round(data.hours * 10) / 10,
-      percentage: totalHours > 0 ? Math.round((data.hours / totalHours) * 100) : 0,
-      driverCount: data.drivers.size,
-    }))
+    .map(([projectId, data]) => {
+      const proj = projectNameMap.get(projectId);
+      return {
+        project: proj ? `${proj.code} — ${proj.name}` : projectId,
+        projectCode: proj?.code || null,
+        color: proj?.color || null,
+        hours: Math.round(data.hours * 10) / 10,
+        percentage: totalHours > 0 ? Math.round((data.hours / totalHours) * 100) : 0,
+        driverCount: data.drivers.size,
+      };
+    })
     .sort((a, b) => b.hours - a.hours);
 }
