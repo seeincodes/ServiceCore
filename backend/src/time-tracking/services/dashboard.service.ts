@@ -92,7 +92,7 @@ export async function getDriverDayDetail(
     .where('clock_in', '<', endOfDay)
     .orderBy('clock_in', 'asc');
 
-  return entries.map((entry) => {
+  return entries.map((entry: any) => {
     const hours = entry.clock_out
       ? (new Date(entry.clock_out).getTime() - new Date(entry.clock_in).getTime()) /
         (1000 * 60 * 60)
@@ -108,4 +108,54 @@ export async function getDriverDayDetail(
       source: entry.source,
     };
   });
+}
+
+export interface ProjectAllocation {
+  project: string;
+  hours: number;
+  percentage: number;
+  driverCount: number;
+}
+
+/**
+ * Get time allocation breakdown by project/route for the current week.
+ */
+export async function getProjectAllocation(orgId: string): Promise<ProjectAllocation[]> {
+  const now = new Date();
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
+  weekStart.setHours(0, 0, 0, 0);
+
+  const entries = await db('clock_entries')
+    .where({ org_id: orgId })
+    .where('clock_in', '>=', weekStart)
+    .whereNotNull('clock_out')
+    .select('route_id', 'project_id', 'user_id', 'clock_in', 'clock_out');
+
+  const projectMap = new Map<string, { hours: number; drivers: Set<string> }>();
+  let totalHours = 0;
+
+  for (const entry of entries) {
+    const hours =
+      (new Date(entry.clock_out).getTime() - new Date(entry.clock_in).getTime()) / (1000 * 60 * 60);
+    const key = entry.project_id || entry.route_id || 'Unassigned';
+
+    const existing = projectMap.get(key);
+    if (existing) {
+      existing.hours += hours;
+      existing.drivers.add(entry.user_id);
+    } else {
+      projectMap.set(key, { hours, drivers: new Set([entry.user_id]) });
+    }
+    totalHours += hours;
+  }
+
+  return Array.from(projectMap.entries())
+    .map(([project, data]) => ({
+      project,
+      hours: Math.round(data.hours * 10) / 10,
+      percentage: totalHours > 0 ? Math.round((data.hours / totalHours) * 100) : 0,
+      driverCount: data.drivers.size,
+    }))
+    .sort((a, b) => b.hours - a.hours);
 }

@@ -70,4 +70,21 @@ router.get(
   },
 );
 
+// GET /manager/project-allocation
+router.get(
+  '/project-allocation',
+  authenticate,
+  authorize('manager', 'org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      const allocation = await dashboardService.getProjectAllocation(user.orgId);
+      sendSuccess(res, { allocation });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Project allocation failed';
+      sendError(res, message);
+    }
+  },
+);
+
 export default router;

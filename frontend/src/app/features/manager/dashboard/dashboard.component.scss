@@ -226,3 +226,64 @@
   padding: $spacing-xl;
   color: $neutral-500;
 }
+
+// Project Allocation
+.allocation-section {
+  margin-top: $spacing-lg;
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.allocation-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.allocation-item {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 8px;
+  padding: $spacing-sm $spacing-md;
+}
+
+.alloc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alloc-name {
+  font-weight: 600;
+  font-size: $font-size-sm;
+}
+
+.alloc-hours {
+  font-weight: 700;
+  font-size: $font-size-sm;
+}
+
+.alloc-bar {
+  height: 8px;
+  background: $neutral-100;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 6px 0;
+}
+
+.alloc-fill {
+  height: 100%;
+  background: $primary;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.alloc-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: $neutral-500;
+}

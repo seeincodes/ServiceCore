@@ -28,6 +28,11 @@ interface PayrollRow {
   regularHours: number;
   otHours: number;
   totalHours: number;
+  hourlyRate: number;
+  otMultiplier: number;
+  regularPay: number;
+  otPay: number;
+  grossPay: number;
   projects: string;
 }
 
@@ -35,7 +40,7 @@ export async function generateReport(params: ReportParams): Promise<ReportResult
   const { orgId, period, endDate } = params;
   const { startDate, periodEnd } = getDateRange(period, endDate);
 
-  // Get all completed clock entries in range for org
+  // Get all completed clock entries in range for org, including hourly rate
   const entries = await db('clock_entries')
     .join('users', 'clock_entries.user_id', 'users.id')
     .where({ 'clock_entries.org_id': orgId })
@@ -47,6 +52,8 @@ export async function generateReport(params: ReportParams): Promise<ReportResult
       'users.first_name',
       'users.last_name',
       'users.email',
+      'users.hourly_rate',
+      'users.ot_multiplier',
       'clock_entries.clock_in',
       'clock_entries.clock_out',
       'clock_entries.project_id',
@@ -73,12 +80,17 @@ export async function generateReport(params: ReportParams): Promise<ReportResult
         regularHours: 0,
         otHours: 0,
         totalHours: hours,
+        hourlyRate: Number(entry.hourly_rate) || 0,
+        otMultiplier: Number(entry.ot_multiplier) || 1.5,
+        regularPay: 0,
+        otPay: 0,
+        grossPay: 0,
         projects: entry.project_id || '',
       });
     }
   }
 
-  // Calculate OT (federal: >40h regular, rest is OT)
+  // Calculate OT and gross pay
   for (const row of employeeMap.values()) {
     row.totalHours = Math.round(row.totalHours * 100) / 100;
     if (row.totalHours > 40) {
@@ -88,6 +100,11 @@ export async function generateReport(params: ReportParams): Promise<ReportResult
       row.regularHours = row.totalHours;
       row.otHours = 0;
     }
+
+    // Gross pay calculation
+    row.regularPay = Math.round(row.regularHours * row.hourlyRate * 100) / 100;
+    row.otPay = Math.round(row.otHours * row.hourlyRate * row.otMultiplier * 100) / 100;
+    row.grossPay = Math.round((row.regularPay + row.otPay) * 100) / 100;
   }
 
   const rows = Array.from(employeeMap.values());
@@ -104,14 +121,29 @@ export async function generateReport(params: ReportParams): Promise<ReportResult
 }
 
 function generateCsv(rows: PayrollRow[], startDate: Date, endDate: Date): string {
-  const header = 'Employee ID,Employee Name,Email,Regular Hours,OT Hours,Total Hours,Projects';
+  const header =
+    'Employee ID,Employee Name,Email,Hourly Rate,Regular Hours,OT Hours,Total Hours,Regular Pay,OT Pay,Gross Pay,Projects';
   const lines = rows.map(
     (r) =>
-      `${r.employeeId},"${r.employeeName}",${r.email},${r.regularHours},${r.otHours},${r.totalHours},"${r.projects}"`,
+      `${r.employeeId},"${r.employeeName}",${r.email},${r.hourlyRate.toFixed(2)},${r.regularHours},${r.otHours},${r.totalHours},${r.regularPay.toFixed(2)},${r.otPay.toFixed(2)},${r.grossPay.toFixed(2)},"${r.projects}"`,
+  );
+
+  // Summary totals
+  const totals = rows.reduce(
+    (acc, r) => ({
+      regular: acc.regular + r.regularHours,
+      ot: acc.ot + r.otHours,
+      total: acc.total + r.totalHours,
+      regularPay: acc.regularPay + r.regularPay,
+      otPay: acc.otPay + r.otPay,
+      grossPay: acc.grossPay + r.grossPay,
+    }),
+    { regular: 0, ot: 0, total: 0, regularPay: 0, otPay: 0, grossPay: 0 },
   );
 
   const meta = `# Payroll Report: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}`;
-  return `${meta}\n${header}\n${lines.join('\n')}\n`;
+  const summary = `# Totals: ${rows.length} employees | ${totals.regular.toFixed(1)}h regular + ${totals.ot.toFixed(1)}h OT = ${totals.total.toFixed(1)}h | Gross: $${totals.grossPay.toFixed(2)}`;
+  return `${meta}\n${summary}\n${header}\n${lines.join('\n')}\n`;
 }
 
 async function uploadToS3(key: string, csv: string): Promise<string> {
