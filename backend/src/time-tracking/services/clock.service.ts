@@ -2,6 +2,7 @@ import db from '../../shared/database/connection';
 import logger from '../../shared/utils/logger';
 import { emitToOrg } from '../../shared/websocket/socket';
 import { postClockEvent } from '../../dispatcher/services/dispatcher.service';
+import { checkBuddyPunch, checkGeofence } from './location.service';
 
 const MAX_HOURS_PER_DAY = 16;
 
@@ -65,6 +66,32 @@ export async function clockIn(params: ClockInParams): Promise<ClockInResult> {
 
   // 16-hour safety check: total hours today
   await checkDailyHoursLimit(orgId, userId);
+
+  // Location-based checks (non-blocking — log warnings, don't prevent clock-in)
+  const locationFlags: { buddyPunch?: boolean; outsideZone?: boolean } = {};
+  if (locationLat && locationLon) {
+    const [buddyCheck, geoCheck] = await Promise.all([
+      checkBuddyPunch(orgId, userId, locationLat, locationLon),
+      checkGeofence(orgId, locationLat, locationLon),
+    ]);
+    locationFlags.buddyPunch = buddyCheck.flagged;
+    locationFlags.outsideZone = !geoCheck.insideZone;
+
+    if (buddyCheck.flagged) {
+      emitToOrg(orgId, 'buddy_punch_alert', {
+        userId,
+        nearbyUserId: buddyCheck.nearbyUserId,
+        distance: buddyCheck.distanceMeters,
+      });
+    }
+    if (!geoCheck.insideZone) {
+      emitToOrg(orgId, 'geofence_alert', {
+        userId,
+        nearestZone: geoCheck.zoneName,
+        distance: geoCheck.distanceFromZone,
+      });
+    }
+  }
 
   const now = new Date();
 

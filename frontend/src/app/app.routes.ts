@@ -78,6 +78,12 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('org_admin')],
   },
   {
+    path: 'manager/map',
+    loadComponent: () =>
+      import('./features/manager/map/driver-map.component').then((m) => m.DriverMapComponent),
+    canActivate: [authGuard, roleGuard('manager', 'org_admin')],
+  },
+  {
     path: 'manager',
     loadComponent: () =>
       import('./features/manager/dashboard/dashboard.component').then((m) => m.DashboardComponent),
