@@ -14,6 +14,7 @@ import { environment } from '../../../../environments/environment';
 })
 export class LoginComponent {
   showDemoLogins = environment.showDemoLogins;
+  demoPassword = environment.demoPassword;
   email = '';
   password = '';
   loading = false;

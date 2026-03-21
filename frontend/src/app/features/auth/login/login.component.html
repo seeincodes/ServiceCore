@@ -44,21 +44,24 @@
     </form>
 
     <div class="demo-accounts" *ngIf="showDemoLogins">
-      <p>Demo accounts (password: <strong>password123</strong>)</p>
+      <p>
+        Demo accounts (password: <strong>{{ demoPassword }}</strong
+        >)
+      </p>
       <div class="demo-list">
         <button
           class="demo-btn"
-          (click)="email = 'driver1@greenwaste.com'; password = 'password123'"
+          (click)="email = 'driver1@greenwaste.com'; password = demoPassword"
         >
           Driver
         </button>
         <button
           class="demo-btn"
-          (click)="email = 'manager@greenwaste.com'; password = 'password123'"
+          (click)="email = 'manager@greenwaste.com'; password = demoPassword"
         >
           Manager
         </button>
-        <button class="demo-btn" (click)="email = 'admin@greenwaste.com'; password = 'password123'">
+        <button class="demo-btn" (click)="email = 'admin@greenwaste.com'; password = demoPassword">
           Admin
         </button>
       </div>
