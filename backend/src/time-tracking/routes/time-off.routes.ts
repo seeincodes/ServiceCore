@@ -116,4 +116,33 @@ router.get('/balances', authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// PUT /time-off/balances — admin updates an employee's PTO/sick balance
+const updateBalanceSchema = z.object({
+  userId: z.string(),
+  type: z.enum(['pto', 'sick', 'personal', 'bereavement', 'jury_duty']),
+  totalHours: z.number().min(0),
+  year: z.number().optional(),
+});
+
+router.put('/balances', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    if (user.role !== 'org_admin') {
+      sendError(res, 'Only admins can update balances', 403);
+      return;
+    }
+    const data = updateBalanceSchema.parse(req.body);
+    await timeOffService.updateBalance(
+      user.orgId,
+      data.userId,
+      data.type,
+      data.totalHours,
+      data.year,
+    );
+    sendSuccess(res, { status: 'updated' });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message, 400);
+  }
+});
+
 export default router;

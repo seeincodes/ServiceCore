@@ -130,6 +130,7 @@
         </td>
         <td class="actions">
           <button class="action-btn" (click)="editUser(user)">Edit</button>
+          <button class="action-btn pto" (click)="openPtoEditor(user)">PTO</button>
           <button class="action-btn toggle" (click)="toggleActive(user)">
             {{ user.is_active ? 'Deactivate' : 'Activate' }}
           </button>
@@ -137,4 +138,25 @@
       </tr>
     </tbody>
   </table>
+
+  <!-- PTO Balance Editor -->
+  <div class="form-card" *ngIf="ptoUser">
+    <h2>PTO Balances — {{ ptoUser.first_name }} {{ ptoUser.last_name }}</h2>
+    <div class="pto-grid">
+      <div class="pto-row" *ngFor="let b of ptoBalances">
+        <span class="pto-label">{{ b.label }}</span>
+        <span class="pto-used">{{ b.used }}h used</span>
+        <div class="pto-input-group">
+          <label>Total hours:</label>
+          <input type="number" [(ngModel)]="b.total" min="0" max="480" />
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="save-btn" (click)="savePtoBalances()" [disabled]="saving">
+        {{ saving ? 'Saving...' : 'Save Balances' }}
+      </button>
+      <button class="cancel-btn" (click)="ptoUser = null">Cancel</button>
+    </div>
+  </div>
 </div>

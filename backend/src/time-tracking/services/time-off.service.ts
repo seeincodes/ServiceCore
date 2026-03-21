@@ -205,6 +205,41 @@ export async function getBalance(
 }
 
 /**
+ * Admin: set an employee's total balance hours for a given type/year.
+ */
+export async function updateBalance(
+  orgId: string,
+  userId: string,
+  type: TimeOffType,
+  totalHours: number,
+  year?: number,
+): Promise<void> {
+  const y = year || new Date().getFullYear();
+
+  const existing = await db('time_off_balances')
+    .where({ org_id: orgId, user_id: userId, type, year: y })
+    .first();
+
+  if (existing) {
+    await db('time_off_balances')
+      .where({ id: existing.id })
+      .update({ balance_hours: totalHours, accrued_hours: totalHours });
+  } else {
+    await db('time_off_balances').insert({
+      org_id: orgId,
+      user_id: userId,
+      type,
+      year: y,
+      balance_hours: totalHours,
+      accrued_hours: totalHours,
+      used_hours: 0,
+    });
+  }
+
+  logger.info('Balance updated by admin', { orgId, userId, type, totalHours, year: y });
+}
+
+/**
  * Get all balances for a user.
  */
 export async function getAllBalances(
