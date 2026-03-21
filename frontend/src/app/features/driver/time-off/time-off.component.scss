@@ -2,18 +2,23 @@
 @use '../../../../styles/breakpoints' as *;
 
 .time-off {
-  padding: $spacing-md;
-  max-width: 700px;
+  padding: $spacing-sm;
+  max-width: 600px;
   margin: 0 auto;
+  @include tablet-up {
+    padding: $spacing-md;
+  }
   h1 {
-    font-size: 24px;
-    font-weight: 600;
+    font-size: 22px;
+    font-weight: 700;
     margin: 0 0 $spacing-md;
+    color: $neutral-900;
   }
   h2 {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     margin: $spacing-lg 0 $spacing-sm;
+    color: $neutral-700;
   }
 }
 
@@ -36,66 +41,71 @@
 
 // Balances
 .balances {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: $spacing-sm;
-  margin-bottom: $spacing-md;
-  flex-wrap: wrap;
+  margin-bottom: $spacing-lg;
 }
 
 .balance-card {
-  flex: 1;
-  min-width: 100px;
   background: $white;
   border: 1px solid $neutral-100;
   border-radius: 12px;
-  padding: $spacing-md;
+  padding: $spacing-md $spacing-sm;
+  text-align: center;
 }
 
 .balance-type {
-  font-size: 12px;
+  font-size: 10px;
   color: $neutral-500;
   text-transform: uppercase;
   font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: $spacing-xs;
 }
 .balance-hours {
-  margin: $spacing-xs 0;
+  margin: 4px 0 8px;
+  line-height: 1;
 }
 .available {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 700;
+  color: $neutral-900;
 }
 .total {
-  font-size: 14px;
-  color: $neutral-500;
+  font-size: 13px;
+  color: $neutral-300;
+  font-weight: 500;
 }
 
 .balance-bar {
-  height: 6px;
+  height: 4px;
   background: $neutral-100;
-  border-radius: 3px;
+  border-radius: 2px;
   overflow: hidden;
-  margin: $spacing-xs 0;
+  margin: 0 auto $spacing-xs;
+  width: 80%;
 }
 
 .balance-fill {
   height: 100%;
   background: $primary;
-  border-radius: 3px;
+  border-radius: 2px;
   transition: width 0.3s;
 }
 .balance-used {
   font-size: 11px;
-  color: $neutral-500;
+  color: $neutral-300;
 }
 
 // Form
 .new-request-btn {
   width: 100%;
-  padding: $spacing-sm;
+  padding: 14px;
   background: $primary;
   color: $white;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   font-size: $font-size-sm;
   cursor: pointer;
