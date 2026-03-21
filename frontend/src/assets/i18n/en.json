@@ -17,7 +17,8 @@
     "route": "Route",
     "timeOff": "Time Off",
     "map": "Map",
-    "zones": "Zones"
+    "zones": "Zones",
+    "review": "Review Queue"
   },
   "login": {
     "title": "TimeKeeper",

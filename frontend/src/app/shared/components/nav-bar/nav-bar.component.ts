@@ -2,7 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, interval } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService, AuthUser } from '../../../core/services/auth.service';
 import { PreferencesService } from '../../../core/services/preferences.service';
@@ -24,6 +26,11 @@ export class NavBarComponent implements OnInit, OnDestroy {
   user: AuthUser | null = null;
   links: NavLink[] = [];
   menuOpen = false;
+  alertCount = 0;
+
+  get isManagerOrAdmin(): boolean {
+    return this.user?.role === 'manager' || this.user?.role === 'org_admin';
+  }
 
   currentLang = 'en';
   languages = [
@@ -39,6 +46,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
     private translate: TranslateService,
     private sanitizer: DomSanitizer,
     private prefsService: PreferencesService,
+    private http: HttpClient,
   ) {
     this.currentLang = this.prefsService.language;
     this.translate.use(this.currentLang);
@@ -49,8 +57,23 @@ export class NavBarComponent implements OnInit, OnDestroy {
       this.user = user;
       this.links = this.getLinksForRole(user?.role);
       if (user) {
-        this.prefsService.load(); // Sync preferences from server on login
+        this.prefsService.load();
+        if (this.isManagerOrAdmin) {
+          this.loadAlertCount();
+          // Poll every 2 minutes for new alerts
+          interval(2 * 60 * 1000)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => this.loadAlertCount());
+        }
       }
+    });
+  }
+
+  private loadAlertCount(): void {
+    this.http.get<any>(`${environment.apiUrl}/manager/alerts`).subscribe({
+      next: (res) => {
+        this.alertCount = res.data?.unreadCount || 0;
+      },
     });
   }
 
@@ -150,7 +173,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
       case 'employee':
         return driverLinks;
       case 'manager':
-        return [...managerLinks, ...driverLinks];
+        return managerLinks;
       case 'payroll_admin':
         return [
           { path: '/manager/reports', label: 'nav.reports', icon: icons.reports },
@@ -164,6 +187,8 @@ export class NavBarComponent implements OnInit, OnDestroy {
           { path: '/admin/settings', label: 'nav.settings', icon: icons.settings },
           { path: '/manager', label: 'nav.drivers', icon: icons.dashboard },
           { path: '/manager/approvals', label: 'nav.approvals', icon: icons.approvals },
+          { path: '/manager/time-off', label: 'nav.timeOff', icon: icons.timeOff },
+          { path: '/manager/reports', label: 'nav.reports', icon: icons.reports },
         ];
       default:
         return driverLinks;

@@ -1,0 +1,23 @@
+<div class="review-queue">
+  <h1>{{ 'nav.review' | translate }}</h1>
+
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
+
+  <div class="alert-list" *ngIf="!loading">
+    <div *ngFor="let alert of alerts" class="alert-card" [ngClass]="priorityClass(alert.priority)">
+      <div class="alert-header">
+        <span class="alert-priority" [ngClass]="priorityClass(alert.priority)">
+          {{ alert.priority }}
+        </span>
+        <span class="alert-time">{{ formatTime(alert.timestamp) }}</span>
+      </div>
+      <div class="alert-title">{{ alert.title }}</div>
+      <div class="alert-employee" *ngIf="alert.employeeName">
+        {{ alert.employeeName }}
+      </div>
+      <div class="alert-message">{{ alert.message }}</div>
+    </div>
+
+    <div class="empty" *ngIf="alerts.length === 0">No alerts — everything looks good.</div>
+  </div>
+</div>

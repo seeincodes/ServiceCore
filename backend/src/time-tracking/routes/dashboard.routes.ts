@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import db from '../../shared/database/connection';
 import * as dashboardService from '../services/dashboard.service';
 import * as overtimeService from '../services/overtime.service';
 import { authenticate, AuthenticatedRequest } from '../../auth/middleware/authenticate';
@@ -82,6 +83,57 @@ router.get(
       sendSuccess(res, { allocation });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Project allocation failed';
+      sendError(res, message);
+    }
+  },
+);
+
+// GET /manager/alerts — get pending manager alerts (review queue)
+router.get(
+  '/alerts',
+  authenticate,
+  authorize('manager', 'org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+
+      const alerts = await db('audit_log')
+        .where({ org_id: user.orgId })
+        .where('action', 'like', 'manager_alert:%')
+        .orderBy('created_at', 'desc')
+        .limit(50)
+        .select('id', 'user_id', 'action', 'details', 'created_at');
+
+      // Attach employee names
+      const userIds = [...new Set(alerts.map((a: any) => a.user_id).filter(Boolean))];
+      const users = await db('users')
+        .whereIn('id', userIds)
+        .select('id', 'first_name', 'last_name');
+      const userMap = new Map(users.map((u: any) => [u.id, `${u.first_name} ${u.last_name}`]));
+
+      const formatted = alerts.map((a: any) => {
+        const details = typeof a.details === 'string' ? JSON.parse(a.details) : a.details;
+        return {
+          id: a.id,
+          type: details.type,
+          priority: details.priority,
+          title: details.title,
+          message: details.message,
+          employeeName: a.user_id ? userMap.get(a.user_id) || 'Unknown' : null,
+          userId: a.user_id,
+          timestamp: a.created_at,
+          data: details,
+        };
+      });
+
+      // Count unread (today's alerts)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const unreadCount = formatted.filter((a: any) => new Date(a.timestamp) >= today).length;
+
+      sendSuccess(res, { alerts: formatted, unreadCount });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to get alerts';
       sendError(res, message);
     }
   },
