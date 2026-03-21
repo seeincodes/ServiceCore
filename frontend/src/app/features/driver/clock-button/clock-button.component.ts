@@ -20,9 +20,14 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   elapsedDisplay = '';
   todayHours = '0.0';
   use24Hour = false;
+  canUndo = false;
+  showEndDayConfirm = false;
 
   private destroy$ = new Subject<void>();
   private timerInterval: ReturnType<typeof setInterval> | null = null;
+  private lastClockOutEntryId: string | null = null;
+  private undoTimeout: ReturnType<typeof setTimeout> | null = null;
+  private endDayTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private clockService: ClockService,
@@ -91,20 +96,35 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     if (this.loading) return;
     this.loading = true;
     this.confirmation = null;
+    this.showEndDayConfirm = false;
+
+    const entryId = this.status.entryId;
 
     this.clockService
-      .clockOut(this.status.entryId)
+      .clockOut(entryId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
           this.status = { clockedIn: false };
           this.stopTimer();
-          const label = type === 'break' ? 'Break' : 'End of day';
+          const label = type === 'break' ? 'Break' : 'Done for today';
           this.confirmation = {
             message: `${label} — ${res.data.hoursWorked}h logged`,
             type: 'success',
           };
           this.loading = false;
+
+          // Enable undo for 5 minutes
+          this.lastClockOutEntryId = res.data.entryId;
+          this.canUndo = true;
+          if (this.undoTimeout) clearTimeout(this.undoTimeout);
+          this.undoTimeout = setTimeout(
+            () => {
+              this.canUndo = false;
+              this.lastClockOutEntryId = null;
+            },
+            5 * 60 * 1000,
+          );
         },
         error: (err) => {
           this.confirmation = {
@@ -112,6 +132,46 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
             type: 'error',
           };
           this.loading = false;
+        },
+      });
+  }
+
+  confirmEndDay(): void {
+    this.showEndDayConfirm = true;
+    // Auto-dismiss after 5 seconds if not tapped
+    if (this.endDayTimeout) clearTimeout(this.endDayTimeout);
+    this.endDayTimeout = setTimeout(() => {
+      this.showEndDayConfirm = false;
+    }, 5000);
+  }
+
+  undoClockOut(): void {
+    if (!this.lastClockOutEntryId) return;
+    this.loading = true;
+    this.canUndo = false;
+
+    // Re-open the clock entry by clearing clock_out
+    this.http
+      .post<any>(`${environment.apiUrl}/timesheets/undo-clock-out`, {
+        entryId: this.lastClockOutEntryId,
+      })
+      .subscribe({
+        next: () => {
+          this.lastClockOutEntryId = null;
+          this.confirmation = {
+            message: "Clock-out undone — you're clocked back in",
+            type: 'success',
+          };
+          this.loading = false;
+          this.loadStatus();
+        },
+        error: (err) => {
+          this.confirmation = {
+            message: err.error?.error || 'Undo failed',
+            type: 'error',
+          };
+          this.loading = false;
+          this.canUndo = true; // Let them try again
         },
       });
   }

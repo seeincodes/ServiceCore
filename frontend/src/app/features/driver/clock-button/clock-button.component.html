@@ -57,9 +57,16 @@
       {{ 'clock.breakOut' | translate }}
       <span class="btn-hint">{{ 'clock.breakHint' | translate }}</span>
     </button>
-    <button class="clock-btn clock-out-day" (click)="onClockOut('end_of_day')">
+    <button class="clock-btn clock-out-day" (click)="confirmEndDay()" *ngIf="!showEndDayConfirm">
       {{ 'clock.endDay' | translate }}
       <span class="btn-hint">{{ 'clock.endDayHint' | translate }}</span>
+    </button>
+    <button
+      class="clock-btn clock-out-day confirm-pulse"
+      (click)="onClockOut('end_of_day')"
+      *ngIf="showEndDayConfirm"
+    >
+      {{ 'clock.confirmEndDay' | translate }}
     </button>
   </div>
 
@@ -73,8 +80,13 @@
     {{ confirmation.message }}
   </div>
 
+  <!-- Undo clock-out -->
+  <button class="undo-btn" *ngIf="canUndo" (click)="undoClockOut()">
+    {{ 'clock.undo' | translate }}
+  </button>
+
   <!-- Time format toggle -->
   <button class="time-format-toggle" (click)="toggleTimeFormat()">
-    {{ use24Hour ? '12h' : '24h' }}
+    {{ use24Hour ? ('clock.switchTo12' | translate) : ('clock.switchTo24' | translate) }}
   </button>
 </div>
