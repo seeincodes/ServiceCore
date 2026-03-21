@@ -27,6 +27,39 @@ export async function processLocationPing(
   const geoCheck = await checkGeofence(orgId, lat, lon);
   const activeEntry = await getActiveEntry(orgId, userId);
 
+  // --- AUTO CLOCK-OUT AT DEPOT AFTER 30 MIN ---
+  if (geoCheck.insideZone && activeEntry) {
+    const isDepot = await isDepotZone(orgId, lat, lon);
+    if (isDepot) {
+      const atDepotMinutes = await minutesAtDepot(orgId, userId);
+      if (atDepotMinutes >= 30) {
+        try {
+          const result = await clockOut(orgId, userId);
+          await db('audit_log').insert({
+            org_id: orgId,
+            user_id: userId,
+            action: 'auto_clock_out_depot',
+            entity_type: 'clock_entry',
+            details: JSON.stringify({
+              lat,
+              lon,
+              minutesAtDepot: atDepotMinutes,
+              hoursWorked: result.hoursWorked,
+            }),
+          });
+          await sendEndOfDaySummary(orgId, userId, result.hoursWorked, result.entryId);
+          logger.info('Auto clock-out at depot after 30min', { orgId, userId, atDepotMinutes });
+          return {
+            action: 'auto_clock_out',
+            details: { reason: 'depot_30min', hoursWorked: result.hoursWorked },
+          };
+        } catch {
+          // Already clocked out or error — continue
+        }
+      }
+    }
+  }
+
   // --- AUTO CLOCK-IN ---
   if (geoCheck.insideZone && !activeEntry) {
     // Verify they've been in the zone for at least 2 minutes (avoid drive-throughs)
@@ -397,4 +430,50 @@ async function detectAnomalies(
   }
 
   return anomalies;
+}
+
+/**
+ * Check if the given coordinates are inside a depot-type work zone.
+ */
+async function isDepotZone(orgId: string, lat: number, lon: number): Promise<boolean> {
+  const depots = await db('work_zones')
+    .where({ org_id: orgId, type: 'depot', is_active: true })
+    .select('lat', 'lon', 'radius_meters');
+
+  for (const depot of depots) {
+    const dLat = ((Number(depot.lat) - lat) * Math.PI) / 180;
+    const dLon = ((Number(depot.lon) - lon) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat * Math.PI) / 180) *
+        Math.cos((Number(depot.lat) * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    const dist = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    if (dist <= (depot.radius_meters || 200)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * How many minutes has the driver been at a depot-type zone based on recent pings.
+ */
+async function minutesAtDepot(orgId: string, userId: string): Promise<number> {
+  const pings = await db('audit_log')
+    .where({ org_id: orgId, user_id: userId, action: 'location_ping' })
+    .orderBy('created_at', 'desc')
+    .limit(20);
+
+  if (pings.length < 2) return 0;
+
+  // Walk backwards through pings — count consecutive depot pings
+  let depotMinutes = 0;
+  for (const ping of pings) {
+    const details = typeof ping.details === 'string' ? JSON.parse(ping.details) : ping.details;
+    const atDepot = await isDepotZone(orgId, details.lat, details.lon);
+    if (!atDepot) break;
+    depotMinutes += 2; // Pings are every 2 minutes
+  }
+
+  return depotMinutes;
 }

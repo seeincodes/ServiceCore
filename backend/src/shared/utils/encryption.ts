@@ -3,7 +3,8 @@ import crypto from 'crypto';
 const ENCRYPTION_KEY = process.env.APP_ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex');
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
-const _AUTH_TAG_LENGTH = 16;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const AUTH_TAG_LENGTH = 16;
 
 /**
  * Encrypt sensitive data (SSN, bank account numbers, etc.)

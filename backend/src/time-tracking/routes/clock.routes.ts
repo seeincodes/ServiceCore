@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import db from '../../shared/database/connection';
 import * as clockService from '../services/clock.service';
+import { getTodayHours } from '../services/clock.service';
 import * as syncService from '../services/sync.service';
 import { processLocationPing } from '../services/zero-touch.service';
 import { authenticate, AuthenticatedRequest } from '../../auth/middleware/authenticate';
@@ -77,6 +78,8 @@ router.get('/status', authenticate, async (req: Request, res: Response) => {
     const user = (req as AuthenticatedRequest).user;
     const entry = await clockService.getActiveEntry(user.orgId, user.id);
 
+    const todayHours = await getTodayHours(user.orgId, user.id);
+
     if (entry) {
       const elapsed = (Date.now() - new Date(entry.clock_in).getTime()) / (1000 * 60 * 60);
       sendSuccess(res, {
@@ -84,11 +87,15 @@ router.get('/status', authenticate, async (req: Request, res: Response) => {
         entryId: entry.id,
         clockInTime: entry.clock_in,
         elapsedHours: Math.round(elapsed * 100) / 100,
+        todayHours: Math.round((todayHours + elapsed) * 100) / 100,
         routeId: entry.route_id,
         projectId: entry.project_id,
       });
     } else {
-      sendSuccess(res, { clockedIn: false });
+      sendSuccess(res, {
+        clockedIn: false,
+        todayHours: Math.round(todayHours * 100) / 100,
+      });
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Status check failed';
