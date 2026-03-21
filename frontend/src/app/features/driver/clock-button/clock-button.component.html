@@ -55,9 +55,11 @@
   <div class="clock-out-options" *ngIf="!loading && status.clockedIn">
     <button class="clock-btn clock-out-break" (click)="onClockOut('break')">
       {{ 'clock.breakOut' | translate }}
+      <span class="btn-hint">{{ 'clock.breakHint' | translate }}</span>
     </button>
     <button class="clock-btn clock-out-day" (click)="onClockOut('end_of_day')">
       {{ 'clock.endDay' | translate }}
+      <span class="btn-hint">{{ 'clock.endDayHint' | translate }}</span>
     </button>
   </div>
 
