@@ -30,6 +30,8 @@ export class AdminUsersComponent implements OnInit {
 
   newUser = { email: '', password: '', firstName: '', lastName: '', role: 'employee', phone: '' };
   saving = false;
+  ptoUser: OrgUser | null = null;
+  ptoBalances: { type: string; label: string; total: number; used: number }[] = [];
 
   private apiUrl = `${environment.apiUrl}/admin`;
 
@@ -120,6 +122,64 @@ export class AdminUsersComponent implements OnInit {
         role
       ] || role
     );
+  }
+
+  openPtoEditor(user: OrgUser): void {
+    this.ptoUser = user;
+    this.editingUser = null;
+    this.showAddForm = false;
+
+    this.http.get<any>(`${environment.apiUrl}/time-off/balances?userId=${user.id}`).subscribe({
+      next: (res) => {
+        const b = res.data.balances;
+        this.ptoBalances = [
+          {
+            type: 'pto',
+            label: 'PTO (Vacation)',
+            total: b.pto?.total || 0,
+            used: b.pto?.used || 0,
+          },
+          { type: 'sick', label: 'Sick Leave', total: b.sick?.total || 0, used: b.sick?.used || 0 },
+          {
+            type: 'personal',
+            label: 'Personal',
+            total: b.personal?.total || 0,
+            used: b.personal?.used || 0,
+          },
+        ];
+      },
+    });
+  }
+
+  savePtoBalances(): void {
+    if (!this.ptoUser) return;
+    this.saving = true;
+    const userId = this.ptoUser.id;
+    let completed = 0;
+
+    for (const b of this.ptoBalances) {
+      this.http
+        .put(`${environment.apiUrl}/time-off/balances`, {
+          userId,
+          type: b.type,
+          totalHours: b.total,
+        })
+        .subscribe({
+          next: () => {
+            completed++;
+            if (completed === this.ptoBalances.length) {
+              this.saving = false;
+              this.message = { text: 'Balances updated', type: 'success' };
+              this.ptoUser = null;
+              setTimeout(() => (this.message = null), 3000);
+            }
+          },
+          error: () => {
+            this.saving = false;
+            this.message = { text: 'Failed to update balances', type: 'error' };
+          },
+        });
+    }
   }
 
   private loadUsers(): void {
