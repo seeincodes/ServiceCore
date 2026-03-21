@@ -353,22 +353,41 @@
   letter-spacing: 0;
 }
 
-// Confirmation
-.confirmation {
-  padding: $spacing-sm $spacing-md;
-  border-radius: 8px;
-  font-size: $font-size-sm;
+// Toast notification
+.toast {
+  position: fixed;
+  top: 70px;
+  left: $spacing-md;
+  right: $spacing-md;
+  padding: 14px $spacing-md;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 500;
   text-align: center;
+  z-index: 900;
+  cursor: pointer;
+  animation: slideDown 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
   &.success {
-    background: rgba($success, 0.08);
-    color: $success;
+    background: $success;
+    color: $white;
   }
 
   &.error {
-    background: rgba($danger, 0.08);
-    color: $danger;
+    background: $danger;
+    color: $white;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
 

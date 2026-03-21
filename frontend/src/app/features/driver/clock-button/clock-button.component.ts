@@ -52,6 +52,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private timerInterval: ReturnType<typeof setInterval> | null = null;
   private endDayTimeout: ReturnType<typeof setTimeout> | null = null;
+  private toastTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private clockService: ClockService,
@@ -96,12 +97,12 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           this.startTimer();
           const wasBreak = this.onBreak;
           this.onBreak = false;
-          this.confirmation = {
-            message: wasBreak
+          this.showToast(
+            wasBreak
               ? `Back from break at ${this.formatTime(res.data.timestamp)}`
               : `Clocked in at ${this.formatTime(res.data.timestamp)}`,
-            type: 'success',
-          };
+            'success',
+          );
           this.loading = false;
           this.loadRouteDetails();
 
@@ -113,10 +114,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           });
         },
         error: (err) => {
-          this.confirmation = {
-            message: err.error?.error || 'Clock-in failed',
-            type: 'error',
-          };
+          this.showToast(err.error?.error || 'Clock-in failed', 'error');
           this.loading = false;
         },
       });
@@ -141,17 +139,11 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           this.showRouteSwitch = false;
           const label = type === 'break' ? 'Break' : 'Done for today';
           const pipe = new HoursDisplayPipe();
-          this.confirmation = {
-            message: `${label} — ${pipe.transform(res.data.hoursWorked)} logged`,
-            type: 'success',
-          };
+          this.showToast(`${label} — ${pipe.transform(res.data.hoursWorked)} logged`, 'success');
           this.loading = false;
         },
         error: (err) => {
-          this.confirmation = {
-            message: err.error?.error || 'Clock-out failed',
-            type: 'error',
-          };
+          this.showToast(err.error?.error || 'Clock-out failed', 'error');
           this.loading = false;
         },
       });
@@ -191,10 +183,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
                 this.startTimer();
                 this.loadRouteDetails();
                 const route = this.availableRoutes.find((r) => r.id === routeId);
-                this.confirmation = {
-                  message: `Switched to ${route?.name || routeId}`,
-                  type: 'success',
-                };
+                this.showToast(`Switched to ${route?.name || routeId}`, 'success');
                 this.loading = false;
               },
               error: () => {
@@ -226,6 +215,14 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   toggleTimeFormat(): void {
     this.use24Hour = !this.use24Hour;
     localStorage.setItem('tk_time_format', this.use24Hour ? '24' : '12');
+  }
+
+  private showToast(message: string, type: 'success' | 'error'): void {
+    this.confirmation = { message, type };
+    if (this.toastTimeout) clearTimeout(this.toastTimeout);
+    this.toastTimeout = setTimeout(() => {
+      this.confirmation = null;
+    }, 4000);
   }
 
   private loadStatus(): void {

@@ -1,4 +1,15 @@
 <div class="clock-page">
+  <!-- Toast notification -->
+  <div
+    class="toast"
+    *ngIf="confirmation"
+    [class.success]="confirmation.type === 'success'"
+    [class.error]="confirmation.type === 'error'"
+    (click)="confirmation = null"
+  >
+    {{ confirmation.message }}
+  </div>
+
   <!-- Loading state -->
   <div class="loading-card" *ngIf="loading">
     <div class="spinner"></div>
@@ -144,16 +155,6 @@
       </button>
     </div>
   </ng-container>
-
-  <!-- Confirmation message -->
-  <div
-    class="confirmation"
-    *ngIf="confirmation"
-    [class.success]="confirmation.type === 'success'"
-    [class.error]="confirmation.type === 'error'"
-  >
-    {{ confirmation.message }}
-  </div>
 
   <!-- Time format toggle -->
   <button class="time-format-toggle" (click)="toggleTimeFormat()">
