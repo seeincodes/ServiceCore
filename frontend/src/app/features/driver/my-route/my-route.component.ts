@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Subject, takeUntil, interval } from 'rxjs';
@@ -27,6 +27,8 @@ interface RouteStep {
   styleUrls: ['./my-route.component.scss'],
 })
 export class MyRouteComponent implements OnInit, OnDestroy {
+  @ViewChild('routeMap') routeMap!: MapComponent;
+
   stops: RouteStop[] = [];
   markers: MapMarker[] = [];
   steps: RouteStep[] = [];
@@ -80,6 +82,17 @@ export class MyRouteComponent implements OnInit, OnDestroy {
 
   dismissReminder(): void {
     this.clockInReminder = null;
+  }
+
+  focusStop(index: number): void {
+    this.routeMap?.focusMarker(index);
+  }
+
+  navigateTo(stop: RouteStop, event: Event): void {
+    event.stopPropagation(); // Don't trigger focusStop
+    // Opens Google Maps on Android/desktop, Apple Maps on iOS
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lon}&travelmode=driving`;
+    window.open(url, '_blank');
   }
 
   toggleDirections(): void {

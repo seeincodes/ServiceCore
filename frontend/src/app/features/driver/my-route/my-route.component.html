@@ -30,13 +30,14 @@
     </div>
 
     <!-- Map -->
-    <app-map [markers]="markers" height="350px"></app-map>
+    <app-map #routeMap [markers]="markers" height="350px"></app-map>
 
     <!-- Stop list -->
     <div class="stop-list">
-      <div *ngFor="let stop of stops; let i = index" class="stop-item">
+      <div *ngFor="let stop of stops; let i = index" class="stop-item" (click)="focusStop(i)">
         <span class="stop-number">{{ i + 1 }}</span>
         <span class="stop-name">{{ stop.name }}</span>
+        <a class="navigate-btn" (click)="navigateTo(stop, $event)" title="Open in Maps">Navigate</a>
       </div>
     </div>
 

@@ -141,6 +141,19 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  /** Pan and zoom the map to a specific marker, opening its popup. */
+  focusMarker(index: number): void {
+    if (!this.map || index < 0 || index >= this.markers.length) return;
+    const m = this.markers[index];
+    this.map.flyTo([m.lat, m.lon], 16, { duration: 0.8 });
+
+    // Open the popup for this marker
+    const layers = this.markerLayer.getLayers();
+    if (layers[index]) {
+      (layers[index] as L.Marker).openPopup();
+    }
+  }
+
   switchStyle(index: number): void {
     if (!this.map || index === this.activeStyleIndex) return;
     this.activeStyleIndex = index;
