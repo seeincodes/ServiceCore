@@ -82,7 +82,7 @@ const TILE_STYLES: TileStyle[] = [
         position: absolute;
         top: 10px;
         right: 10px;
-        z-index: 1000;
+        z-index: 400;
         display: flex;
         flex-wrap: wrap;
         gap: 4px;

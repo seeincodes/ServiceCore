@@ -51,3 +51,9 @@ html {
 button {
   user-select: none;
 }
+
+// Keep Leaflet map controls below nav/menu overlays
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 400 !important;
+}
