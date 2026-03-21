@@ -135,16 +135,55 @@
         </div>
       </div>
 
-      <!-- Next stop -->
-      <div class="next-stop" *ngIf="nextStop">
-        <span class="next-label">{{ 'clock.nextStop' | translate }}</span>
-        <div class="next-info">
-          <span class="next-name">{{ nextStop.name }}</span>
-          <span class="next-eta" *ngIf="nextStop.eta"
-            >{{ 'clock.eta' | translate }} {{ nextStop.eta }}</span
-          >
+      <!-- Current / Next stop (prominent) -->
+      <div class="current-stop" *ngIf="nextStop">
+        <div class="current-stop-header">
+          <span class="current-stop-label">{{ 'clock.nextStop' | translate }}</span>
+          <span class="current-stop-count">{{ completedStops + 1 }} / {{ routeStops.length }}</span>
         </div>
-        <button class="go-btn" (click)="navigateToStop()">{{ 'clock.go' | translate }}</button>
+        <div class="current-stop-name">{{ nextStop.name }}</div>
+        <div class="current-stop-notes" *ngIf="nextStop.notes">{{ nextStop.notes }}</div>
+        <div class="current-stop-actions">
+          <button class="go-btn" (click)="navigateToStop()">{{ 'clock.go' | translate }}</button>
+          <button class="done-btn" (click)="completeCurrentStop()">
+            {{ 'clock.stopDone' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <!-- All route complete -->
+      <div class="route-complete" *ngIf="!nextStop && completedStops > 0">
+        {{ 'clock.allStopsDone' | translate }}
+      </div>
+
+      <!-- Upcoming stops (collapsed by default) -->
+      <button
+        class="toggle-stops-btn"
+        (click)="showAllStops = !showAllStops"
+        *ngIf="upcomingStops.length > 0"
+      >
+        {{ showAllStops ? ('clock.hideStops' | translate) : ('clock.showStops' | translate) }}
+        ({{ upcomingStops.length }})
+      </button>
+
+      <div class="stop-list" *ngIf="showAllStops">
+        <div
+          *ngFor="let stop of routeStops; let i = index"
+          class="stop-row"
+          [class.completed]="stop.completed"
+          [class.current]="!stop.completed && i === completedStops"
+        >
+          <span class="stop-num" [class.done]="stop.completed">
+            {{ stop.completed ? '✓' : i + 1 }}
+          </span>
+          <div class="stop-detail">
+            <span class="stop-name-text">{{ stop.name }}</span>
+            <span class="stop-notes-text" *ngIf="stop.notes">{{ stop.notes }}</span>
+          </div>
+          <button class="stop-action" *ngIf="!stop.completed" (click)="completeStop(i)">
+            {{ 'clock.stopDone' | translate }}
+          </button>
+        </div>
       </div>
     </div>
 

@@ -24,6 +24,7 @@ interface Project {
 
 interface RouteStop {
   name: string;
+  notes?: string;
   eta?: string;
   lat: number;
   lon: number;
@@ -67,6 +68,11 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   // Shift dashboard
   routeStops: RouteStop[] = [];
   completedStops = 0;
+  showAllStops = false;
+
+  get upcomingStops(): RouteStop[] {
+    return this.routeStops.filter((s) => !s.completed);
+  }
   remainingDistance = 0;
   nextStop: RouteStop | null = null;
 
@@ -222,6 +228,23 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
       });
   }
 
+  completeCurrentStop(): void {
+    const idx = this.routeStops.findIndex((s) => !s.completed);
+    if (idx >= 0) this.completeStop(idx);
+  }
+
+  completeStop(index: number): void {
+    this.routeStops[index].completed = true;
+    this.updateStopProgress();
+    this.saveStopProgress();
+  }
+
+  private saveStopProgress(): void {
+    if (!this.status.routeId) return;
+    const completed = this.routeStops.filter((s) => s.completed).map((s) => s.name);
+    localStorage.setItem(`stops-${this.status.routeId}`, JSON.stringify(completed));
+  }
+
   navigateToStop(): void {
     if (!this.nextStop) return;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${this.nextStop.lat},${this.nextStop.lon}&travelmode=driving`;
@@ -326,6 +349,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
         if (myRoute?.waypoints) {
           this.routeStops = myRoute.waypoints.map((wp: any) => ({
             name: wp.name,
+            notes: wp.notes,
             lat: wp.lat,
             lon: wp.lon,
             completed: false,
