@@ -26,13 +26,10 @@
         <span class="status-dot"></span>
         <span class="status-text">{{ 'clock.statusOut' | translate }}</span>
       </div>
-    </div>
 
-    <!-- Today's summary -->
-    <div class="today-summary" *ngIf="todayHoursNum > 0">
-      <div class="summary-row">
-        <span class="summary-label">{{ 'clock.today' | translate }}</span>
-        <span class="summary-value">{{ todayHoursNum | hoursDisplay }}</span>
+      <div class="daily-total" *ngIf="todayHoursNum > 0">
+        <span class="daily-total-value">{{ todayHoursNum | hoursDisplay }}</span>
+        <span class="daily-total-label">{{ 'clock.workedToday' | translate }}</span>
       </div>
     </div>
 
@@ -76,8 +73,13 @@
       </div>
 
       <div class="elapsed">
-        <span class="elapsed-value">{{ elapsedDisplay }}</span>
+        <span class="elapsed-value">{{ todayHoursNum | hoursDisplay }}</span>
         <span class="elapsed-label">{{ 'clock.todayHours' | translate }}</span>
+      </div>
+
+      <div class="session-info" *ngIf="todayHoursBase > 0">
+        <span class="session-value">{{ elapsedDisplay }}</span>
+        <span class="session-label">{{ 'clock.currentSession' | translate }}</span>
       </div>
 
       <!-- Route info -->

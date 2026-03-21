@@ -15,14 +15,18 @@
 // Status card
 .status-card {
   background: $white;
-  border: 1px solid $neutral-100;
+  border: 2px solid $danger;
   border-radius: 16px;
   padding: $spacing-lg;
   text-align: center;
-  transition: border-color 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+  background: rgba($danger, 0.03);
 
   &.active {
     border-color: rgba($success, 0.3);
+    border-width: 1px;
     background: rgba($success, 0.02);
   }
 }
@@ -36,10 +40,11 @@
 }
 
 .status-dot {
-  width: 10px;
-  height: 10px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: $neutral-300;
+  background: $danger;
+  box-shadow: 0 0 0 3px rgba($danger, 0.15);
 
   &.in {
     background: $success;
@@ -59,15 +64,42 @@
 }
 
 .status-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: $neutral-500;
+  font-size: 16px;
+  font-weight: 700;
+  color: $danger;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+
+  .active & {
+    font-size: 14px;
+    font-weight: 600;
+    color: $neutral-500;
+  }
 }
 
 .elapsed {
   margin-bottom: $spacing-sm;
+}
+
+// Session info (shown after break, below main total)
+.session-info {
+  padding-top: $spacing-sm;
+  border-top: 1px solid $neutral-100;
+  margin-top: $spacing-sm;
+}
+
+.session-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: $neutral-700;
+}
+
+.session-label {
+  display: block;
+  font-size: 11px;
+  color: $neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .elapsed-value {
@@ -271,28 +303,25 @@
   }
 }
 
-// Today summary (when clocked out)
-.today-summary {
-  background: $white;
-  border: 1px solid $neutral-100;
-  border-radius: 12px;
-  padding: $spacing-md;
+// Daily total (inside clocked-out status card)
+.daily-total {
+  margin-top: $spacing-sm;
 }
 
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.summary-label {
-  font-size: 14px;
-  color: $neutral-500;
-}
-
-.summary-value {
-  font-size: 20px;
+.daily-total-value {
+  display: block;
+  font-size: 44px;
   font-weight: 700;
+  color: $neutral-900;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.daily-total-label {
+  display: block;
+  font-size: 13px;
+  color: $neutral-500;
+  margin-top: $spacing-xs;
 }
 
 // Clock out options

@@ -34,6 +34,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   confirmation: { message: string; type: 'success' | 'error' } | null = null;
   elapsedDisplay = '';
   todayHoursNum = 0;
+  todayHoursBase = 0; // completed sessions from backend
   onBreak = false;
   showEndDayConfirm = false;
   showRouteSwitch = false;
@@ -137,6 +138,8 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
+          this.todayHoursBase += res.data.hoursWorked;
+          this.todayHoursNum = this.todayHoursBase;
           this.status = { clockedIn: false };
           this.stopTimer();
           this.onBreak = type === 'break';
@@ -237,6 +240,8 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           this.status = res.data;
+          this.todayHoursBase = res.data.todayHours ?? 0;
+          this.todayHoursNum = this.todayHoursBase;
           if (this.status.clockedIn) {
             this.startTimer();
             this.loadRouteDetails();
@@ -324,11 +329,12 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
 
   private updateElapsed(): void {
     if (!this.status.clockInTime) return;
-    const elapsed = (Date.now() - new Date(this.status.clockInTime).getTime()) / (1000 * 60 * 60);
-    const hours = Math.floor(elapsed);
-    const minutes = Math.floor((elapsed - hours) * 60);
+    const sessionElapsed =
+      (Date.now() - new Date(this.status.clockInTime).getTime()) / (1000 * 60 * 60);
+    const hours = Math.floor(sessionElapsed);
+    const minutes = Math.floor((sessionElapsed - hours) * 60);
     this.elapsedDisplay = `${hours}h ${minutes}m`;
-    this.todayHoursNum = elapsed;
+    this.todayHoursNum = this.todayHoursBase + sessionElapsed;
   }
 
   private startSilentTracking(): void {
