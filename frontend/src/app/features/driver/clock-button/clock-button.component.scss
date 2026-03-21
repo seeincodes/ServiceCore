@@ -152,6 +152,10 @@
   align-items: center;
   gap: 4px;
 
+  &.back-from-break {
+    background: $primary;
+  }
+
   &.clock-out-break {
     background: #f57c00;
     flex: 1;

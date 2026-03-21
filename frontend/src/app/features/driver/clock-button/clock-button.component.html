@@ -44,11 +44,13 @@
   <!-- Clock in button -->
   <button
     class="clock-btn"
+    [class.back-from-break]="onBreak"
     [disabled]="loading"
     (click)="onClockAction()"
     *ngIf="!loading && !status.clockedIn"
   >
-    {{ 'clock.clockIn' | translate }}
+    {{ (onBreak ? 'clock.backFromBreak' : 'clock.clockIn') | translate }}
+    <span class="btn-hint" *ngIf="onBreak">{{ 'clock.backFromBreakHint' | translate }}</span>
   </button>
 
   <!-- Clock out options (when clocked in) -->

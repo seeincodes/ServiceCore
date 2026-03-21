@@ -22,6 +22,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   todayHours = '0.0';
   todayHoursNum = 0;
   use24Hour = false;
+  onBreak = false;
   canUndo = false;
   showEndDayConfirm = false;
 
@@ -71,8 +72,12 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
             projectId: res.data.projectId,
           };
           this.startTimer();
+          const wasBreak = this.onBreak;
+          this.onBreak = false;
           this.confirmation = {
-            message: `Clocked in at ${this.formatTime(res.data.timestamp)}`,
+            message: wasBreak
+              ? `Back from break at ${this.formatTime(res.data.timestamp)}`
+              : `Clocked in at ${this.formatTime(res.data.timestamp)}`,
             type: 'success',
           };
           this.loading = false;
@@ -109,6 +114,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
         next: (res) => {
           this.status = { clockedIn: false };
           this.stopTimer();
+          this.onBreak = type === 'break';
           const label = type === 'break' ? 'Break' : 'Done for today';
           const pipe = new HoursDisplayPipe();
           this.confirmation = {

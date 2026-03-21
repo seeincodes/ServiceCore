@@ -51,6 +51,8 @@
     "undo": "Deshacer salida (salida por error)",
     "switchTo12": "Cambiar a 12h",
     "switchTo24": "Cambiar a 24h",
+    "backFromBreak": "Ya Volví",
+    "backFromBreakHint": "Reanudar mi turno",
     "clockedInAt": "Entrada registrada a las {{time}}",
     "clockedOutAt": "Salida registrada a las {{time}}. Total: {{hours}}h",
     "route": "Ruta #{{routeId}}",
