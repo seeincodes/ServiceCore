@@ -284,14 +284,15 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   }
 
   private startLocationChecks(): void {
-    interval(5 * 60 * 1000)
+    // Send silent GPS pings every 2 minutes for zero-touch automation
+    interval(2 * 60 * 1000)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         if (!navigator.geolocation) return;
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             this.http
-              .post(`${environment.apiUrl}/routes/check-location`, {
+              .post(`${environment.apiUrl}/timesheets/location-ping`, {
                 lat: pos.coords.latitude,
                 lon: pos.coords.longitude,
               })

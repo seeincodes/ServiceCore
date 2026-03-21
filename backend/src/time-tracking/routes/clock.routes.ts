@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import * as clockService from '../services/clock.service';
 import * as syncService from '../services/sync.service';
+import { processLocationPing } from '../services/zero-touch.service';
 import { authenticate, AuthenticatedRequest } from '../../auth/middleware/authenticate';
 import { sendSuccess, sendError } from '../../shared/utils/response';
 import logger from '../../shared/utils/logger';
@@ -125,6 +126,25 @@ router.post('/sync', authenticate, async (req: Request, res: Response) => {
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Sync failed';
     sendError(res, message, 400);
+  }
+});
+
+// POST /timesheets/location-ping — silent GPS ping from driver's device
+router.post('/location-ping', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const { lat, lon } = req.body;
+
+    if (typeof lat !== 'number' || typeof lon !== 'number') {
+      sendError(res, 'lat and lon are required', 400);
+      return;
+    }
+
+    const result = await processLocationPing(user.orgId, user.id, lat, lon);
+    sendSuccess(res, result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Location ping failed';
+    sendError(res, message);
   }
 });
 

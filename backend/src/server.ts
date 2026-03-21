@@ -16,6 +16,10 @@ import dispatcherRoutes from './dispatcher/routes/dispatcher.routes';
 import { startDispatcherPolling } from './dispatcher/services/dispatcher.service';
 import { scheduleNightlySync } from './integration/services/quickbooks.service';
 import { seedDemoRoutes } from './dispatcher/services/route-seed';
+import {
+  autoSubmitTimesheets,
+  autoApproveTimesheets,
+} from './time-tracking/services/zero-touch.service';
 import adminRoutes from './auth/routes/admin.routes';
 import routingRoutes from './dispatcher/routes/routing.routes';
 
@@ -64,12 +68,40 @@ app.use('/routes', routingRoutes);
 app.use('/admin', adminRoutes);
 
 // Start server — run migrations in production only
+// Schedule zero-touch automation jobs
+function scheduleZeroTouchJobs(): void {
+  // Auto-submit timesheets: check every hour, acts on Sunday midnight
+  setInterval(
+    async () => {
+      const now = new Date();
+      if (now.getDay() === 0 && now.getHours() === 0) {
+        await autoSubmitTimesheets();
+      }
+    },
+    60 * 60 * 1000,
+  );
+
+  // Auto-approve timesheets: check every hour, acts on Monday 6am
+  setInterval(
+    async () => {
+      const now = new Date();
+      if (now.getDay() === 1 && now.getHours() === 6) {
+        await autoApproveTimesheets();
+      }
+    },
+    60 * 60 * 1000,
+  );
+
+  logger.info('Zero-touch automation scheduled: auto-submit Sun midnight, auto-approve Mon 6am');
+}
+
 const startServer = () => {
   httpServer.listen(PORT, () => {
     logger.info(`TimeKeeper API running on port ${PORT}`);
     startDispatcherPolling();
     scheduleNightlySync();
     seedDemoRoutes();
+    scheduleZeroTouchJobs();
   });
 };
 

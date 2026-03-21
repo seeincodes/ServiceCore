@@ -1,8 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
 import { ClockService, ClockStatus } from '../../../core/services/clock.service';
 import { Subject, takeUntil, interval, switchMap, startWith } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-clock-button',
@@ -20,10 +22,14 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private timerInterval: ReturnType<typeof setInterval> | null = null;
 
-  constructor(private clockService: ClockService) {}
+  constructor(
+    private clockService: ClockService,
+    private http: HttpClient,
+  ) {}
 
   ngOnInit(): void {
     this.loadStatus();
+    this.startSilentTracking();
   }
 
   ngOnDestroy(): void {
@@ -143,6 +149,25 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     const hours = Math.floor(elapsed);
     const minutes = Math.floor((elapsed - hours) * 60);
     this.elapsedDisplay = `${hours}h ${minutes}m`;
+  }
+
+  /** Silent GPS ping every 2 minutes for zero-touch clock-in/out. */
+  private startSilentTracking(): void {
+    interval(2 * 60 * 1000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.getCurrentLocation().then((loc) => {
+          if (!loc) return;
+          this.http.post(`${environment.apiUrl}/timesheets/location-ping`, loc).subscribe({
+            next: (res: any) => {
+              // If auto clock-in/out happened, refresh status
+              if (res?.data?.action === 'auto_clock_in' || res?.data?.action === 'auto_clock_out') {
+                this.loadStatus();
+              }
+            },
+          });
+        });
+      });
   }
 
   private getCurrentLocation(): Promise<{ lat: number; lon: number } | undefined> {
