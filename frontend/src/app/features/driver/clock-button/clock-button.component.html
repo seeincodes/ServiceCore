@@ -86,9 +86,4 @@
   <button class="time-format-toggle" (click)="toggleTimeFormat()">
     {{ use24Hour ? ('clock.switchTo12' | translate) : ('clock.switchTo24' | translate) }}
   </button>
-
-  <!-- Undo clock-out (bottom of page) -->
-  <button class="undo-btn" *ngIf="canUndo" (click)="undoClockOut()">
-    {{ 'clock.undo' | translate }}
-  </button>
 </div>
