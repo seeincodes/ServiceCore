@@ -33,12 +33,33 @@
       </div>
     </div>
 
-    <!-- Route picker (before clock-in) -->
-    <div class="route-picker" *ngIf="!onBreak">
+    <!-- Project picker (before clock-in) -->
+    <div class="route-picker" *ngIf="!onBreak && projects.length > 0">
+      <label class="picker-label">{{ 'clock.selectProject' | translate }}</label>
+      <div class="route-options">
+        <button
+          *ngFor="let project of projects"
+          class="route-option"
+          [class.selected]="selectedProjectId === project.id"
+          (click)="selectProject(project.id)"
+        >
+          <span
+            class="route-id"
+            [style.background]="project.color || '#9e9e9e'"
+            style="color: white"
+            >{{ project.code }}</span
+          >
+          <span class="route-name">{{ project.name }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Route picker (after project is selected) -->
+    <div class="route-picker" *ngIf="!onBreak && selectedProjectId && filteredRoutes.length > 0">
       <label class="picker-label">{{ 'clock.selectRoute' | translate }}</label>
       <div class="route-options">
         <button
-          *ngFor="let route of availableRoutes"
+          *ngFor="let route of filteredRoutes"
           class="route-option"
           [class.selected]="selectedRouteId === route.id"
           (click)="selectedRouteId = route.id"
@@ -84,10 +105,13 @@
         <span class="session-label">{{ 'clock.currentSession' | translate }}</span>
       </div>
 
-      <!-- Route info -->
-      <div class="shift-route" *ngIf="activeRouteName">
+      <!-- Project + Route info -->
+      <div class="shift-route" *ngIf="activeProjectName">
+        <span class="shift-route-name">{{ activeProjectName }}</span>
+      </div>
+      <div class="shift-route sub" *ngIf="activeRouteName">
         <span class="shift-route-name">{{ activeRouteName }}</span>
-        <span class="shift-route-id" *ngIf="status.routeId">{{ status.routeId }}</span>
+        <span class="shift-route-id">{{ status.routeId }}</span>
       </div>
 
       <div class="clock-time" *ngIf="status.clockInTime">

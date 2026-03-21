@@ -13,6 +13,13 @@ interface AvailableRoute {
   name: string;
 }
 
+interface Project {
+  id: string;
+  code: string;
+  name: string;
+  color: string | null;
+}
+
 interface RouteStop {
   name: string;
   eta?: string;
@@ -46,9 +53,13 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     return this.prefs.useMiles;
   }
 
-  // Route picker
+  // Project + Route picker
+  projects: Project[] = [];
+  selectedProjectId = '';
   availableRoutes: AvailableRoute[] = [];
+  filteredRoutes: AvailableRoute[] = [];
   selectedRouteId = '';
+  activeProjectName = '';
   activeRouteName = '';
 
   // Shift dashboard
@@ -70,6 +81,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadStatus();
+    this.loadProjects();
     this.loadAvailableRoutes();
     this.startSilentTracking();
   }
@@ -88,6 +100,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.clockService
       .clockIn({
         idempotencyKey: crypto.randomUUID(),
+        projectId: this.selectedProjectId || undefined,
         routeId: this.selectedRouteId || undefined,
       })
       .pipe(takeUntil(this.destroy$))
@@ -250,6 +263,24 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
       });
   }
 
+  private loadProjects(): void {
+    this.http.get<any>(`${environment.apiUrl}/admin/projects`).subscribe({
+      next: (res) => {
+        this.projects = (res.data.projects || []).filter((p: any) => p.is_active);
+        if (this.projects.length > 0 && !this.selectedProjectId) {
+          this.selectProject(this.projects[0].id);
+        }
+      },
+    });
+  }
+
+  selectProject(projectId: string): void {
+    this.selectedProjectId = projectId;
+    this.selectedRouteId = '';
+    // Filter routes for this project (routes are tagged with project_id in seed data)
+    this.filteredRoutes = this.availableRoutes;
+  }
+
   private loadAvailableRoutes(): void {
     this.http.get<any>(`${environment.apiUrl}/dispatcher/routes`).subscribe({
       next: (res) => {
@@ -258,15 +289,18 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           id: r.id,
           name: r.name,
         }));
-        // Pre-select first route
-        if (this.availableRoutes.length > 0 && !this.selectedRouteId) {
-          this.selectedRouteId = this.availableRoutes[0].id;
-        }
+        this.filteredRoutes = this.availableRoutes;
       },
     });
   }
 
   private loadRouteDetails(): void {
+    // Set project name
+    if (this.status.projectId) {
+      const project = this.projects.find((p) => p.id === this.status.projectId);
+      this.activeProjectName = project?.name || this.status.projectId;
+    }
+
     if (!this.status.routeId) {
       this.activeRouteName = '';
       this.routeStops = [];

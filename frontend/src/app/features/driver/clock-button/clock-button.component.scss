@@ -157,6 +157,14 @@
 // Shift route info
 .shift-route {
   margin-top: $spacing-sm;
+  &.sub {
+    margin-top: 2px;
+    .shift-route-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: $neutral-500;
+    }
+  }
 }
 
 .shift-route-name {
@@ -167,7 +175,7 @@
 
 .shift-route-id {
   font-size: 12px;
-  color: $neutral-500;
+  color: $neutral-300;
   margin-left: $spacing-xs;
 }
 

@@ -396,6 +396,22 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   // ============================================================
+  // PROJECTS
+  // ============================================================
+  await knex('projects').del();
+  await knex('projects').insert([
+    { org_id: org1.id, code: 'RES-PICKUP', name: 'Residential Pickup', color: '#2e7d32' },
+    { org_id: org1.id, code: 'COM-PICKUP', name: 'Commercial Pickup', color: '#1565c0' },
+    { org_id: org1.id, code: 'RECYCLING', name: 'Recycling Collection', color: '#00897b' },
+    { org_id: org1.id, code: 'BULK-WASTE', name: 'Bulk Waste Removal', color: '#6a1b9a' },
+    { org_id: org1.id, code: 'YARD-WORK', name: 'Yard Maintenance', color: '#ef6c00' },
+    { org_id: org2.id, code: 'RES-PICKUP', name: 'Residential Pickup', color: '#2e7d32' },
+    { org_id: org2.id, code: 'COM-PICKUP', name: 'Commercial Pickup', color: '#1565c0' },
+    { org_id: org2.id, code: 'HAZ-WASTE', name: 'Hazardous Waste', color: '#c62828' },
+    { org_id: org3.id, code: 'GENERAL', name: 'General Pickup', color: '#2e7d32' },
+  ]);
+
+  // ============================================================
   // AUDIT LOG — sample entries
   // ============================================================
   await knex('audit_log').insert([

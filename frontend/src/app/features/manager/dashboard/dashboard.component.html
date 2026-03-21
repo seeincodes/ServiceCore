@@ -109,7 +109,11 @@
           <span class="alloc-hours">{{ item.hours }}h</span>
         </div>
         <div class="alloc-bar">
-          <div class="alloc-fill" [style.width.%]="item.percentage"></div>
+          <div
+            class="alloc-fill"
+            [style.width.%]="item.percentage"
+            [style.background]="item.color || '#1a73e8'"
+          ></div>
         </div>
         <div class="alloc-meta">
           <span>{{ item.percentage }}%</span>

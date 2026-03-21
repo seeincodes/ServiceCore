@@ -56,6 +56,7 @@
     "switchTo24": "Switch to 24h",
     "backFromBreak": "I'm Back",
     "backFromBreakHint": "Resume my shift",
+    "selectProject": "What are you working on?",
     "selectRoute": "Select your route",
     "noRoute": "No route / Other",
     "switchRoute": "Switch Route",
