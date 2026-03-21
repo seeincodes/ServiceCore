@@ -267,9 +267,6 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.http.get<any>(`${environment.apiUrl}/admin/projects`).subscribe({
       next: (res) => {
         this.projects = (res.data.projects || []).filter((p: any) => p.is_active);
-        if (this.projects.length > 0 && !this.selectedProjectId) {
-          this.selectProject(this.projects[0].id);
-        }
       },
     });
   }
