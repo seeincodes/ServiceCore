@@ -213,6 +213,94 @@ router.put('/password', authenticate, async (req: Request, res: Response) => {
   }
 });
 
+// POST /auth/forgot-password
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+router.post('/forgot-password', authLimiter, async (req: Request, res: Response) => {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body);
+    const { default: db } = await import('../../shared/database/connection');
+    const crypto = await import('crypto');
+
+    const user = await db('users').where({ email, is_active: true }).first();
+
+    // Always return success (don't reveal if email exists)
+    if (!user) {
+      sendSuccess(res, { message: 'If that email exists, a reset link has been sent.' });
+      return;
+    }
+
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await db('password_reset_tokens').insert({
+      user_id: user.id,
+      token,
+      expires_at: expiresAt,
+    });
+
+    // Send reset email
+    const { enqueueNotification } = await import('../../notifications/services/queue.service');
+    const resetUrl = `${process.env.CORS_ORIGIN || 'http://localhost:4200'}/reset-password?token=${token}`;
+
+    await enqueueNotification({
+      type: 'email',
+      to: email,
+      subject: 'Reset your TimeKeeper password',
+      body: `Hi ${user.first_name || 'there'},\n\nYou requested a password reset. Click the link below to set a new password:\n\n${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.\n\n- TimeKeeper`,
+    });
+
+    logger.info('Password reset requested', { email });
+    sendSuccess(res, { message: 'If that email exists, a reset link has been sent.' });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Request failed';
+    sendError(res, message, 400);
+  }
+});
+
+// POST /auth/reset-password
+const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  newPassword: z.string().min(8),
+});
+
+router.post('/reset-password', async (req: Request, res: Response) => {
+  try {
+    const { token, newPassword } = resetPasswordSchema.parse(req.body);
+    const { default: db } = await import('../../shared/database/connection');
+    const { default: bcrypt } = await import('bcrypt');
+
+    const resetToken = await db('password_reset_tokens')
+      .where({ token, used: false })
+      .where('expires_at', '>', new Date())
+      .first();
+
+    if (!resetToken) {
+      sendError(res, 'Invalid or expired reset link', 400);
+      return;
+    }
+
+    // Update password
+    const newHash = await bcrypt.hash(newPassword, 10);
+    await db('users').where({ id: resetToken.user_id }).update({
+      password_hash: newHash,
+      updated_at: new Date(),
+    });
+
+    // Mark token as used
+    await db('password_reset_tokens').where({ id: resetToken.id }).update({ used: true });
+
+    logger.info('Password reset completed', { userId: resetToken.user_id });
+    sendSuccess(res, { message: 'Password has been reset. You can now log in.' });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Reset failed';
+    sendError(res, message, 400);
+  }
+});
+
 // POST /auth/logout
 router.post('/logout', (_req: Request, res: Response) => {
   res.clearCookie('refreshToken', { path: '/auth/refresh' });
