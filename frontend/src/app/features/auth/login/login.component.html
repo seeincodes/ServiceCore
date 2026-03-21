@@ -13,7 +13,7 @@
           type="email"
           [(ngModel)]="email"
           name="email"
-          placeholder="driver1@greenwaste.com"
+          [placeholder]="showDemoLogins ? 'driver1@greenwaste.com' : 'email@company.com'"
           autocomplete="email"
           required
         />
@@ -43,7 +43,7 @@
       <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
     </form>
 
-    <div class="demo-accounts">
+    <div class="demo-accounts" *ngIf="showDemoLogins">
       <p>Demo accounts (password: <strong>password123</strong>)</p>
       <div class="demo-list">
         <button
