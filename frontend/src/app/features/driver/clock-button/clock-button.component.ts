@@ -11,6 +11,8 @@ import { PreferencesService } from '../../../core/services/preferences.service';
 interface AvailableRoute {
   id: string;
   name: string;
+  projectId?: string;
+  projectCode?: string;
 }
 
 interface Project {
@@ -274,8 +276,14 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   selectProject(projectId: string): void {
     this.selectedProjectId = projectId;
     this.selectedRouteId = '';
-    // Filter routes for this project (routes are tagged with project_id in seed data)
-    this.filteredRoutes = this.availableRoutes;
+    this.filteredRoutes = this.availableRoutes.filter(
+      (r) =>
+        r.projectId === projectId ||
+        r.projectCode === this.projects.find((p) => p.id === projectId)?.code,
+    );
+    if (this.filteredRoutes.length > 0) {
+      this.selectedRouteId = this.filteredRoutes[0].id;
+    }
   }
 
   private loadAvailableRoutes(): void {
@@ -285,8 +293,10 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
         this.availableRoutes = routes.map((r: any) => ({
           id: r.id,
           name: r.name,
+          projectId: r.projectId,
+          projectCode: r.projectCode,
         }));
-        this.filteredRoutes = this.availableRoutes;
+        this.filteredRoutes = [];
       },
     });
   }
