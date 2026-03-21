@@ -34,7 +34,7 @@ interface TileStyle {
 
 const TILE_STYLES: TileStyle[] = [
   {
-    name: 'High Contrast',
+    name: 'Standard',
     url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
     attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
   },
