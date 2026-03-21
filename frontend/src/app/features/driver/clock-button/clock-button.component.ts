@@ -3,9 +3,22 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
 import { ClockService, ClockStatus } from '../../../core/services/clock.service';
-import { Subject, takeUntil, interval, switchMap, startWith } from 'rxjs';
+import { Subject, takeUntil, interval } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { HoursDisplayPipe } from '../../../shared/pipes/hours.pipe';
+
+interface AvailableRoute {
+  id: string;
+  name: string;
+}
+
+interface RouteStop {
+  name: string;
+  eta?: string;
+  lat: number;
+  lon: number;
+  completed?: boolean;
+}
 
 @Component({
   selector: 'app-clock-button',
@@ -19,17 +32,25 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   loading = false;
   confirmation: { message: string; type: 'success' | 'error' } | null = null;
   elapsedDisplay = '';
-  todayHours = '0.0';
   todayHoursNum = 0;
   use24Hour = false;
   onBreak = false;
-  canUndo = false;
   showEndDayConfirm = false;
+  showRouteSwitch = false;
+
+  // Route picker
+  availableRoutes: AvailableRoute[] = [];
+  selectedRouteId = '';
+  activeRouteName = '';
+
+  // Shift dashboard
+  routeStops: RouteStop[] = [];
+  completedStops = 0;
+  remainingDistance = 0;
+  nextStop: RouteStop | null = null;
 
   private destroy$ = new Subject<void>();
   private timerInterval: ReturnType<typeof setInterval> | null = null;
-  private lastClockOutEntryId: string | null = null;
-  private undoTimeout: ReturnType<typeof setTimeout> | null = null;
   private endDayTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -41,15 +62,14 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadStatus();
+    this.loadAvailableRoutes();
     this.startSilentTracking();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-    }
+    if (this.timerInterval) clearInterval(this.timerInterval);
   }
 
   onClockAction(): void {
@@ -57,9 +77,11 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.confirmation = null;
 
-    // Clock in immediately — don't wait for GPS
     this.clockService
-      .clockIn({ idempotencyKey: crypto.randomUUID() })
+      .clockIn({
+        idempotencyKey: crypto.randomUUID(),
+        routeId: this.selectedRouteId || undefined,
+      })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
@@ -81,6 +103,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
             type: 'success',
           };
           this.loading = false;
+          this.loadRouteDetails();
 
           // Send GPS in background
           this.getCurrentLocation().then((loc) => {
@@ -105,16 +128,17 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.confirmation = null;
     this.showEndDayConfirm = false;
 
-    const entryId = this.status.entryId;
-
     this.clockService
-      .clockOut(entryId)
+      .clockOut(this.status.entryId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => {
           this.status = { clockedIn: false };
           this.stopTimer();
           this.onBreak = type === 'break';
+          this.routeStops = [];
+          this.nextStop = null;
+          this.showRouteSwitch = false;
           const label = type === 'break' ? 'Break' : 'Done for today';
           const pipe = new HoursDisplayPipe();
           this.confirmation = {
@@ -122,18 +146,6 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
             type: 'success',
           };
           this.loading = false;
-
-          // Enable undo for 5 minutes
-          this.lastClockOutEntryId = res.data.entryId;
-          this.canUndo = true;
-          if (this.undoTimeout) clearTimeout(this.undoTimeout);
-          this.undoTimeout = setTimeout(
-            () => {
-              this.canUndo = false;
-              this.lastClockOutEntryId = null;
-            },
-            2 * 60 * 1000,
-          );
         },
         error: (err) => {
           this.confirmation = {
@@ -147,42 +159,73 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
 
   confirmEndDay(): void {
     this.showEndDayConfirm = true;
-    // Auto-dismiss after 5 seconds if not tapped
     if (this.endDayTimeout) clearTimeout(this.endDayTimeout);
     this.endDayTimeout = setTimeout(() => {
       this.showEndDayConfirm = false;
     }, 5000);
   }
 
-  undoClockOut(): void {
-    if (!this.lastClockOutEntryId) return;
+  switchRoute(routeId: string): void {
+    this.showRouteSwitch = false;
     this.loading = true;
-    this.canUndo = false;
 
-    // Re-open the clock entry by clearing clock_out
-    this.http
-      .post<any>(`${environment.apiUrl}/timesheets/undo-clock-out`, {
-        entryId: this.lastClockOutEntryId,
-      })
+    // Clock out current, then clock in with new route
+    this.clockService
+      .clockOut(this.status.entryId)
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.lastClockOutEntryId = null;
-          this.confirmation = {
-            message: "Clock-out undone — you're clocked back in",
-            type: 'success',
-          };
-          this.loading = false;
-          this.loadStatus();
+          this.selectedRouteId = routeId;
+          this.clockService
+            .clockIn({ idempotencyKey: crypto.randomUUID(), routeId })
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (res) => {
+                this.status = {
+                  clockedIn: true,
+                  entryId: res.data.entryId,
+                  clockInTime: res.data.timestamp,
+                  elapsedHours: 0,
+                  routeId: res.data.routeId,
+                };
+                this.startTimer();
+                this.loadRouteDetails();
+                const route = this.availableRoutes.find((r) => r.id === routeId);
+                this.confirmation = {
+                  message: `Switched to ${route?.name || routeId}`,
+                  type: 'success',
+                };
+                this.loading = false;
+              },
+              error: () => {
+                this.loading = false;
+                this.loadStatus();
+              },
+            });
         },
-        error: (err) => {
-          this.confirmation = {
-            message: err.error?.error || 'Undo failed',
-            type: 'error',
-          };
+        error: () => {
           this.loading = false;
-          this.canUndo = true; // Let them try again
         },
       });
+  }
+
+  navigateToStop(): void {
+    if (!this.nextStop) return;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${this.nextStop.lat},${this.nextStop.lon}&travelmode=driving`;
+    window.open(url, '_blank');
+  }
+
+  formatTime(iso: string): string {
+    return new Date(iso).toLocaleTimeString([], {
+      hour: this.use24Hour ? '2-digit' : 'numeric',
+      minute: '2-digit',
+      hour12: !this.use24Hour,
+    });
+  }
+
+  toggleTimeFormat(): void {
+    this.use24Hour = !this.use24Hour;
+    localStorage.setItem('tk_time_format', this.use24Hour ? '24' : '12');
   }
 
   private loadStatus(): void {
@@ -194,12 +237,74 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           this.status = res.data;
           if (this.status.clockedIn) {
             this.startTimer();
+            this.loadRouteDetails();
           }
         },
-        error: () => {
-          // Offline or not authenticated — default to not clocked in
-        },
       });
+  }
+
+  private loadAvailableRoutes(): void {
+    this.http.get<any>(`${environment.apiUrl}/dispatcher/routes`).subscribe({
+      next: (res) => {
+        const routes = res.data.routes || [];
+        this.availableRoutes = routes.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+        }));
+        // Pre-select first route
+        if (this.availableRoutes.length > 0 && !this.selectedRouteId) {
+          this.selectedRouteId = this.availableRoutes[0].id;
+        }
+      },
+    });
+  }
+
+  private loadRouteDetails(): void {
+    if (!this.status.routeId) {
+      this.activeRouteName = '';
+      this.routeStops = [];
+      this.nextStop = null;
+      return;
+    }
+
+    const route = this.availableRoutes.find((r) => r.id === this.status.routeId);
+    this.activeRouteName = route?.name || this.status.routeId;
+
+    // Load waypoints for this route
+    this.http.get<any>(`${environment.apiUrl}/dispatcher/routes`).subscribe({
+      next: (res) => {
+        const routes = res.data.routes || [];
+        const myRoute = routes.find((r: any) => r.id === this.status.routeId);
+        if (myRoute?.waypoints) {
+          this.routeStops = myRoute.waypoints.map((wp: any) => ({
+            name: wp.name,
+            lat: wp.lat,
+            lon: wp.lon,
+            completed: false,
+          }));
+
+          // Restore completed stops from localStorage
+          const saved = localStorage.getItem(`stops-${this.status.routeId}`);
+          if (saved) {
+            const completedNames: string[] = JSON.parse(saved);
+            this.routeStops.forEach((s) => {
+              if (completedNames.includes(s.name)) s.completed = true;
+            });
+          }
+
+          this.updateStopProgress();
+        }
+      },
+    });
+  }
+
+  private updateStopProgress(): void {
+    this.completedStops = this.routeStops.filter((s) => s.completed).length;
+    const remaining = this.routeStops.filter((s) => !s.completed);
+    this.nextStop = remaining.length > 0 ? remaining[0] : null;
+
+    // Rough distance estimate (remaining stops * avg 2km)
+    this.remainingDistance = Math.round(remaining.length * 2.1 * 10) / 10;
   }
 
   private startTimer(): void {
@@ -221,24 +326,9 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     const hours = Math.floor(elapsed);
     const minutes = Math.floor((elapsed - hours) * 60);
     this.elapsedDisplay = `${hours}h ${minutes}m`;
-    this.todayHours = elapsed.toFixed(1);
     this.todayHoursNum = elapsed;
   }
 
-  formatTime(iso: string): string {
-    return new Date(iso).toLocaleTimeString([], {
-      hour: this.use24Hour ? '2-digit' : 'numeric',
-      minute: '2-digit',
-      hour12: !this.use24Hour,
-    });
-  }
-
-  toggleTimeFormat(): void {
-    this.use24Hour = !this.use24Hour;
-    localStorage.setItem('tk_time_format', this.use24Hour ? '24' : '12');
-  }
-
-  /** Silent GPS ping every 2 minutes for zero-touch clock-in/out. */
   private startSilentTracking(): void {
     interval(2 * 60 * 1000)
       .pipe(takeUntil(this.destroy$))
@@ -247,7 +337,6 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           if (!loc) return;
           this.http.post(`${environment.apiUrl}/timesheets/location-ping`, loc).subscribe({
             next: (res: any) => {
-              // If auto clock-in/out happened, refresh status
               if (res?.data?.action === 'auto_clock_in' || res?.data?.action === 'auto_clock_out') {
                 this.loadStatus();
               }

@@ -1,30 +1,4 @@
 <div class="clock-page">
-  <!-- Status card -->
-  <div class="status-card" [class.active]="status.clockedIn" *ngIf="!loading">
-    <div class="status-indicator">
-      <span class="status-dot" [class.in]="status.clockedIn"></span>
-      <span class="status-text">{{
-        status.clockedIn ? ('clock.statusIn' | translate) : ('clock.statusOut' | translate)
-      }}</span>
-    </div>
-
-    <!-- Elapsed time (when clocked in) -->
-    <div class="elapsed" *ngIf="status.clockedIn && elapsedDisplay">
-      <span class="elapsed-value">{{ elapsedDisplay }}</span>
-      <span class="elapsed-label">{{ 'clock.todayHours' | translate }}</span>
-    </div>
-
-    <!-- Route info -->
-    <div class="route" *ngIf="status.clockedIn && status.routeId">
-      {{ 'clock.route' | translate: { routeId: status.routeId } }}
-    </div>
-
-    <!-- Clock in time -->
-    <div class="clock-time" *ngIf="status.clockedIn && status.clockInTime">
-      {{ 'clock.since' | translate }} {{ formatTime(status.clockInTime) }}
-    </div>
-  </div>
-
   <!-- Loading state -->
   <div class="loading-card" *ngIf="loading">
     <div class="spinner"></div>
@@ -33,44 +7,143 @@
     }}</span>
   </div>
 
-  <!-- Today's summary (when clocked out) -->
-  <div class="today-summary" *ngIf="!status.clockedIn && !loading">
-    <div class="summary-row">
-      <span class="summary-label">{{ 'clock.today' | translate }}</span>
-      <span class="summary-value">{{ todayHoursNum | hoursDisplay }}</span>
+  <!-- ========== CLOCKED OUT STATE ========== -->
+  <ng-container *ngIf="!loading && !status.clockedIn">
+    <!-- Status card -->
+    <div class="status-card">
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span class="status-text">{{ 'clock.statusOut' | translate }}</span>
+      </div>
     </div>
-  </div>
 
-  <!-- Clock in button -->
-  <button
-    class="clock-btn"
-    [class.back-from-break]="onBreak"
-    [disabled]="loading"
-    (click)="onClockAction()"
-    *ngIf="!loading && !status.clockedIn"
-  >
-    {{ (onBreak ? 'clock.backFromBreak' : 'clock.clockIn') | translate }}
-    <span class="btn-hint" *ngIf="onBreak">{{ 'clock.backFromBreakHint' | translate }}</span>
-  </button>
+    <!-- Today's summary -->
+    <div class="today-summary" *ngIf="todayHoursNum > 0">
+      <div class="summary-row">
+        <span class="summary-label">{{ 'clock.today' | translate }}</span>
+        <span class="summary-value">{{ todayHoursNum | hoursDisplay }}</span>
+      </div>
+    </div>
 
-  <!-- Clock out options (when clocked in) -->
-  <div class="clock-out-options" *ngIf="!loading && status.clockedIn">
-    <button class="clock-btn clock-out-break" (click)="onClockOut('break')">
-      {{ 'clock.breakOut' | translate }}
-      <span class="btn-hint">{{ 'clock.breakHint' | translate }}</span>
+    <!-- Route picker (before clock-in) -->
+    <div class="route-picker" *ngIf="!onBreak">
+      <label class="picker-label">{{ 'clock.selectRoute' | translate }}</label>
+      <div class="route-options">
+        <button
+          *ngFor="let route of availableRoutes"
+          class="route-option"
+          [class.selected]="selectedRouteId === route.id"
+          (click)="selectedRouteId = route.id"
+        >
+          <span class="route-id">{{ route.id }}</span>
+          <span class="route-name">{{ route.name }}</span>
+        </button>
+        <button
+          class="route-option"
+          [class.selected]="selectedRouteId === ''"
+          (click)="selectedRouteId = ''"
+        >
+          <span class="route-name">{{ 'clock.noRoute' | translate }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Clock in / Back from break button -->
+    <button class="clock-btn" [class.back-from-break]="onBreak" (click)="onClockAction()">
+      {{ (onBreak ? 'clock.backFromBreak' : 'clock.clockIn') | translate }}
+      <span class="btn-hint" *ngIf="onBreak">{{ 'clock.backFromBreakHint' | translate }}</span>
     </button>
-    <button class="clock-btn clock-out-day" (click)="confirmEndDay()" *ngIf="!showEndDayConfirm">
-      {{ 'clock.endDay' | translate }}
-      <span class="btn-hint">{{ 'clock.endDayHint' | translate }}</span>
+  </ng-container>
+
+  <!-- ========== CLOCKED IN STATE (Shift Dashboard) ========== -->
+  <ng-container *ngIf="!loading && status.clockedIn">
+    <!-- Live shift card -->
+    <div class="status-card active">
+      <div class="status-indicator">
+        <span class="status-dot in"></span>
+        <span class="status-text">{{ 'clock.statusIn' | translate }}</span>
+      </div>
+
+      <div class="elapsed">
+        <span class="elapsed-value">{{ elapsedDisplay }}</span>
+        <span class="elapsed-label">{{ 'clock.todayHours' | translate }}</span>
+      </div>
+
+      <!-- Route info -->
+      <div class="shift-route" *ngIf="activeRouteName">
+        <span class="shift-route-name">{{ activeRouteName }}</span>
+        <span class="shift-route-id" *ngIf="status.routeId">{{ status.routeId }}</span>
+      </div>
+
+      <div class="clock-time" *ngIf="status.clockInTime">
+        {{ 'clock.since' | translate }} {{ formatTime(status.clockInTime) }}
+      </div>
+    </div>
+
+    <!-- Route progress (if on a route) -->
+    <div class="shift-progress" *ngIf="routeStops.length > 0">
+      <div class="progress-stats">
+        <div class="stat">
+          <span class="stat-value">{{ completedStops }} / {{ routeStops.length }}</span>
+          <span class="stat-label">{{ 'clock.stops' | translate }}</span>
+        </div>
+        <div class="stat" *ngIf="remainingDistance > 0">
+          <span class="stat-value">{{ remainingDistance }} km</span>
+          <span class="stat-label">{{ 'clock.remaining' | translate }}</span>
+        </div>
+      </div>
+
+      <!-- Next stop -->
+      <div class="next-stop" *ngIf="nextStop">
+        <span class="next-label">{{ 'clock.nextStop' | translate }}</span>
+        <div class="next-info">
+          <span class="next-name">{{ nextStop.name }}</span>
+          <span class="next-eta" *ngIf="nextStop.eta"
+            >{{ 'clock.eta' | translate }} {{ nextStop.eta }}</span
+          >
+        </div>
+        <button class="go-btn" (click)="navigateToStop()">{{ 'clock.go' | translate }}</button>
+      </div>
+    </div>
+
+    <!-- Switch route -->
+    <button class="switch-route-btn" (click)="showRouteSwitch = !showRouteSwitch">
+      {{ 'clock.switchRoute' | translate }}
     </button>
-    <button
-      class="clock-btn clock-out-day confirm-pulse"
-      (click)="onClockOut('end_of_day')"
-      *ngIf="showEndDayConfirm"
-    >
-      {{ 'clock.confirmEndDay' | translate }}
-    </button>
-  </div>
+
+    <div class="route-picker" *ngIf="showRouteSwitch">
+      <div class="route-options">
+        <button
+          *ngFor="let route of availableRoutes"
+          class="route-option"
+          [class.selected]="selectedRouteId === route.id"
+          (click)="switchRoute(route.id)"
+        >
+          <span class="route-id">{{ route.id }}</span>
+          <span class="route-name">{{ route.name }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Clock out options -->
+    <div class="clock-out-options">
+      <button class="clock-btn clock-out-break" (click)="onClockOut('break')">
+        {{ 'clock.breakOut' | translate }}
+        <span class="btn-hint">{{ 'clock.breakHint' | translate }}</span>
+      </button>
+      <button class="clock-btn clock-out-day" (click)="confirmEndDay()" *ngIf="!showEndDayConfirm">
+        {{ 'clock.endDay' | translate }}
+        <span class="btn-hint">{{ 'clock.endDayHint' | translate }}</span>
+      </button>
+      <button
+        class="clock-btn clock-out-day confirm-pulse"
+        (click)="onClockOut('end_of_day')"
+        *ngIf="showEndDayConfirm"
+      >
+        {{ 'clock.confirmEndDay' | translate }}
+      </button>
+    </div>
+  </ng-container>
 
   <!-- Confirmation message -->
   <div

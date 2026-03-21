@@ -99,6 +99,178 @@
   margin-top: $spacing-xs;
 }
 
+// Shift route info
+.shift-route {
+  margin-top: $spacing-sm;
+}
+
+.shift-route-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: $primary;
+}
+
+.shift-route-id {
+  font-size: 12px;
+  color: $neutral-500;
+  margin-left: $spacing-xs;
+}
+
+// Route picker
+.route-picker {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.picker-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $neutral-700;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.route-options {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.route-option {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 12px;
+  border: 1px solid $neutral-200;
+  border-radius: 10px;
+  background: $white;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+
+  &.selected {
+    border-color: $primary;
+    background: rgba($primary, 0.04);
+  }
+
+  &:hover {
+    border-color: $neutral-300;
+  }
+}
+
+.route-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: $neutral-500;
+  background: $neutral-100;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.route-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// Shift progress
+.shift-progress {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.progress-stats {
+  display: flex;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: $neutral-500;
+  text-transform: uppercase;
+}
+
+// Next stop
+.next-stop {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background: $neutral-50;
+  border-radius: 8px;
+}
+
+.next-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: $neutral-500;
+  text-transform: uppercase;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  letter-spacing: 1px;
+}
+
+.next-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.next-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.next-eta {
+  font-size: 12px;
+  color: $neutral-500;
+}
+
+.go-btn {
+  padding: 10px 18px;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+// Switch route
+.switch-route-btn {
+  width: 100%;
+  padding: 10px;
+  background: $neutral-100;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $neutral-500;
+  cursor: pointer;
+  &:hover {
+    background: $neutral-200;
+  }
+}
+
 // Today summary (when clocked out)
 .today-summary {
   background: $white;
