@@ -131,40 +131,42 @@
 
   <!-- User list -->
   <div class="loading" *ngIf="loading">Loading...</div>
-  <table class="user-table" *ngIf="!loading && users.length > 0">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Rate</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let user of users" [class.inactive]="!user.is_active">
-        <td class="user-name">{{ user.first_name }} {{ user.last_name }}</td>
-        <td>{{ user.email }}</td>
-        <td>
-          <span class="role-badge">{{ roleLabel(user.role) }}</span>
-        </td>
-        <td>{{ user.hourly_rate ? '$' + user.hourly_rate + '/hr' : '—' }}</td>
-        <td>
-          <span class="status" [class.active]="user.is_active" [class.disabled]="!user.is_active">
-            {{ user.is_active ? 'Active' : 'Inactive' }}
-          </span>
-        </td>
-        <td class="actions">
-          <button class="action-btn" (click)="editUser(user)">Edit</button>
-          <button class="action-btn pto" (click)="openPtoEditor(user)">PTO</button>
-          <button class="action-btn toggle" (click)="toggleActive(user)">
-            {{ user.is_active ? 'Deactivate' : 'Activate' }}
-          </button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+  <div class="table-scroll">
+    <table class="user-table" *ngIf="!loading && users.length > 0">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Rate</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users" [class.inactive]="!user.is_active">
+          <td class="user-name">{{ user.first_name }} {{ user.last_name }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="role-badge">{{ roleLabel(user.role) }}</span>
+          </td>
+          <td>{{ user.hourly_rate ? '$' + user.hourly_rate + '/hr' : '—' }}</td>
+          <td>
+            <span class="status" [class.active]="user.is_active" [class.disabled]="!user.is_active">
+              {{ user.is_active ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="actions">
+            <button class="action-btn" (click)="editUser(user)">Edit</button>
+            <button class="action-btn pto" (click)="openPtoEditor(user)">PTO</button>
+            <button class="action-btn toggle" (click)="toggleActive(user)">
+              {{ user.is_active ? 'Deactivate' : 'Activate' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- PTO Balance Editor -->
   <div class="form-card" *ngIf="ptoUser">

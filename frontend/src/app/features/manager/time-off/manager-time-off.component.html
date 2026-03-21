@@ -49,35 +49,37 @@
 
   <!-- Balances view -->
   <div class="balances-view" *ngIf="!loading && tab === 'balances'">
-    <table class="balances-table">
-      <thead>
-        <tr>
-          <th>Employee</th>
-          <th>PTO</th>
-          <th>Sick</th>
-          <th>Personal</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let emp of employeeBalanceList">
-          <td class="emp-name">{{ emp.name }}</td>
-          <td>
-            <span class="bal-available">{{ emp.pto.available }}h</span>
-            <span class="bal-detail">/ {{ emp.pto.total }}h ({{ emp.pto.used }}h used)</span>
-          </td>
-          <td>
-            <span class="bal-available">{{ emp.sick.available }}h</span>
-            <span class="bal-detail">/ {{ emp.sick.total }}h ({{ emp.sick.used }}h used)</span>
-          </td>
-          <td>
-            <span class="bal-available">{{ emp.personal.available }}h</span>
-            <span class="bal-detail"
-              >/ {{ emp.personal.total }}h ({{ emp.personal.used }}h used)</span
-            >
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-scroll">
+      <table class="balances-table">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>PTO</th>
+            <th>Sick</th>
+            <th>Personal</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of employeeBalanceList">
+            <td class="emp-name">{{ emp.name }}</td>
+            <td>
+              <span class="bal-available">{{ emp.pto.available }}h</span>
+              <span class="bal-detail">/ {{ emp.pto.total }}h ({{ emp.pto.used }}h used)</span>
+            </td>
+            <td>
+              <span class="bal-available">{{ emp.sick.available }}h</span>
+              <span class="bal-detail">/ {{ emp.sick.total }}h ({{ emp.sick.used }}h used)</span>
+            </td>
+            <td>
+              <span class="bal-available">{{ emp.personal.available }}h</span>
+              <span class="bal-detail"
+                >/ {{ emp.personal.total }}h ({{ emp.personal.used }}h used)</span
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="empty" *ngIf="employeeBalanceList.length === 0">No employees found.</div>
   </div>
 </div>
