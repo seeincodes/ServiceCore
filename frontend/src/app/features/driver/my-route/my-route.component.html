@@ -8,6 +8,14 @@
     </div>
   </div>
 
+  <!-- Break reminder (DOT compliance) -->
+  <div class="reminder break-reminder" *ngIf="breakReminder">
+    <div class="reminder-text">You've been driving for 4+ hours. Time for a break!</div>
+    <div class="reminder-actions">
+      <button class="remind-btn dismiss" (click)="dismissBreakReminder()">Dismiss</button>
+    </div>
+  </div>
+
   <h1>{{ routeName }}</h1>
 
   <div class="loading" *ngIf="loading">Loading route...</div>
@@ -29,15 +37,57 @@
       </div>
     </div>
 
+    <!-- Progress bar -->
+    <div class="progress-section" *ngIf="stops.length > 0">
+      <div class="progress-header">
+        <span class="progress-text">{{ completedCount }}/{{ stops.length }} stops completed</span>
+        <span class="progress-pct">{{ progressPercent }}%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+    </div>
+
     <!-- Map -->
     <app-map #routeMap [markers]="markers" height="350px"></app-map>
 
     <!-- Stop list -->
     <div class="stop-list">
-      <div *ngFor="let stop of stops; let i = index" class="stop-item" (click)="focusStop(i)">
-        <span class="stop-number">{{ i + 1 }}</span>
-        <span class="stop-name">{{ stop.name }}</span>
-        <a class="navigate-btn" (click)="navigateTo(stop, $event)" title="Open in Maps">Navigate</a>
+      <div
+        *ngFor="let stop of stops; let i = index"
+        class="stop-item"
+        [class.completed]="stop.completed"
+        (click)="focusStop(i)"
+      >
+        <span class="stop-number" [class.done]="stop.completed">
+          <span *ngIf="!stop.completed">{{ i + 1 }}</span>
+          <span *ngIf="stop.completed" class="check-icon">&#10003;</span>
+        </span>
+        <div class="stop-info">
+          <span class="stop-name">{{ stop.name }}</span>
+          <span class="stop-eta" *ngIf="stop.eta && !stop.completed">ETA {{ stop.eta }}</span>
+          <span class="stop-eta done-label" *ngIf="stop.completed">Completed</span>
+          <span class="stop-notes" *ngIf="stop.notes">{{ stop.notes }}</span>
+        </div>
+        <div class="stop-actions">
+          <button
+            *ngIf="!stop.completed"
+            class="action-btn complete-btn"
+            (click)="markComplete(i, $event)"
+            title="Mark as done"
+          >
+            Done
+          </button>
+          <button
+            *ngIf="stop.completed"
+            class="action-btn undo-btn"
+            (click)="markIncomplete(i, $event)"
+            title="Undo"
+          >
+            Undo
+          </button>
+          <a class="action-btn nav-btn" (click)="navigateTo(stop, $event)" title="Navigate">Go</a>
+        </div>
       </div>
     </div>
 

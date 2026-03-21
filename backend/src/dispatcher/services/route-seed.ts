@@ -8,7 +8,7 @@ interface SeededRoute {
   stops: number;
   status: string;
   assignedDriverId?: string;
-  waypoints: { id: string; name: string; lat: number; lon: number }[];
+  waypoints: { id: string; name: string; lat: number; lon: number; notes?: string }[];
 }
 
 // Realistic SF Bay Area waste collection routes
@@ -19,14 +19,62 @@ const DEMO_ROUTES: Omit<SeededRoute, 'assignedDriverId'>[] = [
     stops: 8,
     status: 'active',
     waypoints: [
-      { id: 'w1', name: 'Depot - Bayshore Yard', lat: 37.7196, lon: -122.3992 },
-      { id: 'w2', name: 'Market St & 3rd', lat: 37.7869, lon: -122.4025 },
-      { id: 'w3', name: 'Union Square', lat: 37.7879, lon: -122.4074 },
-      { id: 'w4', name: 'Financial District', lat: 37.7946, lon: -122.3999 },
-      { id: 'w5', name: 'Embarcadero Center', lat: 37.7954, lon: -122.3962 },
-      { id: 'w6', name: 'Ferry Building', lat: 37.7955, lon: -122.3935 },
-      { id: 'w7', name: 'SOMA - Howard St', lat: 37.7833, lon: -122.3958 },
-      { id: 'w8', name: 'Depot Return', lat: 37.7196, lon: -122.3992 },
+      {
+        id: 'w1',
+        name: 'Depot - Bayshore Yard',
+        lat: 37.7196,
+        lon: -122.3992,
+        notes: 'Load truck, check route sheet',
+      },
+      {
+        id: 'w2',
+        name: 'Market St & 3rd',
+        lat: 37.7869,
+        lon: -122.4025,
+        notes: 'Use loading dock on 3rd St side',
+      },
+      {
+        id: 'w3',
+        name: 'Union Square',
+        lat: 37.7879,
+        lon: -122.4074,
+        notes: "4 dumpsters behind Macy's",
+      },
+      {
+        id: 'w4',
+        name: 'Financial District',
+        lat: 37.7946,
+        lon: -122.3999,
+        notes: 'Basement access, ring buzzer #3',
+      },
+      {
+        id: 'w5',
+        name: 'Embarcadero Center',
+        lat: 37.7954,
+        lon: -122.3962,
+        notes: 'Parking garage level B2',
+      },
+      {
+        id: 'w6',
+        name: 'Ferry Building',
+        lat: 37.7955,
+        lon: -122.3935,
+        notes: 'Recycling only — no trash',
+      },
+      {
+        id: 'w7',
+        name: 'SOMA - Howard St',
+        lat: 37.7833,
+        lon: -122.3958,
+        notes: '2 bins, narrow alley',
+      },
+      {
+        id: 'w8',
+        name: 'Depot Return',
+        lat: 37.7196,
+        lon: -122.3992,
+        notes: 'Weigh truck, submit log',
+      },
     ],
   },
   {
@@ -35,13 +83,55 @@ const DEMO_ROUTES: Omit<SeededRoute, 'assignedDriverId'>[] = [
     stops: 7,
     status: 'active',
     waypoints: [
-      { id: 'w1', name: 'Depot - Bayshore Yard', lat: 37.7196, lon: -122.3992 },
-      { id: 'w2', name: '16th & Mission', lat: 37.7649, lon: -122.4194 },
-      { id: 'w3', name: '24th & Valencia', lat: 37.7526, lon: -122.4202 },
-      { id: 'w4', name: 'Dolores Park', lat: 37.7596, lon: -122.4269 },
-      { id: 'w5', name: 'Castro & 18th', lat: 37.7609, lon: -122.435 },
-      { id: 'w6', name: 'Noe Valley', lat: 37.7502, lon: -122.4337 },
-      { id: 'w7', name: 'Depot Return', lat: 37.7196, lon: -122.3992 },
+      {
+        id: 'w1',
+        name: 'Depot - Bayshore Yard',
+        lat: 37.7196,
+        lon: -122.3992,
+        notes: 'Load truck, check route sheet',
+      },
+      {
+        id: 'w2',
+        name: '16th & Mission',
+        lat: 37.7649,
+        lon: -122.4194,
+        notes: 'Apt complex — 6 bins in courtyard',
+      },
+      {
+        id: 'w3',
+        name: '24th & Valencia',
+        lat: 37.7526,
+        lon: -122.4202,
+        notes: 'Street-side bins, watch for bike lane',
+      },
+      {
+        id: 'w4',
+        name: 'Dolores Park',
+        lat: 37.7596,
+        lon: -122.4269,
+        notes: 'Park bins — east side entrance only',
+      },
+      {
+        id: 'w5',
+        name: 'Castro & 18th',
+        lat: 37.7609,
+        lon: -122.435,
+        notes: '3 commercial dumpsters',
+      },
+      {
+        id: 'w6',
+        name: 'Noe Valley',
+        lat: 37.7502,
+        lon: -122.4337,
+        notes: 'Residential curbside pickup',
+      },
+      {
+        id: 'w7',
+        name: 'Depot Return',
+        lat: 37.7196,
+        lon: -122.3992,
+        notes: 'Weigh truck, submit log',
+      },
     ],
   },
   {
