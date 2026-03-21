@@ -25,17 +25,106 @@ export interface GeoZone {
   label: string;
 }
 
+interface TileStyle {
+  name: string;
+  url: string;
+  attribution: string;
+  dark?: boolean;
+}
+
+const TILE_STYLES: TileStyle[] = [
+  {
+    name: 'Standard',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors',
+  },
+  {
+    name: 'Dark',
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+    dark: true,
+  },
+  {
+    name: 'Satellite',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; Esri, Maxar, Earthstar Geographics',
+  },
+  {
+    name: 'Terrain',
+    url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; OpenStreetMap contributors, SRTM | &copy; OpenTopoMap',
+  },
+  {
+    name: 'Clean',
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  },
+  {
+    name: 'High Contrast',
+    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+  },
+];
+
 @Component({
   selector: 'app-map',
   standalone: true,
   imports: [CommonModule],
-  template: `<div #mapContainer class="map-container" [style.height]="height"></div>`,
+  template: `
+    <div class="map-wrapper">
+      <div #mapContainer class="map-container" [style.height]="height"></div>
+      <div class="style-switcher" *ngIf="showStyleSwitcher">
+        <button
+          *ngFor="let style of tileStyles; let i = index"
+          [class.active]="i === activeStyleIndex"
+          (click)="switchStyle(i)"
+        >
+          {{ style.name }}
+        </button>
+      </div>
+    </div>
+  `,
   styles: [
     `
+      .map-wrapper {
+        position: relative;
+      }
       .map-container {
         width: 100%;
         border-radius: 12px;
         overflow: hidden;
+      }
+      .style-switcher {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        max-width: 200px;
+        justify-content: flex-end;
+      }
+      .style-switcher button {
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.92);
+        color: #333;
+        cursor: pointer;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(4px);
+        transition: all 0.15s;
+      }
+      .style-switcher button:hover {
+        background: #fff;
+        transform: scale(1.05);
+      }
+      .style-switcher button.active {
+        background: #1a73e8;
+        color: #fff;
       }
     `,
   ],
@@ -47,8 +136,13 @@ export class MapComponent implements AfterViewInit, OnChanges {
   @Input() height = '400px';
   @Input() center: [number, number] = [37.7749, -122.4194];
   @Input() zoom = 11;
+  @Input() showStyleSwitcher = true;
+
+  tileStyles = TILE_STYLES;
+  activeStyleIndex = 0;
 
   private map: L.Map | null = null;
+  private tileLayer: L.TileLayer | null = null;
   private markerLayer = L.layerGroup();
   private zoneLayer = L.layerGroup();
 
@@ -63,11 +157,28 @@ export class MapComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  switchStyle(index: number): void {
+    if (!this.map || index === this.activeStyleIndex) return;
+    this.activeStyleIndex = index;
+    const style = TILE_STYLES[index];
+
+    if (this.tileLayer) {
+      this.map.removeLayer(this.tileLayer);
+    }
+
+    this.tileLayer = L.tileLayer(style.url, {
+      attribution: style.attribution,
+      maxZoom: 19,
+    }).addTo(this.map);
+  }
+
   private initMap(): void {
     this.map = L.map(this.mapContainer.nativeElement).setView(this.center, this.zoom);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
+    const style = TILE_STYLES[this.activeStyleIndex];
+    this.tileLayer = L.tileLayer(style.url, {
+      attribution: style.attribution,
+      maxZoom: 19,
     }).addTo(this.map);
 
     this.markerLayer.addTo(this.map);
