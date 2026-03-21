@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService, AuthUser } from '../../../core/services/auth.service';
 
 interface NavLink {
@@ -13,7 +14,7 @@ interface NavLink {
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, TranslateModule],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.scss'],
 })
@@ -22,15 +23,35 @@ export class NavBarComponent implements OnInit, OnDestroy {
   links: NavLink[] = [];
   menuOpen = false;
 
+  currentLang = 'en';
+  languages = [
+    { code: 'en', label: 'EN' },
+    { code: 'es', label: 'ES' },
+    { code: 'pt', label: 'PT' },
+  ];
+
   private destroy$ = new Subject<void>();
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private translate: TranslateService,
+  ) {
+    const saved = localStorage.getItem('tk_lang');
+    this.currentLang = saved || 'en';
+    this.translate.use(this.currentLang);
+  }
 
   ngOnInit(): void {
     this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
       this.user = user;
       this.links = this.getLinksForRole(user?.role);
     });
+  }
+
+  switchLanguage(lang: string): void {
+    this.currentLang = lang;
+    this.translate.use(lang);
+    localStorage.setItem('tk_lang', lang);
   }
 
   ngOnDestroy(): void {

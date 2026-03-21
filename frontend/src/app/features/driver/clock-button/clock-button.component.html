@@ -7,7 +7,7 @@
     (click)="onClockAction()"
   >
     <span class="clock-label">
-      {{ status.clockedIn ? 'CLOCK OUT' : 'CLOCK IN' }}
+      {{ (status.clockedIn ? 'clock.clockOut' : 'clock.clockIn') | translate }}
     </span>
     <span class="clock-elapsed" *ngIf="status.clockedIn && elapsedDisplay">
       {{ elapsedDisplay }}
@@ -24,6 +24,6 @@
   </div>
 
   <div class="route-info" *ngIf="status.clockedIn && status.routeId">
-    Route #{{ status.routeId }}
+    {{ 'clock.route' | translate: { routeId: status.routeId } }}
   </div>
 </div>

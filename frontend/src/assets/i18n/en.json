@@ -1,0 +1,131 @@
+{
+  "app": {
+    "name": "TimeKeeper"
+  },
+  "nav": {
+    "clock": "Clock",
+    "myHours": "My Hours",
+    "timesheet": "Timesheet",
+    "dashboard": "Dashboard",
+    "approvals": "Approvals",
+    "reports": "Reports",
+    "users": "Users",
+    "settings": "Settings",
+    "drivers": "Drivers",
+    "profile": "Profile",
+    "logout": "Log out"
+  },
+  "login": {
+    "title": "TimeKeeper",
+    "subtitle": "Waste Services Time Tracking",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signingIn": "Signing in...",
+    "forgotPassword": "Forgot password?",
+    "demoAccounts": "Demo accounts",
+    "demoPassword": "password",
+    "driver": "Driver",
+    "manager": "Manager",
+    "admin": "Admin"
+  },
+  "clock": {
+    "clockIn": "CLOCK IN",
+    "clockOut": "CLOCK OUT",
+    "clockedInAt": "Clocked in at {{time}}",
+    "clockedOutAt": "Clocked out at {{time}}. Total: {{hours}}h",
+    "route": "Route #{{routeId}}",
+    "offline": "Offline - will sync when signal returns",
+    "syncing": "Syncing...",
+    "synced": "Synced. {{count}} entries uploaded."
+  },
+  "hours": {
+    "title": "My Hours",
+    "total": "Total",
+    "overtime": "Overtime",
+    "timesheet": "Timesheet",
+    "noEntries": "No clock entries this week.",
+    "active": "Active",
+    "otApproaching": "Approaching overtime: {{hours}}h of {{threshold}}h",
+    "otThreshold": "{{hours}}h overtime — at threshold",
+    "otExceeded": "{{hours}}h overtime — exceeded threshold"
+  },
+  "timesheet": {
+    "title": "My Timesheet",
+    "thisWeek": "This Week",
+    "totalHours": "Total Hours",
+    "weekEnding": "Week Ending",
+    "submit": "Submit Timesheet",
+    "submitting": "Submitting...",
+    "submitted": "Timesheet submitted for approval",
+    "waitingApproval": "Waiting for manager approval",
+    "approved": "Approved by manager",
+    "locked": "Locked — sent to payroll",
+    "history": "History",
+    "noHistory": "No timesheet history yet.",
+    "status": {
+      "draft": "Draft",
+      "submitted": "Submitted",
+      "approved": "Approved",
+      "locked": "Locked"
+    }
+  },
+  "forgotPassword": {
+    "title": "Reset Password",
+    "subtitle": "Enter your email and we'll send you a reset link.",
+    "send": "Send Reset Link",
+    "sending": "Sending...",
+    "backToLogin": "Back to login"
+  },
+  "resetPassword": {
+    "title": "Set New Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "reset": "Reset Password",
+    "resetting": "Resetting...",
+    "invalidLink": "Invalid reset link. Please request a new one.",
+    "requestNew": "Request new reset link",
+    "goToLogin": "Go to login",
+    "mismatch": "Passwords do not match"
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal Information",
+    "edit": "Edit",
+    "cancel": "Cancel",
+    "save": "Save Changes",
+    "saving": "Saving...",
+    "updated": "Profile updated",
+    "password": "Password",
+    "change": "Change",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm New Password",
+    "changePassword": "Change Password",
+    "changing": "Changing...",
+    "passwordChanged": "Password changed successfully",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "role": "Role",
+    "organization": "Organization",
+    "notSet": "Not set",
+    "roles": {
+      "employee": "Driver",
+      "manager": "Manager",
+      "payroll_admin": "Payroll Admin",
+      "org_admin": "Organization Admin"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "yes": "Yes",
+    "no": "No"
+  }
+}

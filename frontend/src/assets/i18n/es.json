@@ -1,0 +1,131 @@
+{
+  "app": {
+    "name": "TimeKeeper"
+  },
+  "nav": {
+    "clock": "Reloj",
+    "myHours": "Mis Horas",
+    "timesheet": "Hoja de Tiempo",
+    "dashboard": "Panel",
+    "approvals": "Aprobaciones",
+    "reports": "Reportes",
+    "users": "Usuarios",
+    "settings": "Configuración",
+    "drivers": "Conductores",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión"
+  },
+  "login": {
+    "title": "TimeKeeper",
+    "subtitle": "Control de Tiempo para Servicios de Residuos",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "signIn": "Iniciar Sesión",
+    "signingIn": "Iniciando sesión...",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "demoAccounts": "Cuentas de demostración",
+    "demoPassword": "contraseña",
+    "driver": "Conductor",
+    "manager": "Gerente",
+    "admin": "Administrador"
+  },
+  "clock": {
+    "clockIn": "ENTRADA",
+    "clockOut": "SALIDA",
+    "clockedInAt": "Entrada registrada a las {{time}}",
+    "clockedOutAt": "Salida registrada a las {{time}}. Total: {{hours}}h",
+    "route": "Ruta #{{routeId}}",
+    "offline": "Sin conexión - se sincronizará cuando vuelva la señal",
+    "syncing": "Sincronizando...",
+    "synced": "Sincronizado. {{count}} entradas subidas."
+  },
+  "hours": {
+    "title": "Mis Horas",
+    "total": "Total",
+    "overtime": "Horas Extra",
+    "timesheet": "Hoja de Tiempo",
+    "noEntries": "No hay entradas de reloj esta semana.",
+    "active": "Activo",
+    "otApproaching": "Acercándose a horas extra: {{hours}}h de {{threshold}}h",
+    "otThreshold": "{{hours}}h horas extra — en el límite",
+    "otExceeded": "{{hours}}h horas extra — excedido"
+  },
+  "timesheet": {
+    "title": "Mi Hoja de Tiempo",
+    "thisWeek": "Esta Semana",
+    "totalHours": "Horas Totales",
+    "weekEnding": "Semana Terminando",
+    "submit": "Enviar Hoja de Tiempo",
+    "submitting": "Enviando...",
+    "submitted": "Hoja de tiempo enviada para aprobación",
+    "waitingApproval": "Esperando aprobación del gerente",
+    "approved": "Aprobado por el gerente",
+    "locked": "Bloqueado — enviado a nómina",
+    "history": "Historial",
+    "noHistory": "No hay historial de hojas de tiempo.",
+    "status": {
+      "draft": "Borrador",
+      "submitted": "Enviado",
+      "approved": "Aprobado",
+      "locked": "Bloqueado"
+    }
+  },
+  "forgotPassword": {
+    "title": "Restablecer Contraseña",
+    "subtitle": "Ingresa tu correo y te enviaremos un enlace para restablecer.",
+    "send": "Enviar Enlace",
+    "sending": "Enviando...",
+    "backToLogin": "Volver al inicio de sesión"
+  },
+  "resetPassword": {
+    "title": "Nueva Contraseña",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "reset": "Restablecer Contraseña",
+    "resetting": "Restableciendo...",
+    "invalidLink": "Enlace inválido. Por favor solicita uno nuevo.",
+    "requestNew": "Solicitar nuevo enlace",
+    "goToLogin": "Ir al inicio de sesión",
+    "mismatch": "Las contraseñas no coinciden"
+  },
+  "profile": {
+    "title": "Perfil",
+    "personalInfo": "Información Personal",
+    "edit": "Editar",
+    "cancel": "Cancelar",
+    "save": "Guardar Cambios",
+    "saving": "Guardando...",
+    "updated": "Perfil actualizado",
+    "password": "Contraseña",
+    "change": "Cambiar",
+    "currentPassword": "Contraseña Actual",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Nueva Contraseña",
+    "changePassword": "Cambiar Contraseña",
+    "changing": "Cambiando...",
+    "passwordChanged": "Contraseña cambiada exitosamente",
+    "name": "Nombre",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "role": "Rol",
+    "organization": "Organización",
+    "notSet": "No configurado",
+    "roles": {
+      "employee": "Conductor",
+      "manager": "Gerente",
+      "payroll_admin": "Admin de Nómina",
+      "org_admin": "Admin de Organización"
+    }
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Ocurrió un error",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "yes": "Sí",
+    "no": "No"
+  }
+}

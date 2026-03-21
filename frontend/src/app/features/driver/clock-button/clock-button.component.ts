@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { ClockService, ClockStatus } from '../../../core/services/clock.service';
 import { Subject, takeUntil, interval, switchMap, startWith } from 'rxjs';
 
 @Component({
   selector: 'app-clock-button',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './clock-button.component.html',
   styleUrls: ['./clock-button.component.scss'],
 })
