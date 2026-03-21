@@ -1,0 +1,109 @@
+<div class="my-route">
+  <!-- Smart clock-in reminder -->
+  <div class="reminder" *ngIf="clockInReminder">
+    <div class="reminder-text">{{ clockInReminder.message }}</div>
+    <div class="reminder-actions">
+      <button class="remind-btn confirm" (click)="confirmClockIn()">Clock In Now</button>
+      <button class="remind-btn dismiss" (click)="dismissReminder()">Dismiss</button>
+    </div>
+  </div>
+
+  <!-- Break reminder (DOT compliance) -->
+  <div class="reminder break-reminder" *ngIf="breakReminder">
+    <div class="reminder-text">You've been driving for 4+ hours. Time for a break!</div>
+    <div class="reminder-actions">
+      <button class="remind-btn dismiss" (click)="dismissBreakReminder()">Dismiss</button>
+    </div>
+  </div>
+
+  <h1>{{ routeName }}</h1>
+
+  <div class="loading" *ngIf="loading">Loading route...</div>
+
+  <div *ngIf="!loading">
+    <!-- Route summary -->
+    <div class="route-summary" *ngIf="totalDistance > 0">
+      <div class="summary-item">
+        <span class="summary-value">{{ stops.length }}</span>
+        <span class="summary-label">Stops</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-value">{{ totalDistance }} km</span>
+        <span class="summary-label">Distance</span>
+      </div>
+      <div class="summary-item">
+        <span class="summary-value">{{ totalDuration }} min</span>
+        <span class="summary-label">Est. Time</span>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="progress-section" *ngIf="stops.length > 0">
+      <div class="progress-header">
+        <span class="progress-text">{{ completedCount }}/{{ stops.length }} stops completed</span>
+        <span class="progress-pct">{{ progressPercent }}%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="progressPercent"></div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <app-map #routeMap [markers]="markers" height="350px"></app-map>
+
+    <!-- Stop list -->
+    <div class="stop-list">
+      <div
+        *ngFor="let stop of stops; let i = index"
+        class="stop-item"
+        [class.completed]="stop.completed"
+        (click)="focusStop(i)"
+      >
+        <span class="stop-number" [class.done]="stop.completed">
+          <span *ngIf="!stop.completed">{{ i + 1 }}</span>
+          <span *ngIf="stop.completed" class="check-icon">&#10003;</span>
+        </span>
+        <div class="stop-info">
+          <span class="stop-name">{{ stop.name }}</span>
+          <span class="stop-eta" *ngIf="stop.eta && !stop.completed">ETA {{ stop.eta }}</span>
+          <span class="stop-eta done-label" *ngIf="stop.completed">Completed</span>
+          <span class="stop-notes" *ngIf="stop.notes">{{ stop.notes }}</span>
+        </div>
+        <div class="stop-actions">
+          <button
+            *ngIf="!stop.completed"
+            class="action-btn complete-btn"
+            (click)="markComplete(i, $event)"
+            title="Mark as done"
+          >
+            Done
+          </button>
+          <button
+            *ngIf="stop.completed"
+            class="action-btn undo-btn"
+            (click)="markIncomplete(i, $event)"
+            title="Undo"
+          >
+            Undo
+          </button>
+          <a class="action-btn nav-btn" (click)="navigateTo(stop, $event)" title="Navigate">Go</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Turn-by-turn directions -->
+    <button class="directions-toggle" (click)="toggleDirections()" *ngIf="steps.length > 0">
+      {{ showDirections ? 'Hide Directions' : 'Show Directions' }} ({{ steps.length }} steps)
+    </button>
+
+    <div class="directions" *ngIf="showDirections && steps.length > 0">
+      <div *ngFor="let step of steps; let i = index" class="direction-step">
+        <span class="step-num">{{ i + 1 }}</span>
+        <span class="step-text">{{ step.instruction }}</span>
+        <span class="step-dist">{{ step.distanceKm }} km</span>
+      </div>
+    </div>
+
+    <div class="no-route" *ngIf="stops.length < 2">No route assigned today.</div>
+  </div>
+</div>

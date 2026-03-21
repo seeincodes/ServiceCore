@@ -15,7 +15,9 @@ import timesheetRoutes from './time-tracking/routes/timesheet.routes';
 import dispatcherRoutes from './dispatcher/routes/dispatcher.routes';
 import { startDispatcherPolling } from './dispatcher/services/dispatcher.service';
 import { scheduleNightlySync } from './integration/services/quickbooks.service';
+import { seedDemoRoutes } from './dispatcher/services/route-seed';
 import adminRoutes from './auth/routes/admin.routes';
+import routingRoutes from './dispatcher/routes/routing.routes';
 
 // Load environment-specific .env file, then fall back to .env
 const env = process.env.NODE_ENV || 'development';
@@ -58,6 +60,7 @@ app.use('/manager', dashboardRoutes);
 app.use('/manager', reportRoutes);
 app.use('/manager', timesheetRoutes);
 app.use('/dispatcher', dispatcherRoutes);
+app.use('/routes', routingRoutes);
 app.use('/admin', adminRoutes);
 
 // Start server — run migrations in production only
@@ -66,6 +69,7 @@ const startServer = () => {
     logger.info(`TimeKeeper API running on port ${PORT}`);
     startDispatcherPolling();
     scheduleNightlySync();
+    seedDemoRoutes();
   });
 };
 

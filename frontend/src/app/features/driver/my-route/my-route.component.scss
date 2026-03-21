@@ -1,0 +1,287 @@
+@use '../../../../styles/variables' as *;
+
+.my-route {
+  padding: $spacing-md;
+  max-width: 700px;
+  margin: 0 auto;
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+// Reminders
+.reminder {
+  background: #fff3e0;
+  border: 1px solid #f57c00;
+  border-radius: 12px;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.break-reminder {
+  background: #fce4ec;
+  border-color: #e91e63;
+}
+
+.reminder-text {
+  font-weight: 500;
+  margin-bottom: $spacing-sm;
+}
+
+.reminder-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.remind-btn {
+  padding: $spacing-sm $spacing-md;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  &.confirm {
+    background: $success;
+    color: $white;
+  }
+  &.dismiss {
+    background: $neutral-200;
+    color: $neutral-700;
+  }
+}
+
+.loading,
+.no-route {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}
+
+// Summary
+.route-summary {
+  display: flex;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-md;
+  padding: $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.summary-value {
+  font-size: 20px;
+  font-weight: 700;
+}
+.summary-label {
+  font-size: 12px;
+  color: $neutral-500;
+  text-transform: uppercase;
+}
+
+// Progress
+.progress-section {
+  margin-bottom: $spacing-md;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.progress-text {
+  font-size: $font-size-sm;
+  font-weight: 500;
+}
+
+.progress-pct {
+  font-size: $font-size-sm;
+  font-weight: 700;
+  color: $primary;
+}
+
+.progress-bar {
+  height: 8px;
+  background: $neutral-100;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: $success;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+// Stop list
+.stop-list {
+  margin-top: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.stop-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover {
+    background: $neutral-50;
+  }
+  &.completed {
+    opacity: 0.6;
+    background: $neutral-50;
+  }
+}
+
+.stop-number {
+  width: 28px;
+  height: 28px;
+  background: $primary;
+  color: $white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  &.done {
+    background: $success;
+  }
+}
+
+.check-icon {
+  font-size: 14px;
+}
+
+.stop-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stop-name {
+  font-size: $font-size-sm;
+  font-weight: 500;
+}
+
+.stop-eta {
+  font-size: 11px;
+  color: $neutral-500;
+  margin-top: 2px;
+}
+
+.done-label {
+  color: $success;
+  font-weight: 600;
+}
+
+.stop-notes {
+  font-size: 11px;
+  color: $neutral-500;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+// Stop action buttons
+.stop-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.action-btn {
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.complete-btn {
+  background: rgba($success, 0.1);
+  color: $success;
+  &:hover {
+    background: rgba($success, 0.2);
+  }
+}
+
+.undo-btn {
+  background: $neutral-100;
+  color: $neutral-500;
+  &:hover {
+    background: $neutral-200;
+  }
+}
+
+.nav-btn {
+  background: rgba($primary, 0.08);
+  color: $primary;
+  &:hover {
+    background: rgba($primary, 0.15);
+  }
+}
+
+// Directions
+.directions-toggle {
+  width: 100%;
+  margin-top: $spacing-md;
+  padding: $spacing-sm;
+  background: $neutral-100;
+  border: 1px solid $neutral-200;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  color: $primary;
+  cursor: pointer;
+  font-weight: 500;
+  &:hover {
+    background: $neutral-200;
+  }
+}
+
+.directions {
+  margin-top: $spacing-sm;
+}
+
+.direction-step {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs $spacing-md;
+  border-bottom: 1px solid $neutral-50;
+  font-size: $font-size-sm;
+}
+
+.step-num {
+  width: 20px;
+  color: $neutral-500;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.step-text {
+  flex: 1;
+}
+.step-dist {
+  color: $neutral-500;
+  font-size: 12px;
+}

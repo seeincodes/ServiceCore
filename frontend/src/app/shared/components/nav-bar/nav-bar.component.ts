@@ -81,6 +81,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
 
     const driverLinks: NavLink[] = [
       { path: '/clock', label: 'Clock', icon: '⏱' },
+      { path: '/my-route', label: 'Route', icon: '📍' },
       { path: '/my-hours', label: 'My Hours', icon: '📊' },
       { path: '/my-timesheet', label: 'Timesheet', icon: '📋' },
     ];
