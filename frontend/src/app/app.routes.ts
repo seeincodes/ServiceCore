@@ -78,6 +78,12 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('manager', 'org_admin')],
   },
   {
+    path: 'manager/reports',
+    loadComponent: () =>
+      import('./features/manager/reports/reports.component').then((m) => m.ReportsComponent),
+    canActivate: [authGuard, roleGuard('manager', 'payroll_admin', 'org_admin')],
+  },
+  {
     path: 'manager/driver/:userId',
     loadComponent: () =>
       import('./features/manager/driver-detail/driver-detail.component').then(
