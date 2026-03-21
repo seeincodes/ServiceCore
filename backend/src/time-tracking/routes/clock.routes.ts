@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
+import db from '../../shared/database/connection';
 import * as clockService from '../services/clock.service';
+import { getTodayHours } from '../services/clock.service';
 import * as syncService from '../services/sync.service';
 import { processLocationPing } from '../services/zero-touch.service';
 import { authenticate, AuthenticatedRequest } from '../../auth/middleware/authenticate';
@@ -76,6 +78,8 @@ router.get('/status', authenticate, async (req: Request, res: Response) => {
     const user = (req as AuthenticatedRequest).user;
     const entry = await clockService.getActiveEntry(user.orgId, user.id);
 
+    const todayHours = await getTodayHours(user.orgId, user.id);
+
     if (entry) {
       const elapsed = (Date.now() - new Date(entry.clock_in).getTime()) / (1000 * 60 * 60);
       sendSuccess(res, {
@@ -83,11 +87,15 @@ router.get('/status', authenticate, async (req: Request, res: Response) => {
         entryId: entry.id,
         clockInTime: entry.clock_in,
         elapsedHours: Math.round(elapsed * 100) / 100,
+        todayHours: Math.round((todayHours + elapsed) * 100) / 100,
         routeId: entry.route_id,
         projectId: entry.project_id,
       });
     } else {
-      sendSuccess(res, { clockedIn: false });
+      sendSuccess(res, {
+        clockedIn: false,
+        todayHours: Math.round(todayHours * 100) / 100,
+      });
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Status check failed';
@@ -144,6 +152,65 @@ router.post('/location-ping', authenticate, async (req: Request, res: Response) 
     sendSuccess(res, result);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Location ping failed';
+    sendError(res, message);
+  }
+});
+
+// POST /timesheets/undo-clock-out — reopen a recently closed clock entry (within 5 min)
+router.post('/undo-clock-out', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const { entryId } = req.body;
+
+    if (!entryId) {
+      sendError(res, 'entryId is required', 400);
+      return;
+    }
+
+    // Find the entry — must belong to this user and have been clocked out recently
+    const entry = await db('clock_entries')
+      .where({ id: entryId, org_id: user.orgId, user_id: user.id })
+      .whereNotNull('clock_out')
+      .first();
+
+    if (!entry) {
+      sendError(res, 'Entry not found or already open', 404);
+      return;
+    }
+
+    // Only allow undo within 5 minutes of clock-out
+    const clockOutTime = new Date(entry.clock_out).getTime();
+    const fiveMinAgo = Date.now() - 2 * 60 * 1000;
+    if (clockOutTime < fiveMinAgo) {
+      sendError(res, 'Undo window expired (2 minutes)', 400);
+      return;
+    }
+
+    // Check no new entry has been created since
+    const newerEntry = await db('clock_entries')
+      .where({ org_id: user.orgId, user_id: user.id })
+      .where('clock_in', '>', entry.clock_out)
+      .first();
+
+    if (newerEntry) {
+      sendError(res, 'Cannot undo — a new clock entry exists', 400);
+      return;
+    }
+
+    // Reopen the entry
+    await db('clock_entries').where({ id: entryId }).update({ clock_out: null });
+
+    await db('audit_log').insert({
+      org_id: user.orgId,
+      user_id: user.id,
+      action: 'undo_clock_out',
+      entity_type: 'clock_entry',
+      details: JSON.stringify({ entryId }),
+    });
+
+    sendSuccess(res, { status: 'undone', entryId });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Undo failed';
     sendError(res, message);
   }
 });

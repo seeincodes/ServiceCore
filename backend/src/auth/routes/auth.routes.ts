@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import rateLimit from 'express-rate-limit';
+import db from '../../shared/database/connection';
 import * as authService from '../services/auth.service';
 import { authenticate, AuthenticatedRequest } from '../middleware/authenticate';
 import { sendSuccess, sendError } from '../../shared/utils/response';
@@ -305,6 +306,44 @@ router.post('/reset-password', async (req: Request, res: Response) => {
 router.post('/logout', (_req: Request, res: Response) => {
   res.clearCookie('refreshToken', { path: '/auth/refresh' });
   sendSuccess(res, { message: 'Logged out' });
+});
+
+// GET /auth/preferences
+router.get('/preferences', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = (req as AuthenticatedRequest).user;
+    const user = await db('users').where({ id }).select('preferences').first();
+    const prefs =
+      typeof user?.preferences === 'string'
+        ? JSON.parse(user.preferences)
+        : user?.preferences || {};
+    sendSuccess(res, { preferences: prefs });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message);
+  }
+});
+
+// PUT /auth/preferences
+router.put('/preferences', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = (req as AuthenticatedRequest).user;
+    const incoming = req.body;
+
+    // Merge with existing preferences
+    const user = await db('users').where({ id }).select('preferences').first();
+    const existing =
+      typeof user?.preferences === 'string'
+        ? JSON.parse(user.preferences)
+        : user?.preferences || {};
+    const merged = { ...existing, ...incoming };
+
+    await db('users')
+      .where({ id })
+      .update({ preferences: JSON.stringify(merged) });
+    sendSuccess(res, { preferences: merged });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message);
+  }
 });
 
 export default router;

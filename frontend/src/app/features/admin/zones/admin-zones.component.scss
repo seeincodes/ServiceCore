@@ -1,0 +1,200 @@
+@use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
+
+.admin-zones {
+  padding: $spacing-sm;
+  max-width: 800px;
+  margin: 0 auto;
+  @include tablet-up {
+    padding: $spacing-md;
+  }
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.add-btn {
+  padding: 10px 16px;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.message {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-weight: 500;
+  font-size: $font-size-sm;
+  &.success {
+    background: rgba($success, 0.1);
+    color: $success;
+  }
+  &.error {
+    background: rgba($danger, 0.1);
+    color: $danger;
+  }
+}
+
+.form-card {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+  @include tablet-up {
+    flex-direction: row;
+  }
+}
+
+.form-field {
+  flex: 1;
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: $neutral-700;
+    margin-bottom: 4px;
+  }
+  input,
+  select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid $neutral-200;
+    border-radius: 8px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+}
+
+.save-btn {
+  width: 100%;
+  padding: 12px;
+  background: $success;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: $spacing-xs;
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+.zone-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.zone-card {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 10px;
+  padding: $spacing-sm $spacing-md;
+  &.inactive {
+    opacity: 0.5;
+  }
+}
+
+.zone-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.zone-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.zone-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+.zone-type {
+  font-size: 12px;
+  color: $neutral-500;
+}
+
+.zone-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  background: $neutral-100;
+  color: $neutral-500;
+  &.active {
+    background: rgba($success, 0.1);
+    color: $success;
+  }
+}
+
+.zone-details {
+  display: flex;
+  gap: $spacing-md;
+  margin-top: 4px;
+  font-size: 12px;
+  color: $neutral-500;
+  flex-wrap: wrap;
+}
+
+.zone-actions {
+  display: flex;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+}
+
+.action-btn {
+  padding: 6px 14px;
+  border: 1px solid $neutral-200;
+  border-radius: 6px;
+  background: $white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  &:hover {
+    background: $neutral-50;
+  }
+  &.delete {
+    color: $danger;
+    border-color: rgba($danger, 0.3);
+  }
+}

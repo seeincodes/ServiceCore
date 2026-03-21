@@ -11,12 +11,49 @@
 html {
   font-size: $font-size-base;
   -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   font-family: $font-family;
   color: $neutral-900;
-  background-color: $neutral-50;
+  background-color: #f8f9fa;
   line-height: 1.5;
   min-height: 100vh;
+}
+
+// Global touch-friendly defaults
+button,
+a,
+input[type='submit'] {
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px; // Prevents iOS zoom on focus
+}
+
+// Smooth scrolling
+html {
+  scroll-behavior: smooth;
+}
+
+// Better focus styles for accessibility
+:focus-visible {
+  outline: 2px solid $primary;
+  outline-offset: 2px;
+}
+
+// Prevent text selection on buttons
+button {
+  user-select: none;
+}
+
+// Keep Leaflet map controls below nav/menu overlays
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 400 !important;
 }

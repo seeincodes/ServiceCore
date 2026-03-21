@@ -20,6 +20,8 @@ import { seedDemoRoutes } from './dispatcher/services/route-seed';
 import {
   autoSubmitTimesheets,
   autoApproveTimesheets,
+  midnightAutoClose,
+  checkMissingClockIns,
 } from './time-tracking/services/zero-touch.service';
 import { sendTimesheetReminders, getReminderType } from './notifications/services/reminder.service';
 import adminRoutes from './auth/routes/admin.routes';
@@ -106,8 +108,27 @@ function scheduleZeroTouchJobs(): void {
     60 * 60 * 1000,
   );
 
+  // Midnight auto-close: close open entries, log 8h, flag for review
+  setInterval(
+    async () => {
+      const now = new Date();
+      if (now.getHours() === 0 && now.getMinutes() < 5) {
+        await midnightAutoClose();
+      }
+    },
+    5 * 60 * 1000, // Check every 5 minutes around midnight
+  );
+
+  // Missing clock-in check: flag employees who haven't clocked in (runs hourly 7am-11am)
+  setInterval(
+    async () => {
+      await checkMissingClockIns();
+    },
+    60 * 60 * 1000,
+  );
+
   logger.info(
-    'Zero-touch automation scheduled: reminders Thu/Fri, auto-submit Sun, auto-approve Mon',
+    'Zero-touch automation scheduled: reminders, auto-submit, auto-approve, midnight-close, missing-clockin',
   );
 }
 

@@ -8,6 +8,7 @@ export interface ClockStatus {
   entryId?: string;
   clockInTime?: string;
   elapsedHours?: number;
+  todayHours?: number;
   routeId?: string;
   projectId?: string;
 }

@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
 import { DashboardService, DriverDayEntry } from '../../../core/services/dashboard.service';
 
 @Component({
   selector: 'app-driver-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './driver-detail.component.html',
   styleUrls: ['./driver-detail.component.scss'],
 })

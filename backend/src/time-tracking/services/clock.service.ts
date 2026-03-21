@@ -185,7 +185,7 @@ export async function getActiveEntry(orgId: string, userId: string) {
     .first();
 }
 
-async function checkDailyHoursLimit(orgId: string, userId: string): Promise<void> {
+export async function getTodayHours(orgId: string, userId: string): Promise<number> {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -204,6 +204,12 @@ async function checkDailyHoursLimit(orgId: string, userId: string): Promise<void
       (new Date(entry.clock_out).getTime() - new Date(entry.clock_in).getTime()) / (1000 * 60 * 60);
     totalHours += hours;
   }
+
+  return totalHours;
+}
+
+async function checkDailyHoursLimit(orgId: string, userId: string): Promise<void> {
+  const totalHours = await getTodayHours(orgId, userId);
 
   if (totalHours >= MAX_HOURS_PER_DAY) {
     throw new Error(

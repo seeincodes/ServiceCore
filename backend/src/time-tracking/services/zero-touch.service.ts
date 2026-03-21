@@ -27,9 +27,46 @@ export async function processLocationPing(
   const geoCheck = await checkGeofence(orgId, lat, lon);
   const activeEntry = await getActiveEntry(orgId, userId);
 
-  // --- AUTO CLOCK-IN ---
+  // --- AUTO CLOCK-OUT AT DEPOT AFTER 30 MIN (only if 6+ hours worked) ---
+  if (geoCheck.insideZone && activeEntry) {
+    const isDepot = await isDepotZone(orgId, lat, lon);
+    if (isDepot) {
+      const elapsed = (Date.now() - new Date(activeEntry.clock_in).getTime()) / (1000 * 60 * 60);
+      const totalToday = (await getTodayCompletedHours(orgId, userId)) + elapsed;
+      const atDepotMinutes = await minutesAtDepot(orgId, userId);
+
+      if (atDepotMinutes >= 30 && totalToday >= 6) {
+        try {
+          const result = await clockOut(orgId, userId);
+          await db('audit_log').insert({
+            org_id: orgId,
+            user_id: userId,
+            action: 'auto_clock_out_depot',
+            entity_type: 'clock_entry',
+            details: JSON.stringify({
+              lat,
+              lon,
+              minutesAtDepot: atDepotMinutes,
+              hoursWorked: result.hoursWorked,
+              totalToday: Math.round(totalToday * 100) / 100,
+            }),
+          });
+          await sendEndOfDaySummary(orgId, userId, result.hoursWorked, result.entryId);
+          logger.info('Auto clock-out at depot', { orgId, userId, atDepotMinutes, totalToday });
+          return {
+            action: 'auto_clock_out',
+            details: { reason: 'depot_30min', hoursWorked: result.hoursWorked },
+          };
+        } catch {
+          // Already clocked out or error — continue
+        }
+      }
+    }
+  }
+
+  // --- AUTO CLOCK-IN (10 min at depot) ---
   if (geoCheck.insideZone && !activeEntry) {
-    // Verify they've been in the zone for at least 2 minutes (avoid drive-throughs)
+    // Verify they've been in the zone for at least 10 minutes (avoid drive-throughs)
     const confirmed = await confirmZonePresence(orgId, userId, lat, lon);
     if (!confirmed) {
       return { action: 'none' };
@@ -136,25 +173,25 @@ async function storeLocationPing(
 }
 
 /**
- * Confirm driver has been inside a work zone for at least 2 minutes
- * by checking the last 2 pings were also inside a zone.
+ * Confirm driver has been inside a work zone for at least 10 minutes
+ * by checking the last 5 pings (every 2 min) were inside a zone.
  */
 async function confirmZonePresence(
   orgId: string,
   userId: string,
-  lat: number,
-  lon: number,
+  _lat: number,
+  _lon: number,
 ): Promise<boolean> {
-  const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000);
+  const tenMinAgo = new Date(Date.now() - 10 * 60 * 1000);
 
   const recentPings = await db('audit_log')
     .where({ org_id: orgId, user_id: userId, action: 'location_ping' })
-    .where('created_at', '>', twoMinAgo)
+    .where('created_at', '>', tenMinAgo)
     .orderBy('created_at', 'desc')
-    .limit(2);
+    .limit(5);
 
-  // Need at least 2 recent pings to confirm presence (not a drive-through)
-  if (recentPings.length < 2) return false;
+  // Need at least 5 recent pings (10 min at 2 min intervals)
+  if (recentPings.length < 5) return false;
 
   // Verify all recent pings were inside a zone
   for (const ping of recentPings) {
@@ -397,4 +434,222 @@ async function detectAnomalies(
   }
 
   return anomalies;
+}
+
+/**
+ * Check if the given coordinates are inside a depot-type work zone.
+ */
+async function isDepotZone(orgId: string, lat: number, lon: number): Promise<boolean> {
+  const depots = await db('work_zones')
+    .where({ org_id: orgId, type: 'depot', is_active: true })
+    .select('lat', 'lon', 'radius_meters');
+
+  for (const depot of depots) {
+    const dLat = ((Number(depot.lat) - lat) * Math.PI) / 180;
+    const dLon = ((Number(depot.lon) - lon) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((lat * Math.PI) / 180) *
+        Math.cos((Number(depot.lat) * Math.PI) / 180) *
+        Math.sin(dLon / 2) ** 2;
+    const dist = 6371000 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    if (dist <= (depot.radius_meters || 200)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * How many minutes has the driver been at a depot-type zone based on recent pings.
+ */
+async function minutesAtDepot(orgId: string, userId: string): Promise<number> {
+  const pings = await db('audit_log')
+    .where({ org_id: orgId, user_id: userId, action: 'location_ping' })
+    .orderBy('created_at', 'desc')
+    .limit(20);
+
+  if (pings.length < 2) return 0;
+
+  // Walk backwards through pings — count consecutive depot pings
+  let depotMinutes = 0;
+  for (const ping of pings) {
+    const details = typeof ping.details === 'string' ? JSON.parse(ping.details) : ping.details;
+    const atDepot = await isDepotZone(orgId, details.lat, details.lon);
+    if (!atDepot) break;
+    depotMinutes += 2; // Pings are every 2 minutes
+  }
+
+  return depotMinutes;
+}
+
+/**
+ * Get total completed (clocked-out) hours for a user today.
+ */
+async function getTodayCompletedHours(orgId: string, userId: string): Promise<number> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const entries = await db('clock_entries')
+    .where({ org_id: orgId, user_id: userId })
+    .where('clock_in', '>=', today)
+    .where('clock_in', '<', tomorrow)
+    .whereNotNull('clock_out');
+
+  let total = 0;
+  for (const entry of entries) {
+    total +=
+      (new Date(entry.clock_out).getTime() - new Date(entry.clock_in).getTime()) / (1000 * 60 * 60);
+  }
+  return total;
+}
+
+/**
+ * Midnight auto-close: close any open clock entries, log 8 hours, flag for review.
+ * Runs as a scheduled job at midnight.
+ */
+export async function midnightAutoClose(): Promise<void> {
+  // Find all open clock entries (forgot to clock out)
+  const openEntries = await db('clock_entries')
+    .whereNull('clock_out')
+    .select('id', 'org_id', 'user_id', 'clock_in', 'route_id');
+
+  for (const entry of openEntries) {
+    const clockInTime = new Date(entry.clock_in);
+    const now = new Date();
+
+    // Only close entries from today or earlier (not future-dated)
+    if (clockInTime > now) continue;
+
+    // Set clock_out to give exactly 8 hours from clock_in
+    const eightHoursLater = new Date(clockInTime.getTime() + 8 * 60 * 60 * 1000);
+    const clockOutTime = eightHoursLater < now ? eightHoursLater : now;
+
+    await db('clock_entries').where({ id: entry.id }).update({
+      clock_out: clockOutTime,
+    });
+
+    // Flag for manager review
+    await db('audit_log').insert({
+      org_id: entry.org_id,
+      user_id: entry.user_id,
+      action: 'midnight_auto_close',
+      entity_type: 'clock_entry',
+      details: JSON.stringify({
+        entryId: entry.id,
+        clockIn: entry.clock_in,
+        clockOut: clockOutTime,
+        hoursLogged: 8,
+        reason: 'Employee forgot to clock out. Auto-closed at midnight with 8h default.',
+      }),
+    });
+
+    // Notify the manager via WebSocket
+    emitToOrg(entry.org_id, 'review_needed', {
+      type: 'midnight_auto_close',
+      userId: entry.user_id,
+      entryId: entry.id,
+      message: 'Forgot to clock out — 8h auto-logged. Please review.',
+    });
+
+    // Notify the employee via SMS
+    const user = await db('users').where({ id: entry.user_id }).first();
+    if (user?.phone) {
+      await enqueueNotification({
+        type: 'sms',
+        to: user.phone,
+        body: `TimeKeeper: You forgot to clock out today. We've logged 8 hours for you. Your manager will review.`,
+      });
+    }
+
+    logger.info('Midnight auto-close', {
+      entryId: entry.id,
+      userId: entry.user_id,
+      hoursLogged: 8,
+    });
+  }
+
+  if (openEntries.length > 0) {
+    logger.info(`Midnight auto-close completed`, { count: openEntries.length });
+  }
+}
+
+/**
+ * Schedule-based check: if a driver hasn't clocked in by 2 hours after their
+ * typical start time, create a pending entry and notify the manager.
+ * Runs hourly.
+ */
+export async function checkMissingClockIns(): Promise<void> {
+  const now = new Date();
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+
+  // Skip weekends
+  if (now.getDay() === 0 || now.getDay() === 6) return;
+
+  // Only run between 7am-11am (drivers typically start 5am-9am, so check 7am-11am)
+  if (now.getHours() < 7 || now.getHours() > 11) return;
+
+  // Get all active employees
+  const employees = await db('users')
+    .where({ role: 'employee', is_active: true })
+    .select('id', 'org_id', 'first_name', 'last_name');
+
+  for (const emp of employees) {
+    // Check if they have a clock entry today
+    const todayEntry = await db('clock_entries')
+      .where({ org_id: emp.org_id, user_id: emp.id })
+      .where('clock_in', '>=', today)
+      .first();
+
+    if (todayEntry) continue; // Already clocked in
+
+    // Check if they have approved time off today
+    const dateStr = now.toISOString().split('T')[0];
+    const timeOff = await db('time_off_requests')
+      .where({ org_id: emp.org_id, user_id: emp.id, status: 'approved' })
+      .where('start_date', '<=', dateStr)
+      .where('end_date', '>=', dateStr)
+      .first();
+
+    if (timeOff) continue; // On approved time off
+
+    // Check if we already flagged today
+    const alreadyFlagged = await db('audit_log')
+      .where({
+        org_id: emp.org_id,
+        user_id: emp.id,
+        action: 'missing_clock_in',
+      })
+      .where('created_at', '>=', today)
+      .first();
+
+    if (alreadyFlagged) continue; // Already flagged today
+
+    // Flag for manager
+    await db('audit_log').insert({
+      org_id: emp.org_id,
+      user_id: emp.id,
+      action: 'missing_clock_in',
+      entity_type: 'clock_entry',
+      details: JSON.stringify({
+        date: dateStr,
+        employeeName: `${emp.first_name} ${emp.last_name}`,
+        flaggedAt: now.toISOString(),
+      }),
+    });
+
+    emitToOrg(emp.org_id, 'review_needed', {
+      type: 'missing_clock_in',
+      userId: emp.id,
+      employeeName: `${emp.first_name} ${emp.last_name}`,
+      message: `${emp.first_name} ${emp.last_name} hasn't clocked in today.`,
+    });
+
+    logger.info('Missing clock-in flagged', {
+      userId: emp.id,
+      name: `${emp.first_name} ${emp.last_name}`,
+    });
+  }
 }

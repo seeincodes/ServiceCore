@@ -1,86 +1,525 @@
 @use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
 
-.clock-container {
+.clock-page {
+  padding: $spacing-md;
+  max-width: 500px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  min-height: calc(100vh - 80px);
+  justify-content: center;
+}
+
+// Status card
+.status-card {
+  background: $white;
+  border: 2px solid $danger;
+  border-radius: 16px;
+  padding: $spacing-lg;
+  text-align: center;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+  background: rgba($danger, 0.03);
+
+  &.active {
+    border-color: rgba($success, 0.3);
+    border-width: 1px;
+    background: rgba($success, 0.02);
+  }
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.status-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: $danger;
+  box-shadow: 0 0 0 3px rgba($danger, 0.15);
+
+  &.in {
+    background: $success;
+    box-shadow: 0 0 0 3px rgba($success, 0.2);
+    animation: pulse 2s infinite;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba($success, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba($success, 0.1);
+  }
+}
+
+.status-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: $danger;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  .active & {
+    font-size: 14px;
+    font-weight: 600;
+    color: $neutral-500;
+  }
+}
+
+.elapsed {
+  margin-bottom: $spacing-sm;
+}
+
+// Day total (big number)
+.day-total {
+  margin-bottom: $spacing-xs;
+}
+
+.day-total-value {
+  display: block;
+  font-size: 48px;
+  font-weight: 700;
+  color: $neutral-900;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.day-total-label {
+  display: block;
+  font-size: 12px;
+  color: $neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+// Current session (smaller, below day total)
+.session-info {
+  padding-top: $spacing-sm;
+  border-top: 1px solid $neutral-100;
+  margin-top: $spacing-sm;
+}
+
+.session-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: $primary;
+}
+
+.session-label {
+  display: block;
+  font-size: 11px;
+  color: $neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.elapsed-value {
+  display: block;
+  font-size: 48px;
+  font-weight: 700;
+  color: $neutral-900;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.elapsed-label {
+  font-size: 12px;
+  color: $neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.route {
+  font-size: 14px;
+  color: $primary;
+  font-weight: 500;
+  margin-top: $spacing-xs;
+}
+
+.clock-time {
+  font-size: 13px;
+  color: $neutral-500;
+  margin-top: $spacing-xs;
+}
+
+// Shift route info
+.shift-route {
+  margin-top: $spacing-sm;
+}
+
+.shift-route-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: $primary;
+}
+
+.shift-route-id {
+  font-size: 12px;
+  color: $neutral-500;
+  margin-left: $spacing-xs;
+}
+
+// Route picker
+.route-picker {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.picker-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: $neutral-700;
+  margin-bottom: $spacing-sm;
+  display: block;
+}
+
+.route-options {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.route-option {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: 12px;
+  border: 1px solid $neutral-200;
+  border-radius: 10px;
+  background: $white;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+
+  &.selected {
+    border-color: $primary;
+    background: rgba($primary, 0.04);
+  }
+
+  &:hover {
+    border-color: $neutral-300;
+  }
+}
+
+.route-id {
+  font-size: 11px;
+  font-weight: 700;
+  color: $neutral-500;
+  background: $neutral-100;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.route-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// Shift progress
+.shift-progress {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.progress-stats {
+  display: flex;
+  gap: $spacing-lg;
+  margin-bottom: $spacing-md;
+}
+
+.stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: $spacing-lg;
-  min-height: 100vh;
-  gap: $spacing-lg;
+  flex: 1;
 }
 
-.clock-button {
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: $neutral-500;
+  text-transform: uppercase;
+}
+
+// Next stop
+.next-stop {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm;
+  background: $neutral-50;
+  border-radius: 8px;
+}
+
+.next-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: $neutral-500;
+  text-transform: uppercase;
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  letter-spacing: 1px;
+}
+
+.next-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.next-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.next-eta {
+  font-size: 12px;
+  color: $neutral-500;
+}
+
+.go-btn {
+  padding: 10px 18px;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+// Switch route
+.switch-route-btn {
   width: 100%;
-  max-width: 400px;
-  height: $clock-button-height;
-  font-size: $clock-button-font-size;
+  padding: 10px;
+  background: $neutral-100;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $neutral-500;
+  cursor: pointer;
+  &:hover {
+    background: $neutral-200;
+  }
+}
+
+// Daily total (inside clocked-out status card)
+.daily-total {
+  margin-top: $spacing-sm;
+}
+
+.daily-total-value {
+  display: block;
+  font-size: 44px;
+  font-weight: 700;
+  color: $neutral-900;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.daily-total-label {
+  display: block;
+  font-size: 13px;
+  color: $neutral-500;
+  margin-top: $spacing-xs;
+}
+
+// Clock out options
+.clock-out-options {
+  display: flex;
+  gap: $spacing-sm;
+  width: 100%;
+}
+
+// Clock button — intentionally moderate size
+.clock-btn {
+  width: 100%;
+  padding: 18px;
+  font-size: 15px;
   font-weight: 700;
   border: none;
-  border-radius: 16px;
+  border-radius: 12px;
   cursor: pointer;
-  transition:
-    background-color 0.2s,
-    transform 0.1s;
   color: $white;
-  background-color: $success;
+  background: $success;
+  transition:
+    background 0.2s,
+    transform 0.1s;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: $spacing-xs;
+  gap: 4px;
 
-  &.clocked-in {
-    background-color: $danger;
+  &.back-from-break {
+    background: $primary;
   }
 
-  &.loading {
-    opacity: 0.7;
-    cursor: wait;
+  &.clock-out-break {
+    background: #f57c00;
+    flex: 1;
+    font-size: 14px;
   }
 
-  &:active:not(.loading) {
-    transform: scale(0.97);
+  &.clock-out-day {
+    background: $danger;
+    flex: 1;
+    font-size: 14px;
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
-.clock-label {
-  line-height: 1.2;
-}
-
-.clock-elapsed {
-  font-size: $font-size-base;
+.btn-hint {
+  font-size: 11px;
   font-weight: 400;
-  opacity: 0.9;
+  opacity: 0.8;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
-.confirmation {
-  padding: $spacing-md $spacing-lg;
-  border-radius: 8px;
-  font-size: $font-size-base;
+// Toast notification
+.toast {
+  position: fixed;
+  top: 70px;
+  left: $spacing-md;
+  right: $spacing-md;
+  padding: 14px $spacing-md;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 500;
   text-align: center;
-  max-width: 400px;
-  width: 100%;
+  z-index: 900;
+  cursor: pointer;
+  animation: slideDown 0.3s ease-out;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
   &.success {
-    background-color: rgba($success, 0.1);
-    color: darken($success, 10%);
-    border: 1px solid rgba($success, 0.3);
+    background: $success;
+    color: $white;
   }
 
   &.error {
-    background-color: rgba($danger, 0.1);
-    color: darken($danger, 10%);
-    border: 1px solid rgba($danger, 0.3);
+    background: $danger;
+    color: $white;
   }
 }
 
-.route-info {
-  font-size: $font-size-sm;
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Loading state
+.loading-card {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 16px;
+  padding: $spacing-xl;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid $neutral-100;
+  border-top-color: $primary;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 15px;
+  font-weight: 600;
   color: $neutral-500;
-  font-weight: 500;
+}
+
+// Undo button
+.undo-btn {
+  width: 100%;
+  padding: 14px;
+  background: rgba($primary, 0.08);
+  color: $primary;
+  border: 1px solid rgba($primary, 0.2);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    background: rgba($primary, 0.12);
+  }
+}
+
+// End-of-day confirm pulse
+.confirm-pulse {
+  animation: confirmPulse 1s ease-in-out infinite;
+}
+
+@keyframes confirmPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+// Time format toggle
+.time-format-toggle {
+  align-self: center;
+  padding: 6px 14px;
+  background: $neutral-100;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: $neutral-500;
+  cursor: pointer;
+  &:hover {
+    background: $neutral-200;
+  }
 }

@@ -1,9 +1,11 @@
 <div class="dashboard">
   <header class="dashboard-header">
-    <h1>Driver Dashboard</h1>
+    <h1>{{ 'dashboard.title' | translate }}</h1>
     <div class="header-meta">
-      <span class="active-count">{{ activeCount }} active</span>
-      <span class="refresh-time" *ngIf="lastRefresh">Updated {{ lastRefresh }}</span>
+      <span class="active-count">{{ activeCount }} {{ 'dashboard.active' | translate }}</span>
+      <span class="refresh-time" *ngIf="lastRefresh"
+        >{{ 'dashboard.updated' | translate }} {{ lastRefresh }}</span
+      >
     </div>
   </header>
 
@@ -23,7 +25,7 @@
     </div>
   </div>
 
-  <div class="loading" *ngIf="loading">Loading...</div>
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
 
   <!-- Mobile: Card layout -->
   <div class="driver-cards" *ngIf="!loading && drivers.length > 0">
@@ -40,12 +42,16 @@
           [class.status-in]="driver.status === 'clocked_in'"
           [class.status-out]="driver.status === 'clocked_out'"
         >
-          {{ driver.status === 'clocked_in' ? 'In' : 'Out' }}
+          {{
+            driver.status === 'clocked_in'
+              ? ('dashboard.in' | translate)
+              : ('dashboard.out' | translate)
+          }}
         </span>
       </div>
       <div class="card-details">
         <span>{{ driver.hours }}h</span>
-        <span *ngIf="driver.route">Route {{ driver.route }}</span>
+        <span *ngIf="driver.route">{{ 'dashboard.route' | translate }} {{ driver.route }}</span>
         <span>{{ formatTime(driver.lastUpdate) }}</span>
       </div>
     </div>
@@ -55,11 +61,11 @@
   <table class="driver-table" *ngIf="!loading && drivers.length > 0">
     <thead>
       <tr>
-        <th>Name</th>
-        <th>Status</th>
-        <th>Hours</th>
-        <th>Route</th>
-        <th>Last Update</th>
+        <th>{{ 'dashboard.name' | translate }}</th>
+        <th>{{ 'dashboard.status' | translate }}</th>
+        <th>{{ 'dashboard.hours' | translate }}</th>
+        <th>{{ 'dashboard.route' | translate }}</th>
+        <th>{{ 'dashboard.lastUpdate' | translate }}</th>
       </tr>
     </thead>
     <tbody>
@@ -75,7 +81,11 @@
             [class.status-in]="driver.status === 'clocked_in'"
             [class.status-out]="driver.status === 'clocked_out'"
           >
-            {{ driver.status === 'clocked_in' ? 'In' : 'Out' }}
+            {{
+              driver.status === 'clocked_in'
+                ? ('dashboard.in' | translate)
+                : ('dashboard.out' | translate)
+            }}
           </span>
         </td>
         <td>{{ driver.hours }}h</td>
@@ -85,11 +95,13 @@
     </tbody>
   </table>
 
-  <div class="empty" *ngIf="!loading && drivers.length === 0">No drivers found.</div>
+  <div class="empty" *ngIf="!loading && drivers.length === 0">
+    {{ 'dashboard.noDrivers' | translate }}
+  </div>
 
   <!-- Project Time Allocation -->
   <div class="allocation-section" *ngIf="!loading && projectAllocation.length > 0">
-    <h2>Project / Route Allocation (This Week)</h2>
+    <h2>{{ 'dashboard.projectAllocation' | translate }}</h2>
     <div class="allocation-list">
       <div *ngFor="let item of projectAllocation" class="allocation-item">
         <div class="alloc-header">
@@ -101,7 +113,14 @@
         </div>
         <div class="alloc-meta">
           <span>{{ item.percentage }}%</span>
-          <span>{{ item.driverCount }} driver{{ item.driverCount !== 1 ? 's' : '' }}</span>
+          <span
+            >{{ item.driverCount }}
+            {{
+              item.driverCount !== 1
+                ? ('dashboard.drivers' | translate)
+                : ('dashboard.driver' | translate)
+            }}</span
+          >
         </div>
       </div>
     </div>

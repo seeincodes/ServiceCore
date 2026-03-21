@@ -1,0 +1,91 @@
+<div class="admin-zones">
+  <div class="page-header">
+    <h1>Work Zones</h1>
+    <button class="add-btn" (click)="showForm = !showForm">
+      {{ showForm ? 'Cancel' : '+ Add Zone' }}
+    </button>
+  </div>
+
+  <div
+    class="message"
+    *ngIf="message"
+    [class.success]="message.type === 'success'"
+    [class.error]="message.type === 'error'"
+  >
+    {{ message.text }}
+  </div>
+
+  <!-- Add zone form -->
+  <div class="form-card" *ngIf="showForm">
+    <h2>New Work Zone</h2>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Name</label>
+        <input [(ngModel)]="newZone.name" placeholder="Main Depot" />
+      </div>
+      <div class="form-field">
+        <label>Type</label>
+        <select [(ngModel)]="newZone.type">
+          <option *ngFor="let t of zoneTypes" [value]="t.value">{{ t.label }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Latitude</label>
+        <input type="number" [(ngModel)]="newZone.lat" step="0.0001" />
+      </div>
+      <div class="form-field">
+        <label>Longitude</label>
+        <input type="number" [(ngModel)]="newZone.lon" step="0.0001" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-field">
+        <label>Radius (meters)</label>
+        <input type="number" [(ngModel)]="newZone.radiusMeters" min="50" max="10000" />
+      </div>
+      <div class="form-field">
+        <label>Address (optional)</label>
+        <input [(ngModel)]="newZone.address" placeholder="123 Main St" />
+      </div>
+    </div>
+    <button class="save-btn" (click)="addZone()" [disabled]="saving">
+      {{ saving ? 'Creating...' : 'Create Zone' }}
+    </button>
+  </div>
+
+  <div class="loading" *ngIf="loading">Loading...</div>
+
+  <!-- Map -->
+  <app-map *ngIf="!loading && markers.length > 0" [markers]="markers" height="300px"></app-map>
+
+  <!-- Zone list -->
+  <div class="zone-list" *ngIf="!loading">
+    <div *ngFor="let zone of zones" class="zone-card" [class.inactive]="!zone.is_active">
+      <div class="zone-header">
+        <div class="zone-info">
+          <span class="zone-name">{{ zone.name }}</span>
+          <span class="zone-type">{{ typeLabel(zone.type) }}</span>
+        </div>
+        <span class="zone-status" [class.active]="zone.is_active">
+          {{ zone.is_active ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+      <div class="zone-details">
+        <span>{{ zone.lat }}, {{ zone.lon }}</span>
+        <span>{{ zone.radius_meters }}m radius</span>
+        <span *ngIf="zone.address">{{ zone.address }}</span>
+      </div>
+      <div class="zone-actions">
+        <button class="action-btn" (click)="toggleActive(zone)">
+          {{ zone.is_active ? 'Disable' : 'Enable' }}
+        </button>
+        <button class="action-btn delete" (click)="deleteZone(zone)">Delete</button>
+      </div>
+    </div>
+    <div class="empty" *ngIf="zones.length === 0">
+      No work zones configured. Add a depot or job site to enable geofence tracking.
+    </div>
+  </div>
+</div>

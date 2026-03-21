@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
 import { DashboardService, DriverStatus } from '../../../core/services/dashboard.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { environment } from '../../../../environments/environment';
@@ -17,7 +18,7 @@ interface ProjectAllocation {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })

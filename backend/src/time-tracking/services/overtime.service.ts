@@ -1,4 +1,5 @@
 import db from '../../shared/database/connection';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import logger from '../../shared/utils/logger';
 import { emitToOrg } from '../../shared/websocket/socket';
 

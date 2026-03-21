@@ -1,5 +1,5 @@
 <div class="my-timesheet">
-  <h1>My Timesheet</h1>
+  <h1>{{ 'timesheet.title' | translate }}</h1>
 
   <div
     class="message"
@@ -13,23 +13,23 @@
   <!-- Current week -->
   <div class="current-card" *ngIf="current">
     <div class="current-header">
-      <h2>This Week</h2>
+      <h2>{{ 'timesheet.thisWeek' | translate }}</h2>
       <span class="status-badge" [attr.data-status]="current.status">
         {{ statusLabel(current.status) }}
       </span>
     </div>
     <div class="current-details">
       <div class="detail">
-        <span class="detail-value">{{ current.hoursWorked }}h</span>
-        <span class="detail-label">Total Hours</span>
+        <span class="detail-value">{{ current.hoursWorked | hoursDisplay }}</span>
+        <span class="detail-label">{{ 'timesheet.totalHours' | translate }}</span>
       </div>
       <div class="detail" *ngIf="current.otHours > 0">
-        <span class="detail-value ot">{{ current.otHours }}h</span>
-        <span class="detail-label">Overtime</span>
+        <span class="detail-value ot">{{ current.otHours | hoursDisplay }}</span>
+        <span class="detail-label">{{ 'hours.overtime' | translate }}</span>
       </div>
       <div class="detail">
         <span class="detail-value">{{ formatDate(current.weekEnding) }}</span>
-        <span class="detail-label">Week Ending</span>
+        <span class="detail-label">{{ 'timesheet.weekEnding' | translate }}</span>
       </div>
     </div>
     <button
@@ -38,31 +38,35 @@
       (click)="submitTimesheet()"
       [disabled]="submitting"
     >
-      {{ submitting ? 'Submitting...' : 'Submit Timesheet' }}
+      {{ submitting ? ('timesheet.submitting' | translate) : ('timesheet.submit' | translate) }}
     </button>
     <div class="status-message" *ngIf="current.status === 'submitted'">
-      Waiting for manager approval
+      {{ 'timesheet.waitingApproval' | translate }}
     </div>
     <div class="status-message approved" *ngIf="current.status === 'approved'">
-      Approved by manager
+      {{ 'timesheet.approved' | translate }}
     </div>
     <div class="status-message locked" *ngIf="current.status === 'locked'">
-      Locked — sent to payroll
+      {{ 'timesheet.locked' | translate }}
     </div>
   </div>
 
   <!-- History -->
-  <h2 class="history-title">History</h2>
-  <div class="loading" *ngIf="loading">Loading...</div>
+  <h2 class="history-title">{{ 'timesheet.history' | translate }}</h2>
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
   <div class="history-list" *ngIf="!loading">
     <div *ngFor="let ts of history" class="history-row">
-      <span class="history-week">Week ending {{ formatDate(ts.weekEnding) }}</span>
-      <span class="history-hours">{{ ts.hoursWorked }}h</span>
-      <span class="history-ot" *ngIf="ts.otHours > 0">+{{ ts.otHours }}h OT</span>
+      <span class="history-week"
+        >{{ 'timesheet.weekEndingPrefix' | translate }} {{ formatDate(ts.weekEnding) }}</span
+      >
+      <span class="history-hours">{{ ts.hoursWorked | hoursDisplay }}</span>
+      <span class="history-ot" *ngIf="ts.otHours > 0"
+        >+{{ ts.otHours | hoursDisplay }} {{ 'timesheet.ot' | translate }}</span
+      >
       <span class="status-badge small" [attr.data-status]="ts.status">
         {{ statusLabel(ts.status) }}
       </span>
     </div>
-    <div class="empty" *ngIf="history.length === 0">No timesheet history yet.</div>
+    <div class="empty" *ngIf="history.length === 0">{{ 'timesheet.noHistory' | translate }}</div>
   </div>
 </div>

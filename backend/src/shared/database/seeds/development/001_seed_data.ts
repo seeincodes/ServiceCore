@@ -350,6 +350,7 @@ export async function seed(knex: Knex): Promise<void> {
   const weekEnding = lastFriday.toISOString().split('T')[0];
 
   const org1Manager = org1Users.find((u) => u.role === 'manager')!;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const org2Manager = org2Users.find((u) => u.role === 'manager')!;
 
   // Org 1 timesheets

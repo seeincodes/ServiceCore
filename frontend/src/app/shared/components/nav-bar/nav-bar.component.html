@@ -13,8 +13,8 @@
         [routerLinkActiveOptions]="{ exact: link.path === '/manager' }"
         class="nav-link"
       >
-        <span class="nav-icon">{{ link.icon }}</span>
-        {{ link.label }}
+        <span class="nav-icon" [innerHTML]="link.icon"></span>
+        {{ link.label | translate }}
       </a>
     </div>
 
@@ -53,8 +53,8 @@
       class="mobile-link"
       (click)="closeMenu()"
     >
-      <span class="nav-icon">{{ link.icon }}</span>
-      {{ link.label }}
+      <span class="nav-icon" [innerHTML]="link.icon"></span>
+      {{ link.label | translate }}
     </a>
     <div class="mobile-lang">
       <button

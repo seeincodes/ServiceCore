@@ -2,9 +2,11 @@ import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Subject, takeUntil, interval } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
 import { MapComponent, MapMarker } from '../../../shared/components/map/map.component';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { environment } from '../../../../environments/environment';
+import { PreferencesService } from '../../../core/services/preferences.service';
 
 interface RouteStop {
   id: string;
@@ -33,7 +35,7 @@ interface SegmentDuration {
 @Component({
   selector: 'app-my-route',
   standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [CommonModule, MapComponent, TranslateModule],
   templateUrl: './my-route.component.html',
   styleUrls: ['./my-route.component.scss'],
 })
@@ -45,10 +47,25 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   steps: RouteStep[] = [];
   segmentDurations: number[] = []; // duration in minutes for each segment
   routeName = 'My Route';
-  totalDistance = 0;
+  totalDistanceKm = 0;
   totalDuration = 0;
   loading = true;
   showDirections = false;
+
+  get useMiles(): boolean {
+    return this.prefs.useMiles;
+  }
+
+  get totalDistance(): string {
+    if (this.useMiles) {
+      return (this.totalDistanceKm * 0.621371).toFixed(1);
+    }
+    return this.totalDistanceKm.toFixed(1);
+  }
+
+  get distanceUnit(): string {
+    return this.useMiles ? 'mi' : 'km';
+  }
   clockInReminder: { message: string; zoneName: string } | null = null;
   breakReminder = false;
   routeStartTime: Date | null = null;
@@ -69,6 +86,7 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private wsService: WebSocketService,
+    private prefs: PreferencesService,
   ) {}
 
   ngOnInit(): void {
@@ -126,6 +144,10 @@ export class MyRouteComponent implements OnInit, OnDestroy {
 
   toggleDirections(): void {
     this.showDirections = !this.showDirections;
+  }
+
+  toggleUnit(): void {
+    this.prefs.toggleDistanceUnit();
   }
 
   markComplete(index: number, event: Event): void {
@@ -198,7 +220,7 @@ export class MyRouteComponent implements OnInit, OnDestroy {
           ...s,
           completed: this.stops.find((os) => os.id === s.id)?.completed || false,
         }));
-        this.totalDistance = res.data.totalDistanceKm;
+        this.totalDistanceKm = res.data.totalDistanceKm;
         this.totalDuration = res.data.totalDurationMin;
         this.routeStartTime = new Date();
 

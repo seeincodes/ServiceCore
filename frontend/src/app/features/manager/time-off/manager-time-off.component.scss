@@ -125,7 +125,13 @@
   margin-top: 4px;
   font-weight: 500;
 }
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
 .balances-table {
+  min-width: 500px;
   width: 100%;
   border-collapse: collapse;
   background: #fff;

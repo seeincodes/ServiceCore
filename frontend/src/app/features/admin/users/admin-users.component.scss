@@ -132,8 +132,15 @@
   color: $neutral-500;
 }
 
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
 .user-table {
   width: 100%;
+  min-width: 600px;
   border-collapse: collapse;
   background: $white;
   border-radius: 12px;
@@ -220,10 +227,15 @@
 .pto-row {
   display: flex;
   align-items: center;
-  gap: $spacing-md;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
   padding: $spacing-sm;
   background: $neutral-50;
   border-radius: 8px;
+  @include tablet-up {
+    gap: $spacing-md;
+    flex-wrap: nowrap;
+  }
 }
 
 .pto-label {

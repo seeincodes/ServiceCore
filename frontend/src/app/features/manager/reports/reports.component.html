@@ -1,28 +1,28 @@
 <div class="reports-page">
-  <h1>Payroll Reports</h1>
+  <h1>{{ 'reports.title' | translate }}</h1>
 
   <div class="error-banner" *ngIf="error">{{ error }}</div>
 
   <div class="report-config">
     <!-- Period -->
     <div class="config-section">
-      <h2>Pay Period</h2>
+      <h2>{{ 'reports.payPeriod' | translate }}</h2>
       <div class="option-group">
         <label
           class="option"
           *ngFor="
             let opt of [
-              { value: 'weekly', label: 'Weekly', desc: 'Last 7 days' },
-              { value: 'biweekly', label: 'Bi-weekly', desc: 'Last 14 days' },
-              { value: 'semimonthly', label: 'Semi-monthly', desc: 'Last 15 days' },
-              { value: 'monthly', label: 'Monthly', desc: 'Last 30 days' },
+              { value: 'weekly', labelKey: 'reports.weekly', descKey: 'reports.last7' },
+              { value: 'biweekly', labelKey: 'reports.biweekly', descKey: 'reports.last14' },
+              { value: 'semimonthly', labelKey: 'reports.semimonthly', descKey: 'reports.last15' },
+              { value: 'monthly', labelKey: 'reports.monthly', descKey: 'reports.last30' },
             ]
           "
         >
           <input type="radio" [(ngModel)]="period" [value]="opt.value" name="period" />
           <div class="option-text">
-            <span class="option-label">{{ opt.label }}</span>
-            <span class="option-desc">{{ opt.desc }}</span>
+            <span class="option-label">{{ opt.labelKey | translate }}</span>
+            <span class="option-desc">{{ opt.descKey | translate }}</span>
           </div>
         </label>
       </div>
@@ -30,7 +30,7 @@
 
     <!-- Format -->
     <div class="config-section">
-      <h2>Format</h2>
+      <h2>{{ 'reports.format' | translate }}</h2>
       <div class="format-group">
         <button
           *ngFor="
@@ -52,26 +52,29 @@
 
     <!-- End Date -->
     <div class="config-section">
-      <h2>End Date <span class="optional">(optional)</span></h2>
+      <h2>
+        {{ 'reports.endDate' | translate }}
+        <span class="optional">({{ 'reports.optional' | translate }})</span>
+      </h2>
       <input type="date" [(ngModel)]="endDate" class="date-input" />
-      <p class="hint" *ngIf="!endDate">Defaults to today</p>
+      <p class="hint" *ngIf="!endDate">{{ 'reports.defaultsToday' | translate }}</p>
     </div>
 
     <!-- Generate -->
     <button class="generate-btn" (click)="generate()" [disabled]="generating">
-      {{ generating ? 'Generating...' : 'Generate & Download' }}
+      {{ generating ? ('reports.generating' | translate) : ('reports.generate' | translate) }}
     </button>
   </div>
 
   <!-- Download link (S3) -->
   <div class="download-link" *ngIf="downloadUrl">
-    <p>Report ready:</p>
-    <a [href]="downloadUrl" target="_blank">Download Report</a>
+    <p>{{ 'reports.reportReady' | translate }}</p>
+    <a [href]="downloadUrl" target="_blank">{{ 'reports.download' | translate }}</a>
   </div>
 
   <!-- CSV Preview -->
   <div class="preview" *ngIf="previewData">
-    <h2>Preview</h2>
+    <h2>{{ 'reports.preview' | translate }}</h2>
     <pre>{{ previewData }}</pre>
   </div>
 </div>
