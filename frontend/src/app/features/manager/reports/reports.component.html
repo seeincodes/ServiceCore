@@ -1,0 +1,77 @@
+<div class="reports-page">
+  <h1>Payroll Reports</h1>
+
+  <div class="error-banner" *ngIf="error">{{ error }}</div>
+
+  <div class="report-config">
+    <!-- Period -->
+    <div class="config-section">
+      <h2>Pay Period</h2>
+      <div class="option-group">
+        <label
+          class="option"
+          *ngFor="
+            let opt of [
+              { value: 'weekly', label: 'Weekly', desc: 'Last 7 days' },
+              { value: 'biweekly', label: 'Bi-weekly', desc: 'Last 14 days' },
+              { value: 'semimonthly', label: 'Semi-monthly', desc: 'Last 15 days' },
+              { value: 'monthly', label: 'Monthly', desc: 'Last 30 days' },
+            ]
+          "
+        >
+          <input type="radio" [(ngModel)]="period" [value]="opt.value" name="period" />
+          <div class="option-text">
+            <span class="option-label">{{ opt.label }}</span>
+            <span class="option-desc">{{ opt.desc }}</span>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Format -->
+    <div class="config-section">
+      <h2>Format</h2>
+      <div class="format-group">
+        <button
+          *ngFor="
+            let fmt of [
+              { value: 'csv', label: 'CSV', icon: '📊' },
+              { value: 'pdf', label: 'PDF', icon: '📄' },
+              { value: 'xlsx', label: 'Excel', icon: '📗' },
+            ]
+          "
+          class="format-btn"
+          [class.selected]="format === fmt.value"
+          (click)="format = fmt.value"
+        >
+          <span class="format-icon">{{ fmt.icon }}</span>
+          {{ fmt.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- End Date -->
+    <div class="config-section">
+      <h2>End Date <span class="optional">(optional)</span></h2>
+      <input type="date" [(ngModel)]="endDate" class="date-input" />
+      <p class="hint" *ngIf="!endDate">Defaults to today</p>
+    </div>
+
+    <!-- Generate -->
+    <button class="generate-btn" (click)="generate()" [disabled]="generating">
+      {{ generating ? 'Generating...' : 'Generate & Download' }}
+    </button>
+  </div>
+
+  <!-- Download link (S3) -->
+  <div class="download-link" *ngIf="downloadUrl">
+    <p>Report ready:</p>
+    <a [href]="downloadUrl" target="_blank">Download Report</a>
+  </div>
+
+  <!-- CSV Preview -->
+  <div class="preview" *ngIf="previewData">
+    <h2>Preview</h2>
+    <pre>{{ previewData }}</pre>
+  </div>
+</div>
