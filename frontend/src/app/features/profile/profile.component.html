@@ -108,4 +108,53 @@
 
     <p class="hint" *ngIf="!changingPassword">Last changed: unknown</p>
   </div>
+
+  <!-- Preferences -->
+  <div class="card">
+    <div class="card-header">
+      <h2>{{ 'profile.preferences' | translate }}</h2>
+    </div>
+
+    <div class="pref-group">
+      <div class="pref-row">
+        <span class="pref-label">{{ 'profile.timeFormat' | translate }}</span>
+        <div class="pref-toggle">
+          <button
+            class="pref-btn"
+            [class.active]="!prefsService.use24Hour"
+            (click)="prefsService.set('timeFormat', '12')"
+          >
+            12h
+          </button>
+          <button
+            class="pref-btn"
+            [class.active]="prefsService.use24Hour"
+            (click)="prefsService.set('timeFormat', '24')"
+          >
+            24h
+          </button>
+        </div>
+      </div>
+
+      <div class="pref-row">
+        <span class="pref-label">{{ 'profile.distanceUnit' | translate }}</span>
+        <div class="pref-toggle">
+          <button
+            class="pref-btn"
+            [class.active]="prefsService.useMiles"
+            (click)="prefsService.set('distanceUnit', 'mi')"
+          >
+            {{ 'profile.miles' | translate }}
+          </button>
+          <button
+            class="pref-btn"
+            [class.active]="!prefsService.useMiles"
+            (click)="prefsService.set('distanceUnit', 'km')"
+          >
+            {{ 'profile.kilometers' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

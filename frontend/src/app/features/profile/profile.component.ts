@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
+import { PreferencesService } from '../../core/services/preferences.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -29,6 +30,7 @@ export class ProfileComponent implements OnInit {
     private http: HttpClient,
     private authService: AuthService,
     private translate: TranslateService,
+    public prefsService: PreferencesService,
   ) {}
 
   ngOnInit(): void {

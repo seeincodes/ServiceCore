@@ -333,6 +333,11 @@
     "role": "Função",
     "organization": "Organização",
     "notSet": "Não definido",
+    "preferences": "Preferências",
+    "timeFormat": "Formato de Hora",
+    "distanceUnit": "Unidade de Distância",
+    "miles": "Milhas",
+    "kilometers": "Quilômetros",
     "firstName": "Nome",
     "lastName": "Sobrenome",
     "roles": {
