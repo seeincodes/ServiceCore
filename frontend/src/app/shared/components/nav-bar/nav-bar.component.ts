@@ -84,12 +84,14 @@ export class NavBarComponent implements OnInit, OnDestroy {
       { path: '/my-route', label: 'Route', icon: '📍' },
       { path: '/my-hours', label: 'My Hours', icon: '📊' },
       { path: '/my-timesheet', label: 'Timesheet', icon: '📋' },
+      { path: '/time-off', label: 'Time Off', icon: '📅' },
     ];
 
     const managerLinks: NavLink[] = [
       { path: '/manager', label: 'Dashboard', icon: '📊' },
       { path: '/manager/map', label: 'Map', icon: '📍' },
       { path: '/manager/approvals', label: 'Approvals', icon: '✓' },
+      { path: '/manager/time-off', label: 'Time Off', icon: '📅' },
       { path: '/manager/reports', label: 'Reports', icon: '📄' },
     ];
 

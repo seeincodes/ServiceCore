@@ -1,0 +1,40 @@
+<div class="manager-time-off">
+  <h1>Time-Off Requests</h1>
+
+  <div class="tabs">
+    <button [class.active]="tab === 'pending'" (click)="tab = 'pending'; loadRequests()">
+      Pending ({{ pendingCount }})
+    </button>
+    <button [class.active]="tab === 'all'" (click)="tab = 'all'; loadRequests()">All</button>
+  </div>
+
+  <div class="loading" *ngIf="loading">Loading...</div>
+
+  <div class="request-list" *ngIf="!loading">
+    <div *ngFor="let req of requests" class="request-card">
+      <div class="card-header">
+        <span class="employee-name">{{ req.userName }}</span>
+        <span class="request-status" [ngClass]="req.status">{{ req.status }}</span>
+      </div>
+      <div class="card-type">{{ typeLabel(req.type) }}</div>
+      <div class="card-dates">
+        {{ req.start_date }} — {{ req.end_date }} ({{ req.hours_requested }}h)
+      </div>
+      <div class="card-notes" *ngIf="req.notes">{{ req.notes }}</div>
+
+      <div class="card-actions" *ngIf="req.status === 'pending'">
+        <input
+          class="review-input"
+          [(ngModel)]="reviewNotes[req.id]"
+          placeholder="Notes (optional)"
+        />
+        <button class="approve-btn" (click)="approve(req.id)">Approve</button>
+        <button class="deny-btn" (click)="deny(req.id)">Deny</button>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="requests.length === 0">
+      {{ tab === 'pending' ? 'No pending requests.' : 'No time-off requests.' }}
+    </div>
+  </div>
+</div>

@@ -1,0 +1,83 @@
+<div class="time-off">
+  <h1>Time Off</h1>
+
+  <div class="confirmation" *ngIf="confirmation">{{ confirmation }}</div>
+
+  <div class="loading" *ngIf="loading">Loading...</div>
+
+  <div *ngIf="!loading">
+    <!-- Balances -->
+    <div class="balances">
+      <div class="balance-card" *ngFor="let item of balanceItems">
+        <div class="balance-type">{{ item.label }}</div>
+        <div class="balance-hours">
+          <span class="available">{{ item.available }}h</span>
+          <span class="total">/ {{ item.total }}h</span>
+        </div>
+        <div class="balance-bar">
+          <div
+            class="balance-fill"
+            [style.width.%]="item.total ? (item.used / item.total) * 100 : 0"
+          ></div>
+        </div>
+        <div class="balance-used">{{ item.used }}h used</div>
+      </div>
+    </div>
+
+    <!-- New request button -->
+    <button class="new-request-btn" (click)="showForm = !showForm">
+      {{ showForm ? 'Cancel' : 'Request Time Off' }}
+    </button>
+
+    <!-- Request form -->
+    <div class="request-form" *ngIf="showForm">
+      <div class="form-group">
+        <label>Type</label>
+        <select [(ngModel)]="requestType">
+          <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Start Date</label>
+          <input type="date" [(ngModel)]="startDate" (change)="onDatesChanged()" />
+        </div>
+        <div class="form-group">
+          <label>End Date</label>
+          <input type="date" [(ngModel)]="endDate" (change)="onDatesChanged()" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Hours</label>
+        <input type="number" [(ngModel)]="hours" min="1" max="80" />
+      </div>
+      <div class="form-group">
+        <label>Notes (optional)</label>
+        <textarea [(ngModel)]="notes" rows="2" placeholder="Reason for time off..."></textarea>
+      </div>
+      <button class="submit-btn" (click)="submitRequest()" [disabled]="submitting">
+        {{ submitting ? 'Submitting...' : 'Submit Request' }}
+      </button>
+    </div>
+
+    <!-- Request history -->
+    <h2>My Requests</h2>
+    <div class="request-list" *ngIf="requests.length > 0">
+      <div *ngFor="let req of requests" class="request-item">
+        <div class="request-header">
+          <span class="request-type">{{ typeLabel(req.type) }}</span>
+          <span class="request-status" [ngClass]="statusClass(req.status)">{{ req.status }}</span>
+        </div>
+        <div class="request-dates">
+          {{ req.start_date }} — {{ req.end_date }} ({{ req.hours_requested }}h)
+        </div>
+        <div class="request-notes" *ngIf="req.notes">{{ req.notes }}</div>
+        <div class="request-review" *ngIf="req.review_notes">Manager: {{ req.review_notes }}</div>
+        <button class="cancel-btn" *ngIf="req.status === 'pending'" (click)="cancelRequest(req.id)">
+          Cancel
+        </button>
+      </div>
+    </div>
+    <div class="empty" *ngIf="requests.length === 0">No time-off requests yet.</div>
+  </div>
+</div>

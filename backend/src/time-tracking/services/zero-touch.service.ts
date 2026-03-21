@@ -1,5 +1,6 @@
 import db from '../../shared/database/connection';
 import { clockIn, clockOut, getActiveEntry } from './clock.service';
+import { hasApprovedTimeOff } from './time-off.service';
 import { checkGeofence } from './location.service';
 import { emitToOrg } from '../../shared/websocket/socket';
 import { enqueueNotification } from '../../notifications/services/queue.service';
@@ -375,7 +376,7 @@ async function detectAnomalies(
     anomalies.push(`${buddyFlags?.count} buddy punch flag(s)`);
   }
 
-  // Check for missing weekdays (should have 5 entries for Mon-Fri)
+  // Check for missing weekdays (skip days with approved PTO/sick time)
   const workDays = new Set(entries.map((e) => new Date(e.clock_in).toISOString().split('T')[0]));
   const expectedDays = [];
   for (let d = new Date(weekStart); d <= weekEnd; d.setDate(d.getDate() + 1)) {
@@ -383,7 +384,14 @@ async function detectAnomalies(
       expectedDays.push(d.toISOString().split('T')[0]);
     }
   }
-  const missingDays = expectedDays.filter((d) => !workDays.has(d));
+  const missingDays: string[] = [];
+  for (const day of expectedDays) {
+    if (workDays.has(day)) continue;
+    const hasTimeOff = await hasApprovedTimeOff(orgId, userId, day);
+    if (!hasTimeOff) {
+      missingDays.push(day);
+    }
+  }
   if (missingDays.length > 0) {
     anomalies.push(`Missing ${missingDays.length} workday(s): ${missingDays.join(', ')}`);
   }

@@ -1,0 +1,238 @@
+@use '../../../../styles/variables' as *;
+
+.time-off {
+  padding: $spacing-md;
+  max-width: 700px;
+  margin: 0 auto;
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 $spacing-md;
+  }
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: $spacing-lg 0 $spacing-sm;
+  }
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}
+
+.confirmation {
+  background: $success;
+  color: $white;
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-weight: 500;
+  text-align: center;
+}
+
+// Balances
+.balances {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+  flex-wrap: wrap;
+}
+
+.balance-card {
+  flex: 1;
+  min-width: 140px;
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.balance-type {
+  font-size: 12px;
+  color: $neutral-500;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.balance-hours {
+  margin: $spacing-xs 0;
+}
+.available {
+  font-size: 24px;
+  font-weight: 700;
+}
+.total {
+  font-size: 14px;
+  color: $neutral-500;
+}
+
+.balance-bar {
+  height: 6px;
+  background: $neutral-100;
+  border-radius: 3px;
+  overflow: hidden;
+  margin: $spacing-xs 0;
+}
+
+.balance-fill {
+  height: 100%;
+  background: $primary;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.balance-used {
+  font-size: 11px;
+  color: $neutral-500;
+}
+
+// Form
+.new-request-btn {
+  width: 100%;
+  padding: $spacing-sm;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.request-form {
+  margin-top: $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.form-group {
+  margin-bottom: $spacing-sm;
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: $neutral-700;
+    margin-bottom: 4px;
+  }
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: $spacing-sm;
+    border: 1px solid $neutral-200;
+    border-radius: 8px;
+    font-size: $font-size-sm;
+    font-family: inherit;
+    box-sizing: border-box;
+    &:focus {
+      outline: none;
+      border-color: $primary;
+    }
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: $spacing-sm;
+  .form-group {
+    flex: 1;
+  }
+}
+
+.submit-btn {
+  width: 100%;
+  padding: $spacing-sm;
+  background: $success;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: $spacing-sm;
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Request list
+.request-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.request-item {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 8px;
+  padding: $spacing-sm $spacing-md;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.request-type {
+  font-weight: 600;
+  font-size: $font-size-sm;
+}
+
+.request-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  &.pending {
+    background: #fff3e0;
+    color: #f57c00;
+  }
+  &.approved {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+  &.denied {
+    background: #fce4ec;
+    color: #c62828;
+  }
+}
+
+.request-dates {
+  font-size: $font-size-sm;
+  color: $neutral-700;
+  margin-top: 4px;
+}
+.request-notes {
+  font-size: 12px;
+  color: $neutral-500;
+  font-style: italic;
+  margin-top: 4px;
+}
+.request-review {
+  font-size: 12px;
+  color: $primary;
+  margin-top: 4px;
+}
+
+.cancel-btn {
+  margin-top: $spacing-xs;
+  padding: 4px 12px;
+  background: $neutral-100;
+  color: $neutral-700;
+  border: none;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    background: $neutral-200;
+  }
+}

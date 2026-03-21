@@ -42,6 +42,20 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'time-off',
+    loadComponent: () =>
+      import('./features/driver/time-off/time-off.component').then((m) => m.TimeOffComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'manager/time-off',
+    loadComponent: () =>
+      import('./features/manager/time-off/manager-time-off.component').then(
+        (m) => m.ManagerTimeOffComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'profile',
     loadComponent: () =>
       import('./features/profile/profile.component').then((m) => m.ProfileComponent),
