@@ -1,5 +1,5 @@
 <div class="admin-settings">
-  <h1>Organization Settings</h1>
+  <h1>{{ 'admin.settings.title' | translate }}</h1>
   <p class="org-name">{{ orgName }}</p>
 
   <div
@@ -14,60 +14,62 @@
   <form (ngSubmit)="save()">
     <!-- Branding -->
     <div class="card">
-      <h2>Branding</h2>
+      <h2>{{ 'admin.settings.branding' | translate }}</h2>
       <div class="form-field">
-        <label>Primary Color</label>
+        <label>{{ 'admin.settings.primaryColor' | translate }}</label>
         <div class="color-row">
           <input type="color" [(ngModel)]="branding.primaryColor" name="primaryColor" />
           <input type="text" [(ngModel)]="branding.primaryColor" name="primaryColorText" />
         </div>
       </div>
       <div class="form-field">
-        <label>Secondary Color</label>
+        <label>{{ 'admin.settings.secondaryColor' | translate }}</label>
         <div class="color-row">
           <input type="color" [(ngModel)]="branding.secondaryColor" name="secondaryColor" />
           <input type="text" [(ngModel)]="branding.secondaryColor" name="secondaryColorText" />
         </div>
       </div>
       <div class="form-field">
-        <label>Logo URL</label>
+        <label>{{ 'admin.settings.logoUrl' | translate }}</label>
         <input type="text" [(ngModel)]="branding.logo" name="logo" placeholder="/assets/logo.png" />
       </div>
     </div>
 
     <!-- Overtime Rules -->
     <div class="card">
-      <h2>Overtime Rules</h2>
+      <h2>{{ 'admin.settings.otRules' | translate }}</h2>
       <div class="form-field">
-        <label>OT Calculation</label>
+        <label>{{ 'admin.settings.otCalculation' | translate }}</label>
         <select [(ngModel)]="config.ot_rules" name="otRules">
-          <option value="federal">Federal (40h/week)</option>
-          <option value="california">California (8h/day + 40h/week)</option>
+          <option value="federal">{{ 'admin.settings.federal' | translate }}</option>
+          <option value="california">{{ 'admin.settings.california' | translate }}</option>
         </select>
       </div>
     </div>
 
     <!-- Feature Toggles -->
     <div class="card">
-      <h2>Features</h2>
+      <h2>{{ 'admin.settings.features' | translate }}</h2>
       <div class="toggle-list">
         <label class="toggle">
           <input type="checkbox" [(ngModel)]="config.approval_required" name="approvalRequired" />
-          <span>Require timesheet approval</span>
+          <span>{{ 'admin.settings.requireApproval' | translate }}</span>
         </label>
         <label class="toggle">
           <input type="checkbox" [(ngModel)]="config.sms_enabled" name="smsEnabled" />
-          <span>SMS clock in/out</span>
+          <span>{{ 'admin.settings.smsClockIn' | translate }}</span>
         </label>
         <label class="toggle">
           <input type="checkbox" [(ngModel)]="config.qb_enabled" name="qbEnabled" />
-          <span>QuickBooks sync</span>
+          <span>{{ 'admin.settings.qbSync' | translate }}</span>
         </label>
       </div>
     </div>
 
     <button type="submit" class="save-btn" [disabled]="saving">
-      {{ saving ? 'Saving...' : 'Save Settings' }}
+      {{
+        saving ? ('admin.settings.saving' | translate) : ('admin.settings.saveSettings' | translate)
+      }}
     </button>
   </form>
 </div>

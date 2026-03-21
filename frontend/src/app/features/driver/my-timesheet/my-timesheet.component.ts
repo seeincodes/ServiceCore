@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../environments/environment';
 
 interface TimesheetHistory {
@@ -22,7 +23,7 @@ interface CurrentTimesheet {
 @Component({
   selector: 'app-my-timesheet',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslateModule],
   templateUrl: './my-timesheet.component.html',
   styleUrls: ['./my-timesheet.component.scss'],
 })
@@ -35,7 +36,10 @@ export class MyTimesheetComponent implements OnInit {
 
   private apiUrl = `${environment.apiUrl}/timesheets`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -68,13 +72,7 @@ export class MyTimesheetComponent implements OnInit {
   }
 
   statusLabel(status: string): string {
-    const labels: Record<string, string> = {
-      draft: 'Draft',
-      submitted: 'Submitted',
-      approved: 'Approved',
-      locked: 'Locked',
-    };
-    return labels[status] || status;
+    return this.translate.instant(`timesheet.status.${status}`) || status;
   }
 
   private loadData(): void {

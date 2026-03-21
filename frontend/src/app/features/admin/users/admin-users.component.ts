@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../environments/environment';
 
 interface OrgUser {
@@ -19,7 +20,7 @@ interface OrgUser {
 @Component({
   selector: 'app-admin-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './admin-users.component.html',
   styleUrls: ['./admin-users.component.scss'],
 })
@@ -37,7 +38,10 @@ export class AdminUsersComponent implements OnInit {
 
   private apiUrl = `${environment.apiUrl}/admin`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -121,11 +125,13 @@ export class AdminUsersComponent implements OnInit {
   }
 
   roleLabel(role: string): string {
-    return (
-      { employee: 'Driver', manager: 'Manager', payroll_admin: 'Payroll', org_admin: 'Admin' }[
-        role
-      ] || role
-    );
+    const roleKeys: Record<string, string> = {
+      employee: 'admin.users.driver',
+      manager: 'admin.users.manager',
+      payroll_admin: 'admin.users.payroll',
+      org_admin: 'admin.users.orgAdmin',
+    };
+    return roleKeys[role] ? this.translate.instant(roleKeys[role]) : role;
   }
 
   openPtoEditor(user: OrgUser): void {

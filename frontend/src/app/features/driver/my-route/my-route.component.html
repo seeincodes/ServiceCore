@@ -3,44 +3,52 @@
   <div class="reminder" *ngIf="clockInReminder">
     <div class="reminder-text">{{ clockInReminder.message }}</div>
     <div class="reminder-actions">
-      <button class="remind-btn confirm" (click)="confirmClockIn()">Clock In Now</button>
-      <button class="remind-btn dismiss" (click)="dismissReminder()">Dismiss</button>
+      <button class="remind-btn confirm" (click)="confirmClockIn()">
+        {{ 'route.clockInNow' | translate }}
+      </button>
+      <button class="remind-btn dismiss" (click)="dismissReminder()">
+        {{ 'route.dismiss' | translate }}
+      </button>
     </div>
   </div>
 
   <!-- Break reminder (DOT compliance) -->
   <div class="reminder break-reminder" *ngIf="breakReminder">
-    <div class="reminder-text">You've been driving for 4+ hours. Time for a break!</div>
+    <div class="reminder-text">{{ 'route.breakReminder' | translate }}</div>
     <div class="reminder-actions">
-      <button class="remind-btn dismiss" (click)="dismissBreakReminder()">Dismiss</button>
+      <button class="remind-btn dismiss" (click)="dismissBreakReminder()">
+        {{ 'route.dismiss' | translate }}
+      </button>
     </div>
   </div>
 
   <h1>{{ routeName }}</h1>
 
-  <div class="loading" *ngIf="loading">Loading route...</div>
+  <div class="loading" *ngIf="loading">{{ 'route.loading' | translate }}</div>
 
   <div *ngIf="!loading">
     <!-- Route summary -->
     <div class="route-summary" *ngIf="totalDistance > 0">
       <div class="summary-item">
         <span class="summary-value">{{ stops.length }}</span>
-        <span class="summary-label">Stops</span>
+        <span class="summary-label">{{ 'route.stops' | translate }}</span>
       </div>
       <div class="summary-item">
         <span class="summary-value">{{ totalDistance }} km</span>
-        <span class="summary-label">Distance</span>
+        <span class="summary-label">{{ 'route.distance' | translate }}</span>
       </div>
       <div class="summary-item">
         <span class="summary-value">{{ totalDuration }} min</span>
-        <span class="summary-label">Est. Time</span>
+        <span class="summary-label">{{ 'route.estTime' | translate }}</span>
       </div>
     </div>
 
     <!-- Progress bar -->
     <div class="progress-section" *ngIf="stops.length > 0">
       <div class="progress-header">
-        <span class="progress-text">{{ completedCount }}/{{ stops.length }} stops completed</span>
+        <span class="progress-text"
+          >{{ completedCount }}/{{ stops.length }} {{ 'route.stopsCompleted' | translate }}</span
+        >
         <span class="progress-pct">{{ progressPercent }}%</span>
       </div>
       <div class="progress-bar">
@@ -65,8 +73,12 @@
         </span>
         <div class="stop-info">
           <span class="stop-name">{{ stop.name }}</span>
-          <span class="stop-eta" *ngIf="stop.eta && !stop.completed">ETA {{ stop.eta }}</span>
-          <span class="stop-eta done-label" *ngIf="stop.completed">Completed</span>
+          <span class="stop-eta" *ngIf="stop.eta && !stop.completed"
+            >{{ 'route.eta' | translate }} {{ stop.eta }}</span
+          >
+          <span class="stop-eta done-label" *ngIf="stop.completed">{{
+            'route.completed' | translate
+          }}</span>
           <span class="stop-notes" *ngIf="stop.notes">{{ stop.notes }}</span>
         </div>
         <div class="stop-actions">
@@ -74,26 +86,34 @@
             *ngIf="!stop.completed"
             class="action-btn complete-btn"
             (click)="markComplete(i, $event)"
-            title="Mark as done"
+            [title]="'route.done' | translate"
           >
-            Done
+            {{ 'route.done' | translate }}
           </button>
           <button
             *ngIf="stop.completed"
             class="action-btn undo-btn"
             (click)="markIncomplete(i, $event)"
-            title="Undo"
+            [title]="'route.undo' | translate"
           >
-            Undo
+            {{ 'route.undo' | translate }}
           </button>
-          <a class="action-btn nav-btn" (click)="navigateTo(stop, $event)" title="Navigate">Go</a>
+          <a
+            class="action-btn nav-btn"
+            (click)="navigateTo(stop, $event)"
+            [title]="'route.go' | translate"
+            >{{ 'route.go' | translate }}</a
+          >
         </div>
       </div>
     </div>
 
     <!-- Turn-by-turn directions -->
     <button class="directions-toggle" (click)="toggleDirections()" *ngIf="steps.length > 0">
-      {{ showDirections ? 'Hide Directions' : 'Show Directions' }} ({{ steps.length }} steps)
+      {{
+        showDirections ? ('route.hideDirections' | translate) : ('route.showDirections' | translate)
+      }}
+      ({{ steps.length }} {{ 'route.steps' | translate }})
     </button>
 
     <div class="directions" *ngIf="showDirections && steps.length > 0">
@@ -104,6 +124,6 @@
       </div>
     </div>
 
-    <div class="no-route" *ngIf="stops.length < 2">No route assigned today.</div>
+    <div class="no-route" *ngIf="stops.length < 2">{{ 'route.noRoute' | translate }}</div>
   </div>
 </div>

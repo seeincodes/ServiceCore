@@ -80,19 +80,19 @@ export class NavBarComponent implements OnInit, OnDestroy {
     if (!role) return [];
 
     const driverLinks: NavLink[] = [
-      { path: '/clock', label: 'Clock', icon: '⏱' },
-      { path: '/my-route', label: 'Route', icon: '📍' },
-      { path: '/my-hours', label: 'My Hours', icon: '📊' },
-      { path: '/my-timesheet', label: 'Timesheet', icon: '📋' },
-      { path: '/time-off', label: 'Time Off', icon: '📅' },
+      { path: '/clock', label: 'nav.clock', icon: '⏱' },
+      { path: '/my-route', label: 'nav.route', icon: '📍' },
+      { path: '/my-hours', label: 'nav.myHours', icon: '📊' },
+      { path: '/my-timesheet', label: 'nav.timesheet', icon: '📋' },
+      { path: '/time-off', label: 'nav.timeOff', icon: '📅' },
     ];
 
     const managerLinks: NavLink[] = [
-      { path: '/manager', label: 'Dashboard', icon: '📊' },
-      { path: '/manager/map', label: 'Map', icon: '📍' },
-      { path: '/manager/approvals', label: 'Approvals', icon: '✓' },
-      { path: '/manager/time-off', label: 'Time Off', icon: '📅' },
-      { path: '/manager/reports', label: 'Reports', icon: '📄' },
+      { path: '/manager', label: 'nav.dashboard', icon: '📊' },
+      { path: '/manager/map', label: 'nav.map', icon: '📍' },
+      { path: '/manager/approvals', label: 'nav.approvals', icon: '✓' },
+      { path: '/manager/time-off', label: 'nav.timeOff', icon: '📅' },
+      { path: '/manager/reports', label: 'nav.reports', icon: '📄' },
     ];
 
     switch (role) {
@@ -102,16 +102,16 @@ export class NavBarComponent implements OnInit, OnDestroy {
         return [...managerLinks, ...driverLinks];
       case 'payroll_admin':
         return [
-          { path: '/manager/reports', label: 'Reports', icon: '📄' },
-          { path: '/manager/approvals', label: 'Approvals', icon: '✓' },
+          { path: '/manager/reports', label: 'nav.reports', icon: '📄' },
+          { path: '/manager/approvals', label: 'nav.approvals', icon: '✓' },
         ];
       case 'org_admin':
         return [
-          { path: '/admin', label: 'Dashboard', icon: '🏢' },
-          { path: '/admin/users', label: 'Users', icon: '👥' },
-          { path: '/admin/settings', label: 'Settings', icon: '⚙' },
-          { path: '/manager', label: 'Drivers', icon: '📊' },
-          { path: '/manager/approvals', label: 'Approvals', icon: '✓' },
+          { path: '/admin', label: 'nav.dashboard', icon: '🏢' },
+          { path: '/admin/users', label: 'nav.users', icon: '👥' },
+          { path: '/admin/settings', label: 'nav.settings', icon: '⚙' },
+          { path: '/manager', label: 'nav.drivers', icon: '📊' },
+          { path: '/manager/approvals', label: 'nav.approvals', icon: '✓' },
         ];
       default:
         return driverLinks;

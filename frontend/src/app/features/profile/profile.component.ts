@@ -2,13 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
@@ -27,6 +28,7 @@ export class ProfileComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private authService: AuthService,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
@@ -96,13 +98,9 @@ export class ProfileComponent implements OnInit {
   }
 
   roleLabel(role: string): string {
-    const labels: Record<string, string> = {
-      employee: 'Driver',
-      manager: 'Manager',
-      payroll_admin: 'Payroll Admin',
-      org_admin: 'Organization Admin',
-    };
-    return labels[role] || role;
+    const key = `profile.roles.${role}`;
+    const translated = this.translate.instant(key);
+    return translated !== key ? translated : role;
   }
 
   private loadProfile(): void {

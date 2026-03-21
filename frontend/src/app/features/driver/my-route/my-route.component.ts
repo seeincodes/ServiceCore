@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Subject, takeUntil, interval } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
 import { MapComponent, MapMarker } from '../../../shared/components/map/map.component';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { environment } from '../../../../environments/environment';
@@ -33,7 +34,7 @@ interface SegmentDuration {
 @Component({
   selector: 'app-my-route',
   standalone: true,
-  imports: [CommonModule, MapComponent],
+  imports: [CommonModule, MapComponent, TranslateModule],
   templateUrl: './my-route.component.html',
   styleUrls: ['./my-route.component.scss'],
 })

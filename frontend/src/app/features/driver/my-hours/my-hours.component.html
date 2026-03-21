@@ -1,6 +1,6 @@
 <div class="my-hours">
   <header class="hours-header">
-    <h1>My Hours</h1>
+    <h1>{{ 'hours.title' | translate }}</h1>
     <div class="week-nav">
       <button class="week-btn" (click)="previousWeek()">&larr;</button>
       <span class="week-label" *ngIf="week">{{ week.weekStart }} - {{ week.weekEnd }}</span>
@@ -19,24 +19,24 @@
     {{ otWarning }}
   </div>
 
-  <div class="loading" *ngIf="loading">Loading...</div>
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
 
   <div *ngIf="!loading && week">
     <!-- Week summary -->
     <div class="week-summary">
       <div class="summary-item">
         <span class="summary-value">{{ week.weekTotal }}h</span>
-        <span class="summary-label">Total</span>
+        <span class="summary-label">{{ 'hours.total' | translate }}</span>
       </div>
       <div class="summary-item" *ngIf="week.otHours > 0">
         <span class="summary-value ot">{{ week.otHours }}h</span>
-        <span class="summary-label">Overtime</span>
+        <span class="summary-label">{{ 'hours.overtime' | translate }}</span>
       </div>
       <div class="summary-item">
         <span class="summary-value status-{{ week.timesheet.status }}">{{
           week.timesheet.status
         }}</span>
-        <span class="summary-label">Timesheet</span>
+        <span class="summary-label">{{ 'hours.timesheet' | translate }}</span>
       </div>
     </div>
 
@@ -54,15 +54,17 @@
               >{{ formatTime(entry.clockIn) }} - {{ formatTime(entry.clockOut) }}</span
             >
             <span class="entry-hours">{{
-              entry.hours !== null ? entry.hours + 'h' : 'Active'
+              entry.hours !== null ? entry.hours + 'h' : ('hours.active' | translate)
             }}</span>
-            <span class="entry-route" *ngIf="entry.routeId">Route {{ entry.routeId }}</span>
+            <span class="entry-route" *ngIf="entry.routeId"
+              >{{ 'hours.route' | translate }} {{ entry.routeId }}</span
+            >
             <span class="entry-source">{{ entry.source }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="empty" *ngIf="week.days.length === 0">No clock entries this week.</div>
+    <div class="empty" *ngIf="week.days.length === 0">{{ 'hours.noEntries' | translate }}</div>
   </div>
 </div>

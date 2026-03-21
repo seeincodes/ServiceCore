@@ -1,8 +1,8 @@
 <div class="admin-users">
   <div class="page-header">
-    <h1>Users</h1>
+    <h1>{{ 'admin.users.title' | translate }}</h1>
     <button class="add-btn" (click)="toggleAddForm()">
-      {{ showAddForm ? 'Cancel' : '+ Add User' }}
+      {{ showAddForm ? ('admin.users.cancel' | translate) : ('admin.users.addUser' | translate) }}
     </button>
   </div>
 
@@ -17,25 +17,25 @@
 
   <!-- Add user form -->
   <div class="form-card" *ngIf="showAddForm">
-    <h2>New User</h2>
+    <h2>{{ 'admin.users.newUser' | translate }}</h2>
     <form (ngSubmit)="addUser()" class="user-form">
       <div class="form-row">
         <div class="form-field">
-          <label>First Name</label>
+          <label>{{ 'admin.users.firstName' | translate }}</label>
           <input [(ngModel)]="newUser.firstName" name="firstName" required />
         </div>
         <div class="form-field">
-          <label>Last Name</label>
+          <label>{{ 'admin.users.lastName' | translate }}</label>
           <input [(ngModel)]="newUser.lastName" name="lastName" required />
         </div>
       </div>
       <div class="form-row">
         <div class="form-field">
-          <label>Email</label>
+          <label>{{ 'admin.users.email' | translate }}</label>
           <input type="email" [(ngModel)]="newUser.email" name="email" required />
         </div>
         <div class="form-field">
-          <label>Password</label>
+          <label>{{ 'admin.users.password' | translate }}</label>
           <input
             type="password"
             [(ngModel)]="newUser.password"
@@ -47,57 +47,59 @@
       </div>
       <div class="form-row">
         <div class="form-field">
-          <label>Role</label>
+          <label>{{ 'admin.users.role' | translate }}</label>
           <select [(ngModel)]="newUser.role" name="role">
-            <option value="employee">Driver</option>
-            <option value="manager">Manager</option>
-            <option value="payroll_admin">Payroll Admin</option>
-            <option value="org_admin">Admin</option>
+            <option value="employee">{{ 'admin.users.driver' | translate }}</option>
+            <option value="manager">{{ 'admin.users.manager' | translate }}</option>
+            <option value="payroll_admin">{{ 'admin.users.payrollAdmin' | translate }}</option>
+            <option value="org_admin">{{ 'admin.users.orgAdmin' | translate }}</option>
           </select>
         </div>
         <div class="form-field">
-          <label>Phone</label>
+          <label>{{ 'admin.users.phone' | translate }}</label>
           <input [(ngModel)]="newUser.phone" name="phone" placeholder="+15551234567" />
         </div>
       </div>
       <button type="submit" class="save-btn" [disabled]="saving">
-        {{ saving ? 'Creating...' : 'Create User' }}
+        {{ saving ? ('admin.users.creating' | translate) : ('admin.users.createUser' | translate) }}
       </button>
     </form>
   </div>
 
   <!-- Edit user form -->
   <div class="form-card" *ngIf="editingUser">
-    <h2>Edit {{ editingUser.first_name }} {{ editingUser.last_name }}</h2>
+    <h2>
+      {{ 'admin.users.edit' | translate }} {{ editingUser.first_name }} {{ editingUser.last_name }}
+    </h2>
     <form (ngSubmit)="saveEdit()" class="user-form">
       <div class="form-row">
         <div class="form-field">
-          <label>First Name</label>
+          <label>{{ 'admin.users.firstName' | translate }}</label>
           <input [(ngModel)]="editingUser.first_name" name="firstName" />
         </div>
         <div class="form-field">
-          <label>Last Name</label>
+          <label>{{ 'admin.users.lastName' | translate }}</label>
           <input [(ngModel)]="editingUser.last_name" name="lastName" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-field">
-          <label>Role</label>
+          <label>{{ 'admin.users.role' | translate }}</label>
           <select [(ngModel)]="editingUser.role" name="role">
-            <option value="employee">Driver</option>
-            <option value="manager">Manager</option>
-            <option value="payroll_admin">Payroll Admin</option>
-            <option value="org_admin">Admin</option>
+            <option value="employee">{{ 'admin.users.driver' | translate }}</option>
+            <option value="manager">{{ 'admin.users.manager' | translate }}</option>
+            <option value="payroll_admin">{{ 'admin.users.payrollAdmin' | translate }}</option>
+            <option value="org_admin">{{ 'admin.users.orgAdmin' | translate }}</option>
           </select>
         </div>
         <div class="form-field">
-          <label>Phone</label>
+          <label>{{ 'admin.users.phone' | translate }}</label>
           <input [(ngModel)]="editingUser.phone" name="phone" />
         </div>
       </div>
       <div class="form-row">
         <div class="form-field">
-          <label>Hourly Rate ($)</label>
+          <label>{{ 'admin.users.hourlyRate' | translate }}</label>
           <input
             type="number"
             [(ngModel)]="editingUser.hourly_rate"
@@ -108,7 +110,7 @@
           />
         </div>
         <div class="form-field">
-          <label>OT Multiplier</label>
+          <label>{{ 'admin.users.otMultiplier' | translate }}</label>
           <input
             type="number"
             [(ngModel)]="editingUser.ot_multiplier"
@@ -122,25 +124,29 @@
       </div>
       <div class="form-actions">
         <button type="submit" class="save-btn" [disabled]="saving">
-          {{ saving ? 'Saving...' : 'Save Changes' }}
+          {{
+            saving ? ('admin.users.saving' | translate) : ('admin.users.saveChanges' | translate)
+          }}
         </button>
-        <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+        <button type="button" class="cancel-btn" (click)="cancelEdit()">
+          {{ 'admin.users.cancel' | translate }}
+        </button>
       </div>
     </form>
   </div>
 
   <!-- User list -->
-  <div class="loading" *ngIf="loading">Loading...</div>
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
   <div class="table-scroll">
     <table class="user-table" *ngIf="!loading && users.length > 0">
       <thead>
         <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Rate</th>
-          <th>Status</th>
-          <th>Actions</th>
+          <th>{{ 'admin.users.name' | translate }}</th>
+          <th>{{ 'admin.users.email' | translate }}</th>
+          <th>{{ 'admin.users.role' | translate }}</th>
+          <th>{{ 'admin.users.rate' | translate }}</th>
+          <th>{{ 'admin.users.status' | translate }}</th>
+          <th>{{ 'admin.users.actions' | translate }}</th>
         </tr>
       </thead>
       <tbody>
@@ -153,14 +159,26 @@
           <td>{{ user.hourly_rate ? '$' + user.hourly_rate + '/hr' : '—' }}</td>
           <td>
             <span class="status" [class.active]="user.is_active" [class.disabled]="!user.is_active">
-              {{ user.is_active ? 'Active' : 'Inactive' }}
+              {{
+                user.is_active
+                  ? ('admin.users.active' | translate)
+                  : ('admin.users.inactive' | translate)
+              }}
             </span>
           </td>
           <td class="actions">
-            <button class="action-btn" (click)="editUser(user)">Edit</button>
-            <button class="action-btn pto" (click)="openPtoEditor(user)">PTO</button>
+            <button class="action-btn" (click)="editUser(user)">
+              {{ 'admin.users.edit' | translate }}
+            </button>
+            <button class="action-btn pto" (click)="openPtoEditor(user)">
+              {{ 'admin.users.pto' | translate }}
+            </button>
             <button class="action-btn toggle" (click)="toggleActive(user)">
-              {{ user.is_active ? 'Deactivate' : 'Activate' }}
+              {{
+                user.is_active
+                  ? ('admin.users.deactivate' | translate)
+                  : ('admin.users.activate' | translate)
+              }}
             </button>
           </td>
         </tr>
@@ -170,22 +188,26 @@
 
   <!-- PTO Balance Editor -->
   <div class="form-card" *ngIf="ptoUser">
-    <h2>PTO Balances — {{ ptoUser.first_name }} {{ ptoUser.last_name }}</h2>
+    <h2>
+      {{ 'admin.users.ptoBalances' | translate }} — {{ ptoUser.first_name }} {{ ptoUser.last_name }}
+    </h2>
     <div class="pto-grid">
       <div class="pto-row" *ngFor="let b of ptoBalances">
         <span class="pto-label">{{ b.label }}</span>
-        <span class="pto-used">{{ b.used }}h used</span>
+        <span class="pto-used">{{ b.used }}h {{ 'timeOff.used' | translate }}</span>
         <div class="pto-input-group">
-          <label>Total hours:</label>
+          <label>{{ 'admin.users.totalHours' | translate }}</label>
           <input type="number" [(ngModel)]="b.total" min="0" max="480" />
         </div>
       </div>
     </div>
     <div class="form-actions">
       <button class="save-btn" (click)="savePtoBalances()" [disabled]="saving">
-        {{ saving ? 'Saving...' : 'Save Balances' }}
+        {{ saving ? ('admin.users.saving' | translate) : ('admin.users.saveBalances' | translate) }}
       </button>
-      <button class="cancel-btn" (click)="ptoUser = null">Cancel</button>
+      <button class="cancel-btn" (click)="ptoUser = null">
+        {{ 'admin.users.cancel' | translate }}
+      </button>
     </div>
   </div>
 </div>

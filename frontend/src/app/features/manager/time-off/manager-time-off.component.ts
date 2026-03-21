@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../environments/environment';
 
 interface BalanceInfo {
@@ -13,7 +14,7 @@ interface BalanceInfo {
 @Component({
   selector: 'app-manager-time-off',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './manager-time-off.component.html',
   styleUrls: ['./manager-time-off.component.scss'],
 })
@@ -33,15 +34,18 @@ export class ManagerTimeOffComponent implements OnInit {
     personal: BalanceInfo;
   }[] = [];
 
-  private typeLabels: Record<string, string> = {
-    pto: 'PTO (Vacation)',
-    sick: 'Sick Leave',
-    personal: 'Personal Day',
-    bereavement: 'Bereavement',
-    jury_duty: 'Jury Duty',
+  private typeKeys: Record<string, string> = {
+    pto: 'timeOff.pto',
+    sick: 'timeOff.sick',
+    personal: 'timeOff.personal',
+    bereavement: 'timeOff.bereavement',
+    jury_duty: 'timeOff.juryDuty',
   };
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit(): void {
     this.loadRequests();
@@ -100,7 +104,8 @@ export class ManagerTimeOffComponent implements OnInit {
   }
 
   typeLabel(type: string): string {
-    return this.typeLabels[type] || type;
+    const key = this.typeKeys[type];
+    return key ? this.translate.instant(key) : type;
   }
 
   private loadRequestUserBalances(): void {

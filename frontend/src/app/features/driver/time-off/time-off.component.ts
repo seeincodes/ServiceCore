@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../environments/environment';
 
 interface TimeOffBalance {
@@ -25,7 +26,7 @@ interface TimeOffRequest {
 @Component({
   selector: 'app-time-off',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './time-off.component.html',
   styleUrls: ['./time-off.component.scss'],
 })
@@ -45,11 +46,11 @@ export class TimeOffComponent implements OnInit {
   notes = '';
 
   types = [
-    { value: 'pto', label: 'PTO (Vacation)' },
-    { value: 'sick', label: 'Sick Leave' },
-    { value: 'personal', label: 'Personal Day' },
-    { value: 'bereavement', label: 'Bereavement' },
-    { value: 'jury_duty', label: 'Jury Duty' },
+    { value: 'pto', labelKey: 'timeOff.pto' },
+    { value: 'sick', labelKey: 'timeOff.sick' },
+    { value: 'personal', labelKey: 'timeOff.personal' },
+    { value: 'bereavement', labelKey: 'timeOff.bereavement' },
+    { value: 'jury_duty', labelKey: 'timeOff.juryDuty' },
   ];
 
   get balanceItems(): { label: string; total: number; used: number; available: number }[] {
@@ -59,7 +60,14 @@ export class TimeOffComponent implements OnInit {
     });
   }
 
-  constructor(private http: HttpClient) {}
+  getTypeLabel(labelKey: string): string {
+    return this.translate.instant(labelKey);
+  }
+
+  constructor(
+    private http: HttpClient,
+    private translate: TranslateService,
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -122,7 +130,14 @@ export class TimeOffComponent implements OnInit {
   }
 
   typeLabel(type: string): string {
-    return this.types.find((t) => t.value === type)?.label || type;
+    const typeMap: Record<string, string> = {
+      pto: 'timeOff.pto',
+      sick: 'timeOff.sick',
+      personal: 'timeOff.personal',
+      bereavement: 'timeOff.bereavement',
+      jury_duty: 'timeOff.juryDuty',
+    };
+    return this.translate.instant(typeMap[type] || type);
   }
 
   statusClass(status: string): string {

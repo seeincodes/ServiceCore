@@ -1,9 +1,9 @@
 <div class="time-off">
-  <h1>Time Off</h1>
+  <h1>{{ 'timeOff.title' | translate }}</h1>
 
   <div class="confirmation" *ngIf="confirmation">{{ confirmation }}</div>
 
-  <div class="loading" *ngIf="loading">Loading...</div>
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
 
   <div *ngIf="!loading">
     <!-- Balances -->
@@ -20,48 +20,54 @@
             [style.width.%]="item.total ? (item.used / item.total) * 100 : 0"
           ></div>
         </div>
-        <div class="balance-used">{{ item.used }}h used</div>
+        <div class="balance-used">{{ item.used }}h {{ 'timeOff.used' | translate }}</div>
       </div>
     </div>
 
     <!-- New request button -->
     <button class="new-request-btn" (click)="showForm = !showForm">
-      {{ showForm ? 'Cancel' : 'Request Time Off' }}
+      {{ showForm ? ('timeOff.cancel' | translate) : ('timeOff.requestTimeOff' | translate) }}
     </button>
 
     <!-- Request form -->
     <div class="request-form" *ngIf="showForm">
       <div class="form-group">
-        <label>Type</label>
+        <label>{{ 'timeOff.type' | translate }}</label>
         <select [(ngModel)]="requestType">
-          <option *ngFor="let t of types" [value]="t.value">{{ t.label }}</option>
+          <option *ngFor="let t of types" [value]="t.value">{{ getTypeLabel(t.labelKey) }}</option>
         </select>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Start Date</label>
+          <label>{{ 'timeOff.startDate' | translate }}</label>
           <input type="date" [(ngModel)]="startDate" (change)="onDatesChanged()" />
         </div>
         <div class="form-group">
-          <label>End Date</label>
+          <label>{{ 'timeOff.endDate' | translate }}</label>
           <input type="date" [(ngModel)]="endDate" (change)="onDatesChanged()" />
         </div>
       </div>
       <div class="form-group">
-        <label>Hours</label>
+        <label>{{ 'timeOff.hours' | translate }}</label>
         <input type="number" [(ngModel)]="hours" min="1" max="80" />
       </div>
       <div class="form-group">
-        <label>Notes (optional)</label>
-        <textarea [(ngModel)]="notes" rows="2" placeholder="Reason for time off..."></textarea>
+        <label>{{ 'timeOff.notes' | translate }}</label>
+        <textarea
+          [(ngModel)]="notes"
+          rows="2"
+          [placeholder]="'timeOff.notesPlaceholder' | translate"
+        ></textarea>
       </div>
       <button class="submit-btn" (click)="submitRequest()" [disabled]="submitting">
-        {{ submitting ? 'Submitting...' : 'Submit Request' }}
+        {{
+          submitting ? ('timeOff.submitting' | translate) : ('timeOff.submitRequest' | translate)
+        }}
       </button>
     </div>
 
     <!-- Request history -->
-    <h2>My Requests</h2>
+    <h2>{{ 'timeOff.myRequests' | translate }}</h2>
     <div class="request-list" *ngIf="requests.length > 0">
       <div *ngFor="let req of requests" class="request-item">
         <div class="request-header">
@@ -72,12 +78,14 @@
           {{ req.start_date }} — {{ req.end_date }} ({{ req.hours_requested }}h)
         </div>
         <div class="request-notes" *ngIf="req.notes">{{ req.notes }}</div>
-        <div class="request-review" *ngIf="req.review_notes">Manager: {{ req.review_notes }}</div>
+        <div class="request-review" *ngIf="req.review_notes">
+          {{ 'timeOff.manager' | translate }}: {{ req.review_notes }}
+        </div>
         <button class="cancel-btn" *ngIf="req.status === 'pending'" (click)="cancelRequest(req.id)">
-          Cancel
+          {{ 'timeOff.cancel' | translate }}
         </button>
       </div>
     </div>
-    <div class="empty" *ngIf="requests.length === 0">No time-off requests yet.</div>
+    <div class="empty" *ngIf="requests.length === 0">{{ 'timeOff.noRequests' | translate }}</div>
   </div>
 </div>

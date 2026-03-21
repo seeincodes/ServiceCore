@@ -14,7 +14,7 @@
         class="nav-link"
       >
         <span class="nav-icon">{{ link.icon }}</span>
-        {{ link.label }}
+        {{ link.label | translate }}
       </a>
     </div>
 
@@ -54,7 +54,7 @@
       (click)="closeMenu()"
     >
       <span class="nav-icon">{{ link.icon }}</span>
-      {{ link.label }}
+      {{ link.label | translate }}
     </a>
     <div class="mobile-lang">
       <button

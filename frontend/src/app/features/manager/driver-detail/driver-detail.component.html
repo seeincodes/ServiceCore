@@ -1,31 +1,35 @@
 <div class="detail">
-  <button class="back-btn" (click)="goBack()">&larr; Back to Dashboard</button>
+  <button class="back-btn" (click)="goBack()">&larr; {{ 'driverDetail.back' | translate }}</button>
 
-  <h2>Driver Day Detail</h2>
-  <p class="total" *ngIf="!loading">Total: {{ totalHours }}h</p>
+  <h2>{{ 'driverDetail.title' | translate }}</h2>
+  <p class="total" *ngIf="!loading">{{ 'driverDetail.total' | translate }}: {{ totalHours }}h</p>
 
-  <div class="loading" *ngIf="loading">Loading...</div>
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
 
   <table class="entries-table" *ngIf="!loading && entries.length > 0">
     <thead>
       <tr>
-        <th>Clock In</th>
-        <th>Clock Out</th>
-        <th>Hours</th>
-        <th>Route</th>
-        <th>Source</th>
+        <th>{{ 'driverDetail.clockIn' | translate }}</th>
+        <th>{{ 'driverDetail.clockOut' | translate }}</th>
+        <th>{{ 'driverDetail.hours' | translate }}</th>
+        <th>{{ 'driverDetail.route' | translate }}</th>
+        <th>{{ 'driverDetail.source' | translate }}</th>
       </tr>
     </thead>
     <tbody>
       <tr *ngFor="let entry of entries" [class.open]="!entry.clockOut">
         <td>{{ formatTime(entry.clockIn) }}</td>
         <td>{{ formatTime(entry.clockOut) }}</td>
-        <td>{{ entry.hours !== null ? entry.hours + 'h' : 'Active' }}</td>
+        <td>
+          {{ entry.hours !== null ? entry.hours + 'h' : ('driverDetail.active' | translate) }}
+        </td>
         <td>{{ entry.routeId || '-' }}</td>
         <td>{{ entry.source }}</td>
       </tr>
     </tbody>
   </table>
 
-  <div class="empty" *ngIf="!loading && entries.length === 0">No entries for today.</div>
+  <div class="empty" *ngIf="!loading && entries.length === 0">
+    {{ 'driverDetail.noEntries' | translate }}
+  </div>
 </div>

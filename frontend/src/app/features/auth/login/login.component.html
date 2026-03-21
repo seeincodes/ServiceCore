@@ -1,13 +1,13 @@
 <div class="login-container">
   <div class="login-card">
     <div class="login-header">
-      <h1>TimeKeeper</h1>
-      <p>Waste Services Time Tracking</p>
+      <h1>{{ 'login.title' | translate }}</h1>
+      <p>{{ 'login.subtitle' | translate }}</p>
     </div>
 
     <form (ngSubmit)="onSubmit()" class="login-form">
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="email">{{ 'login.email' | translate }}</label>
         <input
           id="email"
           type="email"
@@ -20,7 +20,7 @@
       </div>
 
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="password">{{ 'login.password' | translate }}</label>
         <input
           id="password"
           type="password"
@@ -37,15 +37,17 @@
       </div>
 
       <button type="submit" class="login-btn" [disabled]="loading || !email || !password">
-        {{ loading ? 'Signing in...' : 'Sign In' }}
+        {{ loading ? ('login.signingIn' | translate) : ('login.signIn' | translate) }}
       </button>
 
-      <a routerLink="/forgot-password" class="forgot-link">Forgot password?</a>
+      <a routerLink="/forgot-password" class="forgot-link">{{
+        'login.forgotPassword' | translate
+      }}</a>
     </form>
 
     <div class="demo-accounts" *ngIf="showDemoLogins">
       <p>
-        Demo accounts (password: <strong>{{ demoPassword }}</strong
+        {{ 'login.demoAccounts' | translate }} (password: <strong>{{ demoPassword }}</strong
         >)
       </p>
       <div class="demo-list">
@@ -53,16 +55,16 @@
           class="demo-btn"
           (click)="email = 'driver1@greenwaste.com'; password = demoPassword"
         >
-          Driver
+          {{ 'login.driver' | translate }}
         </button>
         <button
           class="demo-btn"
           (click)="email = 'manager@greenwaste.com'; password = demoPassword"
         >
-          Manager
+          {{ 'login.manager' | translate }}
         </button>
         <button class="demo-btn" (click)="email = 'admin@greenwaste.com'; password = demoPassword">
-          Admin
+          {{ 'login.admin' | translate }}
         </button>
       </div>
     </div>

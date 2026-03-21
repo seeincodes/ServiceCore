@@ -1,5 +1,5 @@
 <div class="approval-queue">
-  <h2>Approval Queue</h2>
+  <h2>{{ 'approvals.title' | translate }}</h2>
 
   <div
     class="message"
@@ -10,20 +10,24 @@
     {{ message.text }}
   </div>
 
-  <div class="loading" *ngIf="loading">Loading...</div>
+  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
 
   <div class="empty" *ngIf="!loading && timesheets.length === 0">
-    No timesheets pending approval.
+    {{ 'approvals.noPending' | translate }}
   </div>
 
   <div class="ts-list" *ngIf="!loading && timesheets.length > 0">
     <div *ngFor="let ts of timesheets" class="ts-card">
       <div class="ts-info">
         <span class="ts-name">{{ ts.userName }}</span>
-        <span class="ts-week">Week ending {{ formatDate(ts.weekEnding) }}</span>
+        <span class="ts-week"
+          >{{ 'approvals.weekEnding' | translate }} {{ formatDate(ts.weekEnding) }}</span
+        >
         <div class="ts-hours">
-          <span>{{ ts.hoursWorked }}h total</span>
-          <span class="ot" *ngIf="ts.otHours > 0">{{ ts.otHours }}h OT</span>
+          <span>{{ ts.hoursWorked }}h {{ 'approvals.total' | translate }}</span>
+          <span class="ot" *ngIf="ts.otHours > 0"
+            >{{ ts.otHours }}h {{ 'approvals.ot' | translate }}</span
+          >
         </div>
       </div>
 
@@ -33,32 +37,36 @@
           (click)="approve(ts)"
           [disabled]="actionInProgress === ts.id"
         >
-          Approve
+          {{ 'approvals.approve' | translate }}
         </button>
         <button
           class="btn btn-revision"
           (click)="requestRevision(ts)"
           [disabled]="actionInProgress === ts.id"
         >
-          Revise
+          {{ 'approvals.revise' | translate }}
         </button>
         <button class="btn btn-reject" (click)="reject(ts)" [disabled]="actionInProgress === ts.id">
-          Reject
+          {{ 'approvals.reject' | translate }}
         </button>
       </div>
 
       <div class="notes-form" *ngIf="showNotesFor === ts.id">
         <textarea
           [(ngModel)]="rejectNotes[ts.id]"
-          placeholder="Add notes (required for reject/revise)..."
+          [placeholder]="'approvals.notesPlaceholder' | translate"
           rows="2"
         ></textarea>
         <div class="notes-actions">
           <button class="btn btn-revision" (click)="submitRevisionRequest(ts.id)">
-            Send for Revision
+            {{ 'approvals.sendRevision' | translate }}
           </button>
-          <button class="btn btn-reject" (click)="submitRejection(ts.id)">Reject</button>
-          <button class="btn btn-cancel" (click)="cancelNotes()">Cancel</button>
+          <button class="btn btn-reject" (click)="submitRejection(ts.id)">
+            {{ 'approvals.reject' | translate }}
+          </button>
+          <button class="btn btn-cancel" (click)="cancelNotes()">
+            {{ 'approvals.cancelAction' | translate }}
+          </button>
         </div>
       </div>
     </div>
