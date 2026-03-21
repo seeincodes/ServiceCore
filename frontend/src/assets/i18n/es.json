@@ -16,7 +16,8 @@
     "logout": "Cerrar sesión",
     "route": "Ruta",
     "timeOff": "Tiempo Libre",
-    "map": "Mapa"
+    "map": "Mapa",
+    "zones": "Zonas"
   },
   "login": {
     "title": "TimeKeeper",

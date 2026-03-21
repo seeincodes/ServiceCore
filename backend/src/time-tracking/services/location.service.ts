@@ -51,26 +51,24 @@ export async function checkBuddyPunch(
 }
 
 /**
- * Check if a location is within an org's geofence zones.
+ * Check if a location is within an org's work zones (from work_zones table).
  */
 export async function checkGeofence(
   orgId: string,
   lat: number,
   lon: number,
 ): Promise<{ insideZone: boolean; zoneName?: string; distanceFromZone?: number }> {
-  const org = await db('orgs').where({ id: orgId }).select('config').first();
-  if (!org?.config) return { insideZone: true }; // No config = no geofence
+  const zones = await db('work_zones')
+    .where({ org_id: orgId, is_active: true })
+    .select('name', 'lat', 'lon', 'radius_meters');
 
-  const config = typeof org.config === 'string' ? JSON.parse(org.config) : org.config;
-  const zones = config.geofence_zones;
-
-  if (!zones || !Array.isArray(zones) || zones.length === 0) {
-    return { insideZone: true }; // No zones defined
+  if (zones.length === 0) {
+    return { insideZone: true }; // No zones defined = allow everywhere
   }
 
   for (const zone of zones) {
-    const distance = haversineDistance(lat, lon, zone.lat, zone.lon);
-    if (distance <= (zone.radius_meters || 5000)) {
+    const distance = haversineDistance(lat, lon, Number(zone.lat), Number(zone.lon));
+    if (distance <= (zone.radius_meters || 200)) {
       return { insideZone: true, zoneName: zone.name };
     }
   }
@@ -78,7 +76,7 @@ export async function checkGeofence(
   // Outside all zones
   const nearest = zones.reduce(
     (min: { name: string; dist: number }, zone: any) => {
-      const dist = haversineDistance(lat, lon, zone.lat, zone.lon);
+      const dist = haversineDistance(lat, lon, Number(zone.lat), Number(zone.lon));
       return dist < min.dist ? { name: zone.name, dist } : min;
     },
     { name: '', dist: Infinity },

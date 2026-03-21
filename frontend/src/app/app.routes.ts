@@ -90,6 +90,12 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('org_admin')],
   },
   {
+    path: 'admin/zones',
+    loadComponent: () =>
+      import('./features/admin/zones/admin-zones.component').then((m) => m.AdminZonesComponent),
+    canActivate: [authGuard, roleGuard('org_admin')],
+  },
+  {
     path: 'admin/settings',
     loadComponent: () =>
       import('./features/admin/settings/admin-settings.component').then(

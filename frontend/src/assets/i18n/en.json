@@ -16,7 +16,8 @@
     "logout": "Log out",
     "route": "Route",
     "timeOff": "Time Off",
-    "map": "Map"
+    "map": "Map",
+    "zones": "Zones"
   },
   "login": {
     "title": "TimeKeeper",

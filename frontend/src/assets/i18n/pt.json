@@ -16,7 +16,8 @@
     "logout": "Sair",
     "route": "Rota",
     "timeOff": "Folga",
-    "map": "Mapa"
+    "map": "Mapa",
+    "zones": "Zonas"
   },
   "login": {
     "title": "TimeKeeper",

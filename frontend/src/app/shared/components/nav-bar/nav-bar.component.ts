@@ -156,6 +156,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
         return [
           { path: '/admin', label: 'nav.dashboard', icon: icons.building },
           { path: '/admin/users', label: 'nav.users', icon: icons.users },
+          { path: '/admin/zones', label: 'nav.zones', icon: icons.map },
           { path: '/admin/settings', label: 'nav.settings', icon: icons.settings },
           { path: '/manager', label: 'nav.drivers', icon: icons.dashboard },
           { path: '/manager/approvals', label: 'nav.approvals', icon: icons.approvals },

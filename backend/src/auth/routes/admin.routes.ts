@@ -255,4 +255,110 @@ router.put(
   },
 );
 
+// ============================================================
+// WORK ZONES (Depots / Locations)
+// ============================================================
+
+// GET /admin/zones — list all work zones
+router.get('/zones', authenticate, authorize('org_admin'), async (req: Request, res: Response) => {
+  try {
+    const { orgId } = (req as AuthenticatedRequest).user;
+    const zones = await db('work_zones').where({ org_id: orgId }).orderBy('name');
+    sendSuccess(res, { zones });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message);
+  }
+});
+
+// POST /admin/zones — create a work zone
+const createZoneSchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(['depot', 'route_start', 'job_site', 'landfill', 'transfer_station']),
+  lat: z.number(),
+  lon: z.number(),
+  radiusMeters: z.number().min(50).max(10000).default(200),
+  address: z.string().optional(),
+});
+
+router.post('/zones', authenticate, authorize('org_admin'), async (req: Request, res: Response) => {
+  try {
+    const { orgId } = (req as AuthenticatedRequest).user;
+    const data = createZoneSchema.parse(req.body);
+
+    const [zone] = await db('work_zones')
+      .insert({
+        org_id: orgId,
+        name: data.name,
+        type: data.type,
+        lat: data.lat,
+        lon: data.lon,
+        radius_meters: data.radiusMeters,
+        address: data.address,
+      })
+      .returning('*');
+
+    sendSuccess(res, { zone }, 201);
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message, 400);
+  }
+});
+
+// PUT /admin/zones/:id — update a work zone
+router.put(
+  '/zones/:id',
+  authenticate,
+  authorize('org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const { orgId } = (req as AuthenticatedRequest).user;
+      const zoneId = req.params.id as string;
+      const data = req.body;
+
+      const zone = await db('work_zones').where({ id: zoneId, org_id: orgId }).first();
+      if (!zone) {
+        sendError(res, 'Zone not found', 404);
+        return;
+      }
+
+      const updates: Record<string, unknown> = { updated_at: new Date() };
+      if (data.name) updates.name = data.name;
+      if (data.type) updates.type = data.type;
+      if (data.lat !== undefined) updates.lat = data.lat;
+      if (data.lon !== undefined) updates.lon = data.lon;
+      if (data.radiusMeters !== undefined) updates.radius_meters = data.radiusMeters;
+      if (data.address !== undefined) updates.address = data.address;
+      if (data.isActive !== undefined) updates.is_active = data.isActive;
+
+      await db('work_zones').where({ id: zoneId }).update(updates);
+      const updated = await db('work_zones').where({ id: zoneId }).first();
+      sendSuccess(res, { zone: updated });
+    } catch (err: unknown) {
+      sendError(res, (err as Error).message, 400);
+    }
+  },
+);
+
+// DELETE /admin/zones/:id — delete a work zone
+router.delete(
+  '/zones/:id',
+  authenticate,
+  authorize('org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const { orgId } = (req as AuthenticatedRequest).user;
+      const zoneId = req.params.id as string;
+
+      const deleted = await db('work_zones').where({ id: zoneId, org_id: orgId }).del();
+
+      if (!deleted) {
+        sendError(res, 'Zone not found', 404);
+        return;
+      }
+      sendSuccess(res, { status: 'deleted' });
+    } catch (err: unknown) {
+      sendError(res, (err as Error).message);
+    }
+  },
+);
+
 export default router;
