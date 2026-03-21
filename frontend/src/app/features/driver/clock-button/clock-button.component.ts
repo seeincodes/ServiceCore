@@ -37,6 +37,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   onBreak = false;
   showEndDayConfirm = false;
   showRouteSwitch = false;
+  useMiles = true;
 
   // Route picker
   availableRoutes: AvailableRoute[] = [];
@@ -59,6 +60,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     private http: HttpClient,
   ) {
     this.use24Hour = localStorage.getItem('tk_time_format') === '24';
+    this.useMiles = localStorage.getItem('tk_distance_unit') !== 'km';
   }
 
   ngOnInit(): void {

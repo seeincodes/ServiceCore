@@ -46,10 +46,22 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   steps: RouteStep[] = [];
   segmentDurations: number[] = []; // duration in minutes for each segment
   routeName = 'My Route';
-  totalDistance = 0;
+  totalDistanceKm = 0;
   totalDuration = 0;
   loading = true;
   showDirections = false;
+  useMiles = true;
+
+  get totalDistance(): string {
+    if (this.useMiles) {
+      return (this.totalDistanceKm * 0.621371).toFixed(1);
+    }
+    return this.totalDistanceKm.toFixed(1);
+  }
+
+  get distanceUnit(): string {
+    return this.useMiles ? 'mi' : 'km';
+  }
   clockInReminder: { message: string; zoneName: string } | null = null;
   breakReminder = false;
   routeStartTime: Date | null = null;
@@ -70,7 +82,9 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   constructor(
     private http: HttpClient,
     private wsService: WebSocketService,
-  ) {}
+  ) {
+    this.useMiles = localStorage.getItem('tk_distance_unit') !== 'km';
+  }
 
   ngOnInit(): void {
     this.loadRoute();
@@ -127,6 +141,11 @@ export class MyRouteComponent implements OnInit, OnDestroy {
 
   toggleDirections(): void {
     this.showDirections = !this.showDirections;
+  }
+
+  toggleUnit(): void {
+    this.useMiles = !this.useMiles;
+    localStorage.setItem('tk_distance_unit', this.useMiles ? 'mi' : 'km');
   }
 
   markComplete(index: number, event: Event): void {
@@ -199,7 +218,7 @@ export class MyRouteComponent implements OnInit, OnDestroy {
           ...s,
           completed: this.stops.find((os) => os.id === s.id)?.completed || false,
         }));
-        this.totalDistance = res.data.totalDistanceKm;
+        this.totalDistanceKm = res.data.totalDistanceKm;
         this.totalDuration = res.data.totalDurationMin;
         this.routeStartTime = new Date();
 

@@ -99,7 +99,10 @@
           <span class="stat-label">{{ 'clock.stops' | translate }}</span>
         </div>
         <div class="stat" *ngIf="remainingDistance > 0">
-          <span class="stat-value">{{ remainingDistance }} km</span>
+          <span class="stat-value"
+            >{{ useMiles ? (remainingDistance * 0.621371 | number: '1.1-1') : remainingDistance }}
+            {{ useMiles ? 'mi' : 'km' }}</span
+          >
           <span class="stat-label">{{ 'clock.remaining' | translate }}</span>
         </div>
       </div>

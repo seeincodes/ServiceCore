@@ -1,5 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { of } from 'rxjs';
 import { AppComponent } from './app.component';
 import { SyncService } from './core/services/sync.service';
@@ -9,6 +11,8 @@ describe('AppComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent, RouterTestingModule],
       providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
         {
           provide: SyncService,
           useValue: {

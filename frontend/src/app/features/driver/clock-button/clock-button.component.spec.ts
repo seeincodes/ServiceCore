@@ -5,6 +5,8 @@ import {
   tick,
   discardPeriodicTasks,
 } from '@angular/core/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { ClockButtonComponent } from './clock-button.component';
 import { ClockService } from '../../../core/services/clock.service';
@@ -22,7 +24,11 @@ describe('ClockButtonComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [ClockButtonComponent],
-      providers: [{ provide: ClockService, useValue: clockService }],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        { provide: ClockService, useValue: clockService },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ClockButtonComponent);

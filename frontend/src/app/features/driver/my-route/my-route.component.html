@@ -28,13 +28,13 @@
 
   <div *ngIf="!loading">
     <!-- Route summary -->
-    <div class="route-summary" *ngIf="totalDistance > 0">
+    <div class="route-summary" *ngIf="totalDistanceKm > 0">
       <div class="summary-item">
         <span class="summary-value">{{ stops.length }}</span>
         <span class="summary-label">{{ 'route.stops' | translate }}</span>
       </div>
-      <div class="summary-item">
-        <span class="summary-value">{{ totalDistance }} km</span>
+      <div class="summary-item" (click)="toggleUnit()">
+        <span class="summary-value">{{ totalDistance }} {{ distanceUnit }}</span>
         <span class="summary-label">{{ 'route.distance' | translate }}</span>
       </div>
       <div class="summary-item">
@@ -120,7 +120,10 @@
       <div *ngFor="let step of steps; let i = index" class="direction-step">
         <span class="step-num">{{ i + 1 }}</span>
         <span class="step-text">{{ step.instruction }}</span>
-        <span class="step-dist">{{ step.distanceKm }} km</span>
+        <span class="step-dist"
+          >{{ useMiles ? (step.distanceKm * 0.621371 | number: '1.1-1') : step.distanceKm }}
+          {{ distanceUnit }}</span
+        >
       </div>
     </div>
 
