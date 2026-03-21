@@ -36,6 +36,11 @@
   "clock": {
     "clockIn": "CLOCK IN",
     "clockOut": "CLOCK OUT",
+    "statusIn": "Clocked In",
+    "statusOut": "Clocked Out",
+    "todayHours": "Today's Hours",
+    "today": "Today",
+    "since": "Since",
     "clockedInAt": "Clocked in at {{time}}",
     "clockedOutAt": "Clocked out at {{time}}. Total: {{hours}}h",
     "route": "Route #{{routeId}}",

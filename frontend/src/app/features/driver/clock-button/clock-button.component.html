@@ -1,19 +1,50 @@
-<div class="clock-container">
+<div class="clock-page">
+  <!-- Status card -->
+  <div class="status-card" [class.active]="status.clockedIn">
+    <div class="status-indicator">
+      <span class="status-dot" [class.in]="status.clockedIn"></span>
+      <span class="status-text">{{
+        status.clockedIn ? ('clock.statusIn' | translate) : ('clock.statusOut' | translate)
+      }}</span>
+    </div>
+
+    <!-- Elapsed time (when clocked in) -->
+    <div class="elapsed" *ngIf="status.clockedIn && elapsedDisplay">
+      <span class="elapsed-value">{{ elapsedDisplay }}</span>
+      <span class="elapsed-label">{{ 'clock.todayHours' | translate }}</span>
+    </div>
+
+    <!-- Route info -->
+    <div class="route" *ngIf="status.clockedIn && status.routeId">
+      {{ 'clock.route' | translate: { routeId: status.routeId } }}
+    </div>
+
+    <!-- Clock in time -->
+    <div class="clock-time" *ngIf="status.clockedIn && status.clockInTime">
+      {{ 'clock.since' | translate }} {{ formatTime(status.clockInTime) }}
+    </div>
+  </div>
+
+  <!-- Today's summary (when clocked out) -->
+  <div class="today-summary" *ngIf="!status.clockedIn">
+    <div class="summary-row">
+      <span class="summary-label">{{ 'clock.today' | translate }}</span>
+      <span class="summary-value">{{ todayHours }}h</span>
+    </div>
+  </div>
+
+  <!-- Clock action button -->
   <button
-    class="clock-button"
-    [class.clocked-in]="status.clockedIn"
+    class="clock-btn"
+    [class.clock-out]="status.clockedIn"
     [class.loading]="loading"
     [disabled]="loading"
     (click)="onClockAction()"
   >
-    <span class="clock-label">
-      {{ (status.clockedIn ? 'clock.clockOut' : 'clock.clockIn') | translate }}
-    </span>
-    <span class="clock-elapsed" *ngIf="status.clockedIn && elapsedDisplay">
-      {{ elapsedDisplay }}
-    </span>
+    {{ (status.clockedIn ? 'clock.clockOut' : 'clock.clockIn') | translate }}
   </button>
 
+  <!-- Confirmation message -->
   <div
     class="confirmation"
     *ngIf="confirmation"
@@ -21,9 +52,5 @@
     [class.error]="confirmation.type === 'error'"
   >
     {{ confirmation.message }}
-  </div>
-
-  <div class="route-info" *ngIf="status.clockedIn && status.routeId">
-    {{ 'clock.route' | translate: { routeId: status.routeId } }}
   </div>
 </div>

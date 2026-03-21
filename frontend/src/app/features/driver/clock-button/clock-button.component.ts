@@ -18,6 +18,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   loading = false;
   confirmation: { message: string; type: 'success' | 'error' } | null = null;
   elapsedDisplay = '';
+  todayHours = '0.0';
 
   private destroy$ = new Subject<void>();
   private timerInterval: ReturnType<typeof setInterval> | null = null;
@@ -149,6 +150,11 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     const hours = Math.floor(elapsed);
     const minutes = Math.floor((elapsed - hours) * 60);
     this.elapsedDisplay = `${hours}h ${minutes}m`;
+    this.todayHours = elapsed.toFixed(1);
+  }
+
+  formatTime(iso: string): string {
+    return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
   }
 
   /** Silent GPS ping every 2 minutes for zero-touch clock-in/out. */

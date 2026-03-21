@@ -36,6 +36,11 @@
   "clock": {
     "clockIn": "ENTRADA",
     "clockOut": "SALIDA",
+    "statusIn": "Registrado",
+    "statusOut": "No Registrado",
+    "todayHours": "Horas de Hoy",
+    "today": "Hoy",
+    "since": "Desde",
     "clockedInAt": "Entrada registrada a las {{time}}",
     "clockedOutAt": "Salida registrada a las {{time}}. Total: {{hours}}h",
     "route": "Ruta #{{routeId}}",

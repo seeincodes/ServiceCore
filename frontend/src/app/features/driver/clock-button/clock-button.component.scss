@@ -1,40 +1,150 @@
 @use '../../../../styles/variables' as *;
+@use '../../../../styles/breakpoints' as *;
 
-.clock-container {
+.clock-page {
+  padding: $spacing-md;
+  max-width: 500px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  gap: $spacing-md;
+  min-height: calc(100vh - 80px);
   justify-content: center;
-  padding: $spacing-lg;
-  min-height: 100vh;
-  gap: $spacing-lg;
 }
 
-.clock-button {
-  width: 100%;
-  max-width: 400px;
-  height: $clock-button-height;
-  font-size: $clock-button-font-size;
-  font-weight: 700;
-  border: none;
+// Status card
+.status-card {
+  background: $white;
+  border: 1px solid $neutral-100;
   border-radius: 16px;
+  padding: $spacing-lg;
+  text-align: center;
+  transition: border-color 0.2s;
+
+  &.active {
+    border-color: rgba($success, 0.3);
+    background: rgba($success, 0.02);
+  }
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: $neutral-300;
+
+  &.in {
+    background: $success;
+    box-shadow: 0 0 0 3px rgba($success, 0.2);
+    animation: pulse 2s infinite;
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba($success, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba($success, 0.1);
+  }
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: $neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.elapsed {
+  margin-bottom: $spacing-sm;
+}
+
+.elapsed-value {
+  display: block;
+  font-size: 48px;
+  font-weight: 700;
+  color: $neutral-900;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.elapsed-label {
+  font-size: 12px;
+  color: $neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.route {
+  font-size: 14px;
+  color: $primary;
+  font-weight: 500;
+  margin-top: $spacing-xs;
+}
+
+.clock-time {
+  font-size: 13px;
+  color: $neutral-500;
+  margin-top: $spacing-xs;
+}
+
+// Today summary (when clocked out)
+.today-summary {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: $neutral-500;
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+// Clock button — intentionally moderate size, not screen-filling
+.clock-btn {
+  width: 100%;
+  padding: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 12px;
   cursor: pointer;
-  transition:
-    background-color 0.2s,
-    transform 0.1s;
   color: $white;
-  background-color: $success;
+  background: $success;
+  transition:
+    background 0.2s,
+    transform 0.1s;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-xs;
 
-  &.clocked-in {
-    background-color: $danger;
+  &.clock-out {
+    background: $danger;
   }
 
   &.loading {
@@ -43,44 +153,25 @@
   }
 
   &:active:not(.loading) {
-    transform: scale(0.97);
+    transform: scale(0.98);
   }
 }
 
-.clock-label {
-  line-height: 1.2;
-}
-
-.clock-elapsed {
-  font-size: $font-size-base;
-  font-weight: 400;
-  opacity: 0.9;
-}
-
+// Confirmation
 .confirmation {
-  padding: $spacing-md $spacing-lg;
+  padding: $spacing-sm $spacing-md;
   border-radius: 8px;
-  font-size: $font-size-base;
+  font-size: $font-size-sm;
   font-weight: 500;
   text-align: center;
-  max-width: 400px;
-  width: 100%;
 
   &.success {
-    background-color: rgba($success, 0.1);
-    color: darken($success, 10%);
-    border: 1px solid rgba($success, 0.3);
+    background: rgba($success, 0.08);
+    color: $success;
   }
 
   &.error {
-    background-color: rgba($danger, 0.1);
-    color: darken($danger, 10%);
-    border: 1px solid rgba($danger, 0.3);
+    background: rgba($danger, 0.08);
+    color: $danger;
   }
-}
-
-.route-info {
-  font-size: $font-size-sm;
-  color: $neutral-500;
-  font-weight: 500;
 }
