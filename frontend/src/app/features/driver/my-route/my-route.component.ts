@@ -30,6 +30,7 @@ export class MyRouteComponent implements OnInit, OnDestroy {
   stops: RouteStop[] = [];
   markers: MapMarker[] = [];
   steps: RouteStep[] = [];
+  routeName = 'My Route';
   totalDistance = 0;
   totalDuration = 0;
   loading = true;
@@ -90,13 +91,26 @@ export class MyRouteComponent implements OnInit, OnDestroy {
     this.http.get<any>(`${environment.apiUrl}/dispatcher/routes`).subscribe({
       next: (res) => {
         const routes = res.data.routes || [];
-        // Convert dispatcher routes to stops (use first 10 as demo)
-        this.stops = routes.slice(0, 10).map((r: any, i: number) => ({
-          id: r.id || String(i),
-          name: r.name || `Stop ${i + 1}`,
-          lat: r.lat || 37.7749 + (Math.random() - 0.5) * 0.05,
-          lon: r.lon || -122.4194 + (Math.random() - 0.5) * 0.05,
-        }));
+        if (routes.length === 0) {
+          this.loading = false;
+          return;
+        }
+
+        // Find the route assigned to the current driver, or use the first one
+        const myRoute = routes.find((r: any) => r.assignedDriverId) || routes[0];
+
+        // Use waypoints if available (seeded routes have them)
+        if (myRoute.waypoints?.length >= 2) {
+          this.stops = myRoute.waypoints;
+          this.routeName = myRoute.name;
+        } else {
+          this.stops = routes.slice(0, 8).map((r: any, i: number) => ({
+            id: r.id || String(i),
+            name: r.name || `Stop ${i + 1}`,
+            lat: r.lat || 37.7749 + (Math.random() - 0.5) * 0.05,
+            lon: r.lon || -122.4194 + (Math.random() - 0.5) * 0.05,
+          }));
+        }
 
         if (this.stops.length >= 2) {
           this.optimizeAndDisplay();
@@ -105,15 +119,7 @@ export class MyRouteComponent implements OnInit, OnDestroy {
         }
       },
       error: () => {
-        // No dispatcher routes — show demo stops
-        this.stops = [
-          { id: '1', name: 'Depot', lat: 37.7749, lon: -122.4194 },
-          { id: '2', name: 'Oak St Pickup', lat: 37.7714, lon: -122.4234 },
-          { id: '3', name: 'Market St Bin', lat: 37.7831, lon: -122.4039 },
-          { id: '4', name: 'Mission District', lat: 37.7599, lon: -122.4148 },
-          { id: '5', name: 'Castro Zone', lat: 37.7609, lon: -122.435 },
-        ];
-        this.optimizeAndDisplay();
+        this.loading = false;
       },
     });
   }
