@@ -72,12 +72,14 @@
         <span class="status-text">{{ 'clock.statusIn' | translate }}</span>
       </div>
 
-      <div class="elapsed">
-        <span class="elapsed-value">{{ todayHoursNum | hoursDisplay }}</span>
-        <span class="elapsed-label">{{ 'clock.todayHours' | translate }}</span>
+      <!-- Today's running total (always visible) -->
+      <div class="day-total">
+        <span class="day-total-value">{{ todayHoursNum | hoursDisplay }}</span>
+        <span class="day-total-label">{{ 'clock.todayHours' | translate }}</span>
       </div>
 
-      <div class="session-info" *ngIf="todayHoursBase > 0">
+      <!-- Current session (always visible) -->
+      <div class="session-info">
         <span class="session-value">{{ elapsedDisplay }}</span>
         <span class="session-label">{{ 'clock.currentSession' | translate }}</span>
       </div>
