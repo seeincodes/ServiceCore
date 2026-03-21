@@ -27,9 +27,9 @@
         <span class="status-text">{{ 'clock.statusOut' | translate }}</span>
       </div>
 
-      <div class="daily-total" *ngIf="todayHoursNum > 0">
-        <span class="daily-total-value">{{ todayHoursNum | hoursDisplay }}</span>
-        <span class="daily-total-label">{{ 'clock.workedToday' | translate }}</span>
+      <div class="day-total">
+        <span class="day-total-value">{{ todayHoursNum | hoursDisplay }}</span>
+        <span class="day-total-label">{{ 'clock.workedToday' | translate }}</span>
       </div>
     </div>
 
