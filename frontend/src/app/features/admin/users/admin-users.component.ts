@@ -12,6 +12,8 @@ interface OrgUser {
   role: string;
   phone: string | null;
   is_active: boolean;
+  hourly_rate: number | null;
+  ot_multiplier: number | null;
 }
 
 @Component({
@@ -88,6 +90,8 @@ export class AdminUsersComponent implements OnInit {
         firstName: this.editingUser.first_name,
         lastName: this.editingUser.last_name,
         phone: this.editingUser.phone,
+        hourlyRate: this.editingUser.hourly_rate || undefined,
+        otMultiplier: this.editingUser.ot_multiplier || undefined,
       })
       .subscribe({
         next: () => {

@@ -86,4 +86,24 @@
   </table>
 
   <div class="empty" *ngIf="!loading && drivers.length === 0">No drivers found.</div>
+
+  <!-- Project Time Allocation -->
+  <div class="allocation-section" *ngIf="!loading && projectAllocation.length > 0">
+    <h2>Project / Route Allocation (This Week)</h2>
+    <div class="allocation-list">
+      <div *ngFor="let item of projectAllocation" class="allocation-item">
+        <div class="alloc-header">
+          <span class="alloc-name">{{ item.project }}</span>
+          <span class="alloc-hours">{{ item.hours }}h</span>
+        </div>
+        <div class="alloc-bar">
+          <div class="alloc-fill" [style.width.%]="item.percentage"></div>
+        </div>
+        <div class="alloc-meta">
+          <span>{{ item.percentage }}%</span>
+          <span>{{ item.driverCount }} driver{{ item.driverCount !== 1 ? 's' : '' }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

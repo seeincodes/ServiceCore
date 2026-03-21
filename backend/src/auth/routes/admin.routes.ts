@@ -56,6 +56,8 @@ router.get('/users', authenticate, authorize('org_admin'), async (req: Request, 
         'role',
         'phone',
         'is_active',
+        'hourly_rate',
+        'ot_multiplier',
         'created_at',
         'updated_at',
       )
@@ -116,6 +118,8 @@ const updateUserSchema = z.object({
   firstName: z.string().min(1).optional(),
   lastName: z.string().min(1).optional(),
   phone: z.string().optional(),
+  hourlyRate: z.number().min(0).optional(),
+  otMultiplier: z.number().min(1).max(3).optional(),
 });
 
 router.put(
@@ -141,12 +145,24 @@ router.put(
       if (data.firstName !== undefined) updates.first_name = data.firstName;
       if (data.lastName !== undefined) updates.last_name = data.lastName;
       if (data.phone !== undefined) updates.phone = data.phone;
+      if (data.hourlyRate !== undefined) updates.hourly_rate = data.hourlyRate;
+      if (data.otMultiplier !== undefined) updates.ot_multiplier = data.otMultiplier;
 
       await db('users').where({ id: userId }).update(updates);
 
       const updated = await db('users')
         .where({ id: userId })
-        .select('id', 'email', 'first_name', 'last_name', 'role', 'phone', 'is_active')
+        .select(
+          'id',
+          'email',
+          'first_name',
+          'last_name',
+          'role',
+          'phone',
+          'is_active',
+          'hourly_rate',
+          'ot_multiplier',
+        )
         .first();
 
       sendSuccess(res, { user: updated });

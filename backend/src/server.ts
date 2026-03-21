@@ -21,6 +21,7 @@ import {
   autoSubmitTimesheets,
   autoApproveTimesheets,
 } from './time-tracking/services/zero-touch.service';
+import { sendTimesheetReminders, getReminderType } from './notifications/services/reminder.service';
 import adminRoutes from './auth/routes/admin.routes';
 import routingRoutes from './dispatcher/routes/routing.routes';
 
@@ -94,7 +95,20 @@ function scheduleZeroTouchJobs(): void {
     60 * 60 * 1000,
   );
 
-  logger.info('Zero-touch automation scheduled: auto-submit Sun midnight, auto-approve Mon 6am');
+  // Timesheet email reminders: check every hour (Thu 4pm, Fri 9am, Fri 5pm)
+  setInterval(
+    async () => {
+      const type = getReminderType();
+      if (type) {
+        await sendTimesheetReminders(type);
+      }
+    },
+    60 * 60 * 1000,
+  );
+
+  logger.info(
+    'Zero-touch automation scheduled: reminders Thu/Fri, auto-submit Sun, auto-approve Mon',
+  );
 }
 
 const startServer = () => {

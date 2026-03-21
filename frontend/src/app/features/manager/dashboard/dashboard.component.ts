@@ -1,9 +1,18 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
 import { DashboardService, DriverStatus } from '../../../core/services/dashboard.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import { environment } from '../../../../environments/environment';
+
+interface ProjectAllocation {
+  project: string;
+  hours: number;
+  percentage: number;
+  driverCount: number;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -14,6 +23,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   drivers: DriverStatus[] = [];
+  projectAllocation: ProjectAllocation[] = [];
   loading = true;
   error: string | null = null;
   lastRefresh = '';
@@ -25,6 +35,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private dashboardService: DashboardService,
     private wsService: WebSocketService,
     private router: Router,
+    private http: HttpClient,
   ) {}
 
   ngOnInit(): void {
@@ -93,6 +104,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.error = err.error?.error || 'Failed to load dashboard';
         this.loading = false;
+      },
+    });
+
+    this.http.get<any>(`${environment.apiUrl}/manager/project-allocation`).subscribe({
+      next: (res) => {
+        this.projectAllocation = res.data.allocation;
       },
     });
   }
