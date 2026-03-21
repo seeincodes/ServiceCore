@@ -104,6 +104,14 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('org_admin')],
   },
   {
+    path: 'manager/review',
+    loadComponent: () =>
+      import('./features/manager/review/review-queue.component').then(
+        (m) => m.ReviewQueueComponent,
+      ),
+    canActivate: [authGuard, roleGuard('manager', 'org_admin')],
+  },
+  {
     path: 'manager/map',
     loadComponent: () =>
       import('./features/manager/map/driver-map.component').then((m) => m.DriverMapComponent),

@@ -17,7 +17,8 @@
     "route": "Ruta",
     "timeOff": "Tiempo Libre",
     "map": "Mapa",
-    "zones": "Zonas"
+    "zones": "Zonas",
+    "review": "Cola de Revisión"
   },
   "login": {
     "title": "TimeKeeper",

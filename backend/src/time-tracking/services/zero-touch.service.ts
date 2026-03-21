@@ -4,6 +4,7 @@ import { hasApprovedTimeOff } from './time-off.service';
 import { checkGeofence } from './location.service';
 import { emitToOrg } from '../../shared/websocket/socket';
 import { enqueueNotification } from '../../notifications/services/queue.service';
+import { notifyManagers } from '../../notifications/services/manager-notify.service';
 import logger from '../../shared/utils/logger';
 
 /**
@@ -546,11 +547,14 @@ export async function midnightAutoClose(): Promise<void> {
     });
 
     // Notify the manager via WebSocket
-    emitToOrg(entry.org_id, 'review_needed', {
+    await notifyManagers({
+      orgId: entry.org_id,
       type: 'midnight_auto_close',
+      priority: 'critical',
+      title: 'Forgot to clock out',
+      message: '8 hours auto-logged. Please review and adjust if needed.',
       userId: entry.user_id,
-      entryId: entry.id,
-      message: 'Forgot to clock out — 8h auto-logged. Please review.',
+      data: { entryId: entry.id },
     });
 
     // Notify the employee via SMS
@@ -640,11 +644,13 @@ export async function checkMissingClockIns(): Promise<void> {
       }),
     });
 
-    emitToOrg(emp.org_id, 'review_needed', {
+    await notifyManagers({
+      orgId: emp.org_id,
       type: 'missing_clock_in',
-      userId: emp.id,
-      employeeName: `${emp.first_name} ${emp.last_name}`,
+      priority: 'warning',
+      title: 'Missing clock-in',
       message: `${emp.first_name} ${emp.last_name} hasn't clocked in today.`,
+      userId: emp.id,
     });
 
     logger.info('Missing clock-in flagged', {

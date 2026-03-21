@@ -74,6 +74,39 @@
   gap: $spacing-md;
 }
 
+.alert-bell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  color: $neutral-700;
+  text-decoration: none;
+  &:hover {
+    color: $primary;
+  }
+}
+
+.alert-badge {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: $danger;
+  color: $white;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.alert-link {
+  color: $danger !important;
+  font-weight: 600;
+}
+
 .lang-switcher,
 .mobile-lang {
   display: flex;

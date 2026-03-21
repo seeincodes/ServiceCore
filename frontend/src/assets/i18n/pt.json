@@ -17,7 +17,8 @@
     "route": "Rota",
     "timeOff": "Folga",
     "map": "Mapa",
-    "zones": "Zonas"
+    "zones": "Zonas",
+    "review": "Fila de Revisão"
   },
   "login": {
     "title": "TimeKeeper",
