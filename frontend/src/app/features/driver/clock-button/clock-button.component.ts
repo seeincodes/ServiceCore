@@ -8,6 +8,7 @@ import { Subject, takeUntil, interval } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { HoursDisplayPipe } from '../../../shared/pipes/hours.pipe';
 import { PreferencesService } from '../../../core/services/preferences.service';
+import { SyncService } from '../../../core/services/sync.service';
 
 interface AvailableRoute {
   id: string;
@@ -89,6 +90,8 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   remainingDistance = 0;
   nextStop: RouteStop | null = null;
 
+  pendingOfflineCount = 0;
+
   private destroy$ = new Subject<void>();
   private timerInterval: ReturnType<typeof setInterval> | null = null;
   private endDayTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -98,6 +101,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     private clockService: ClockService,
     private http: HttpClient,
     private prefs: PreferencesService,
+    public syncService: SyncService,
   ) {}
 
   ngOnInit(): void {
@@ -107,6 +111,20 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.loadAvailableRoutes();
     this.startSilentTracking();
     this.checkPinRequired();
+    this.updatePendingCount();
+
+    // Reload status after sync completes on reconnect
+    this.syncService.lastSyncResult$.pipe(takeUntil(this.destroy$)).subscribe((result) => {
+      if (result) {
+        this.loadStatus();
+        this.updatePendingCount();
+      }
+    });
+
+    // Track pending count when online status changes
+    this.syncService.isOnline$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.updatePendingCount();
+    });
   }
 
   private checkPinRequired(): void {
@@ -245,7 +263,11 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           });
         },
         error: (err) => {
-          this.showToast(err.error?.error || 'Clock-in failed', 'error');
+          if (!navigator.onLine || err.status === 0) {
+            this.queueOfflineClockIn();
+          } else {
+            this.showToast(err.error?.error || 'Clock-in failed', 'error');
+          }
           this.loading = false;
         },
       });
@@ -276,7 +298,11 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           this.loading = false;
         },
         error: (err) => {
-          this.showToast(err.error?.error || 'Clock-out failed', 'error');
+          if (!navigator.onLine || err.status === 0) {
+            this.queueOfflineClockOut(type);
+          } else {
+            this.showToast(err.error?.error || 'Clock-out failed', 'error');
+          }
           this.loading = false;
         },
       });
@@ -538,6 +564,46 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           });
         });
       });
+  }
+
+  private async queueOfflineClockIn(): Promise<void> {
+    const loc = await this.getCurrentLocation();
+    await this.syncService.queueClockIn({
+      projectId: this.selectedProjectId || undefined,
+      routeId: this.selectedRouteId || undefined,
+      location: loc,
+    });
+    this.status = {
+      clockedIn: true,
+      clockInTime: new Date().toISOString(),
+      elapsedHours: 0,
+    };
+    this.startTimer();
+    this.onBreak = false;
+    await this.updatePendingCount();
+    this.showToast('Clocked in offline — will sync when back online', 'success');
+  }
+
+  private async queueOfflineClockOut(type: 'break' | 'end_of_day'): Promise<void> {
+    await this.syncService.queueClockOut(this.status.entryId);
+    const sessionHours = this.status.clockInTime
+      ? (Date.now() - new Date(this.status.clockInTime).getTime()) / (1000 * 60 * 60)
+      : 0;
+    this.todayHoursBase += sessionHours;
+    this.todayHoursNum = this.todayHoursBase;
+    this.status = { clockedIn: false };
+    this.stopTimer();
+    this.onBreak = type === 'break';
+    this.routeStops = [];
+    this.nextStop = null;
+    this.showRouteSwitch = false;
+    await this.updatePendingCount();
+    const label = type === 'break' ? 'Break' : 'Done for today';
+    this.showToast(`${label} saved offline — will sync when back online`, 'success');
+  }
+
+  private async updatePendingCount(): Promise<void> {
+    this.pendingOfflineCount = await this.syncService.getPendingCount();
   }
 
   private getCurrentLocation(): Promise<{ lat: number; lon: number } | undefined> {

@@ -36,6 +36,11 @@
     {{ confirmation.message }}
   </div>
 
+  <!-- Pending offline entries -->
+  <div class="offline-pending" *ngIf="pendingOfflineCount > 0">
+    {{ pendingOfflineCount }} {{ pendingOfflineCount === 1 ? 'entry' : 'entries' }} waiting to sync
+  </div>
+
   <!-- Loading state -->
   <div class="loading-card" *ngIf="loading">
     <div class="spinner"></div>

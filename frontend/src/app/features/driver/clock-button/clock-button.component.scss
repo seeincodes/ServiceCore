@@ -581,6 +581,16 @@
 }
 
 // Toast notification
+.offline-pending {
+  background: #f57c00;
+  color: white;
+  text-align: center;
+  padding: 10px $spacing-md;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .toast {
   position: fixed;
   top: 70px;
