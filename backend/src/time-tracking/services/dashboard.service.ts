@@ -1,5 +1,15 @@
 import db from '../../shared/database/connection';
 
+export interface ScheduleDay {
+  date: string;
+  dayLabel: string;
+  projectId: string | null;
+  projectName: string | null;
+  routeId: string | null;
+  shiftStart: string | null;
+  shiftEnd: string | null;
+}
+
 export interface DriverStatus {
   id: string;
   name: string;
@@ -14,6 +24,7 @@ export interface DriverStatus {
   scheduledRouteId?: string | null;
   scheduledShiftStart?: string | null;
   scheduledShiftEnd?: string | null;
+  weekSchedule?: ScheduleDay[];
 }
 
 export interface DriverDayDetail {
@@ -81,28 +92,74 @@ export async function getDashboard(orgId: string): Promise<DriverStatus[]> {
     });
   }
 
-  // Look up today's schedule for all employees
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todaySchedules = await db('schedules')
-    .where({ org_id: orgId, date: todayStr })
-    .select('user_id', 'project_id', 'route_id', 'shift_start', 'shift_end');
-  const scheduleMap = new Map(todaySchedules.map((s: any) => [s.user_id, s]));
+  // Look up this week's schedule (Mon–Sun) for all employees
+  const now = new Date();
+  const day = now.getDay();
+  const mondayOffset = day === 0 ? 6 : day - 1;
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - mondayOffset);
+  weekStart.setHours(0, 0, 0, 0);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
 
-  for (const driver of drivers) {
-    const sched = scheduleMap.get(driver.id);
-    if (sched) {
-      driver.scheduledProjectId = sched.project_id;
-      driver.scheduledRouteId = sched.route_id;
-      driver.scheduledShiftStart = sched.shift_start ? String(sched.shift_start).slice(0, 5) : null;
-      driver.scheduledShiftEnd = sched.shift_end ? String(sched.shift_end).slice(0, 5) : null;
-    }
+  const weekStartStr = weekStart.toISOString().split('T')[0];
+  const weekEndStr = weekEnd.toISOString().split('T')[0];
+  const todayStr = now.toISOString().split('T')[0];
+
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const weekSchedules = await db('schedules')
+    .where({ org_id: orgId })
+    .where('date', '>=', weekStartStr)
+    .where('date', '<=', weekEndStr)
+    .select('user_id', 'project_id', 'route_id', 'shift_start', 'shift_end', 'date')
+    .orderBy('date');
+
+  // Group schedules by user
+  const schedulesByUser = new Map<string, any[]>();
+  for (const sched of weekSchedules) {
+    const list = schedulesByUser.get(sched.user_id) || [];
+    list.push(sched);
+    schedulesByUser.set(sched.user_id, list);
   }
 
-  // Resolve project names (both active and scheduled)
+  for (const driver of drivers) {
+    const scheds = schedulesByUser.get(driver.id) || [];
+
+    // Set today's schedule on the legacy fields for backward compat
+    const todaySched = scheds.find((s: any) => String(s.date).startsWith(todayStr));
+    if (todaySched) {
+      driver.scheduledProjectId = todaySched.project_id;
+      driver.scheduledRouteId = todaySched.route_id;
+      driver.scheduledShiftStart = todaySched.shift_start
+        ? String(todaySched.shift_start).slice(0, 5)
+        : null;
+      driver.scheduledShiftEnd = todaySched.shift_end
+        ? String(todaySched.shift_end).slice(0, 5)
+        : null;
+    }
+
+    // Full week schedule
+    driver.weekSchedule = scheds.map((s: any) => {
+      const d = new Date(s.date);
+      return {
+        date: String(s.date).split('T')[0],
+        dayLabel: d.toISOString().split('T')[0] === todayStr ? 'Today' : dayNames[d.getDay()],
+        projectId: s.project_id,
+        projectName: null,
+        routeId: s.route_id,
+        shiftStart: s.shift_start ? String(s.shift_start).slice(0, 5) : null,
+        shiftEnd: s.shift_end ? String(s.shift_end).slice(0, 5) : null,
+      };
+    });
+  }
+
+  // Resolve project names (active, scheduled, and week schedule)
   const allProjectIds = [
     ...new Set([
       ...drivers.map((d) => d.projectId).filter(Boolean),
       ...drivers.map((d) => d.scheduledProjectId).filter(Boolean),
+      ...drivers.flatMap((d) => (d.weekSchedule || []).map((s) => s.projectId)).filter(Boolean),
     ]),
   ] as string[];
   if (allProjectIds.length > 0) {
@@ -114,6 +171,11 @@ export async function getDashboard(orgId: string): Promise<DriverStatus[]> {
       }
       if (driver.scheduledProjectId) {
         driver.scheduledProjectName = projectMap.get(driver.scheduledProjectId) || null;
+      }
+      for (const sched of driver.weekSchedule || []) {
+        if (sched.projectId) {
+          sched.projectName = projectMap.get(sched.projectId) || null;
+        }
       }
     }
   }

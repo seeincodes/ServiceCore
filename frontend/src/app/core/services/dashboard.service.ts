@@ -3,6 +3,16 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
+export interface ScheduleDay {
+  date: string;
+  dayLabel: string;
+  projectId: string | null;
+  projectName: string | null;
+  routeId: string | null;
+  shiftStart: string | null;
+  shiftEnd: string | null;
+}
+
 export interface DriverStatus {
   id: string;
   name: string;
@@ -17,6 +27,7 @@ export interface DriverStatus {
   scheduledRouteId?: string | null;
   scheduledShiftStart?: string | null;
   scheduledShiftEnd?: string | null;
+  weekSchedule?: ScheduleDay[];
 }
 
 export interface DriverDayEntry {

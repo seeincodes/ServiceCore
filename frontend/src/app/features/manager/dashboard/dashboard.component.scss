@@ -441,6 +441,45 @@
   }
 }
 
+.driver-week-schedule {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+
+  .schedule-day {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: $neutral-50;
+    color: $neutral-700;
+
+    &.is-today {
+      background: rgba($primary, 0.1);
+      color: $primary;
+      font-weight: 600;
+    }
+  }
+
+  .schedule-day-label {
+    font-weight: 600;
+    min-width: 32px;
+  }
+
+  .schedule-info {
+    font-weight: 500;
+  }
+
+  .schedule-route,
+  .schedule-shift {
+    color: $neutral-500;
+    font-size: 10px;
+  }
+}
+
 .empty-section {
   text-align: center;
   padding: $spacing-md;

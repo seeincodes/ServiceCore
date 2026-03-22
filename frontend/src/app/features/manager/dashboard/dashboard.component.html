@@ -154,15 +154,22 @@
               >
             </div>
           </div>
-          <div class="driver-schedule" *ngIf="driver.scheduledProjectName">
-            <span class="schedule-tag">Scheduled</span>
-            <span class="schedule-info">{{ driver.scheduledProjectName }}</span>
-            <span class="schedule-route" *ngIf="driver.scheduledRouteId">{{
-              driver.scheduledRouteId
-            }}</span>
-            <span class="schedule-shift" *ngIf="driver.scheduledShiftStart"
-              >{{ driver.scheduledShiftStart }} — {{ driver.scheduledShiftEnd }}</span
+          <div
+            class="driver-week-schedule"
+            *ngIf="driver.weekSchedule && driver.weekSchedule.length > 0"
+          >
+            <div
+              class="schedule-day"
+              *ngFor="let sched of driver.weekSchedule"
+              [class.is-today]="sched.dayLabel === 'Today'"
             >
+              <span class="schedule-day-label">{{ sched.dayLabel }}</span>
+              <span class="schedule-info">{{ sched.projectName || 'Unassigned' }}</span>
+              <span class="schedule-route" *ngIf="sched.routeId">{{ sched.routeId }}</span>
+              <span class="schedule-shift" *ngIf="sched.shiftStart"
+                >{{ sched.shiftStart }} — {{ sched.shiftEnd }}</span
+              >
+            </div>
           </div>
         </div>
       </div>
