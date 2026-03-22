@@ -48,8 +48,57 @@
   padding: $spacing-md;
 }
 
+// Bulk actions
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: rgba($primary, 0.06);
+  border: 1px solid rgba($primary, 0.2);
+  border-radius: 8px;
+}
+
+.bulk-count {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $primary;
+  margin-right: auto;
+}
+
+.select-all-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs 0;
+  font-size: $font-size-sm;
+  color: $neutral-700;
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: $primary;
+  }
+}
+
+.ts-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.ts-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: $primary;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
 .ts-info {
   margin-bottom: $spacing-md;
+  flex: 1;
 }
 
 .ts-name {

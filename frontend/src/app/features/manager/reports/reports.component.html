@@ -79,11 +79,25 @@
     </div>
 
     <!-- Generate / Load button -->
-    <button class="generate-btn" (click)="runReport()" [disabled]="isLoading">
-      {{
-        isLoading ? 'Generating...' : activeTab === 'payroll' ? 'Export Payroll' : 'Generate Report'
-      }}
-    </button>
+    <div class="btn-row">
+      <button class="generate-btn" (click)="runReport()" [disabled]="isLoading">
+        {{
+          isLoading
+            ? 'Generating...'
+            : activeTab === 'payroll'
+              ? 'Export Payroll'
+              : 'Generate Report'
+        }}
+      </button>
+      <button
+        class="export-csv-btn"
+        *ngIf="activeTab !== 'payroll'"
+        (click)="exportCsv()"
+        [disabled]="exportingCsv"
+      >
+        {{ exportingCsv ? 'Exporting...' : 'Export CSV' }}
+      </button>
+    </div>
   </div>
 
   <!-- ==================== PAYROLL RESULTS ==================== -->

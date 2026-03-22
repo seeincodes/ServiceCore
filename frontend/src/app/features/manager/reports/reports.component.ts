@@ -281,7 +281,9 @@ export class ReportsComponent {
     this.http
       .get<{
         data: DriverRow[];
-      }>(`${this.apiUrl}/manager/reports/per-driver?startDate=${this.rangeStart}&endDate=${this.rangeEnd}`)
+      }>(
+        `${this.apiUrl}/manager/reports/per-driver?startDate=${this.rangeStart}&endDate=${this.rangeEnd}`,
+      )
       .subscribe({
         next: (res) => {
           this.driverData = (res.data || []).sort((a, b) => b.totalHours - a.totalHours);
@@ -301,7 +303,9 @@ export class ReportsComponent {
     this.http
       .get<{
         data: ProjectRow[];
-      }>(`${this.apiUrl}/manager/reports/per-project?startDate=${this.rangeStart}&endDate=${this.rangeEnd}`)
+      }>(
+        `${this.apiUrl}/manager/reports/per-project?startDate=${this.rangeStart}&endDate=${this.rangeEnd}`,
+      )
       .subscribe({
         next: (res) => {
           this.projectData = (res.data || []).sort((a, b) => b.totalHours - a.totalHours);
@@ -320,6 +324,50 @@ export class ReportsComponent {
   projectBarWidth(hours: number): number {
     if (!this.maxProjectHours) return 0;
     return Math.round((hours / this.maxProjectHours) * 100);
+  }
+
+  // --- Export CSV ---
+
+  exportingCsv = false;
+
+  exportCsv(): void {
+    this.exportingCsv = true;
+    this.error = null;
+
+    const body = {
+      type: this.activeTab,
+      startDate: this.rangeStart,
+      endDate: this.rangeEnd,
+      format: 'csv',
+    };
+
+    this.http
+      .post(`${this.apiUrl}/manager/reports/export`, body, {
+        responseType: 'blob',
+      })
+      .subscribe({
+        next: (blob) => {
+          this.exportingCsv = false;
+          this.triggerDownload(
+            blob,
+            `${this.activeTab}-${this.rangeStart}-to-${this.rangeEnd}.csv`,
+          );
+        },
+        error: (err) => {
+          this.exportingCsv = false;
+          if (err.error instanceof Blob) {
+            err.error.text().then((text: string) => {
+              try {
+                this.error = JSON.parse(text).error || 'Export failed';
+              } catch {
+                this.error = 'Export failed';
+              }
+            });
+          } else {
+            this.error = err.error?.error || 'Export failed';
+          }
+        },
+      });
   }
 
   // --- Helpers ---

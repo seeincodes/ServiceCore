@@ -36,6 +36,10 @@ export class ApprovalQueueComponent implements OnInit {
   showNotesFor: string | null = null;
   message: { text: string; type: 'success' | 'error' } | null = null;
 
+  // Bulk selection
+  selectedIds = new Set<string>();
+  bulkInProgress = false;
+
   // Revise mode
   reviseTimesheetId: string | null = null;
   reviseEntries: ClockEntry[] = [];
@@ -49,6 +53,67 @@ export class ApprovalQueueComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPending();
+  }
+
+  // Bulk selection methods
+  toggleSelect(tsId: string): void {
+    if (this.selectedIds.has(tsId)) {
+      this.selectedIds.delete(tsId);
+    } else {
+      this.selectedIds.add(tsId);
+    }
+  }
+
+  toggleSelectAll(): void {
+    if (this.selectedIds.size === this.timesheets.length) {
+      this.selectedIds.clear();
+    } else {
+      this.timesheets.forEach((ts) => this.selectedIds.add(ts.id));
+    }
+  }
+
+  get allSelected(): boolean {
+    return this.timesheets.length > 0 && this.selectedIds.size === this.timesheets.length;
+  }
+
+  bulkApprove(): void {
+    if (this.selectedIds.size === 0) return;
+    this.bulkInProgress = true;
+    const ids = Array.from(this.selectedIds);
+    this.http
+      .post<any>(`${environment.apiUrl}/timesheets/bulk-approve`, { ids, action: 'approved' })
+      .subscribe({
+        next: () => {
+          this.timesheets = this.timesheets.filter((t) => !this.selectedIds.has(t.id));
+          this.message = { text: `${ids.length} timesheet(s) approved`, type: 'success' };
+          this.selectedIds.clear();
+          this.bulkInProgress = false;
+        },
+        error: (err) => {
+          this.message = { text: err.error?.error || 'Bulk approve failed', type: 'error' };
+          this.bulkInProgress = false;
+        },
+      });
+  }
+
+  bulkReject(): void {
+    if (this.selectedIds.size === 0) return;
+    this.bulkInProgress = true;
+    const ids = Array.from(this.selectedIds);
+    this.http
+      .post<any>(`${environment.apiUrl}/timesheets/bulk-approve`, { ids, action: 'rejected' })
+      .subscribe({
+        next: () => {
+          this.timesheets = this.timesheets.filter((t) => !this.selectedIds.has(t.id));
+          this.message = { text: `${ids.length} timesheet(s) rejected`, type: 'success' };
+          this.selectedIds.clear();
+          this.bulkInProgress = false;
+        },
+        error: (err) => {
+          this.message = { text: err.error?.error || 'Bulk reject failed', type: 'error' };
+          this.bulkInProgress = false;
+        },
+      });
   }
 
   approve(ts: TimesheetSummary): void {

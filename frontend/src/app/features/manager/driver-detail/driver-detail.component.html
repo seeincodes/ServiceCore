@@ -84,4 +84,79 @@
   <div class="empty" *ngIf="!loading && entries.length === 0">
     {{ 'driverDetail.noEntries' | translate }}
   </div>
+
+  <!-- Performance Section -->
+  <div class="section-toggle">
+    <button class="toggle-btn" (click)="togglePerformance()">
+      {{ showPerformance ? 'Hide Performance' : 'Show Performance' }}
+    </button>
+  </div>
+
+  <div class="performance-section" *ngIf="showPerformance">
+    <h3>Performance (Last 4 Weeks)</h3>
+    <div class="loading" *ngIf="performanceLoading">Loading...</div>
+    <table class="perf-table" *ngIf="!performanceLoading && performanceData.length > 0">
+      <thead>
+        <tr>
+          <th>Week Ending</th>
+          <th>Hours</th>
+          <th>OT</th>
+          <th>Days</th>
+          <th>Avg Start</th>
+          <th>Late Arrivals</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let week of performanceData">
+          <td>{{ week.weekEnding }}</td>
+          <td>{{ week.hours }}h</td>
+          <td>{{ week.otHours }}h</td>
+          <td>{{ week.daysWorked }}</td>
+          <td>{{ week.avgStart }}</td>
+          <td [class.late-highlight]="week.lateArrivals > 0">{{ week.lateArrivals }}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="empty" *ngIf="!performanceLoading && performanceData.length === 0">
+      No performance data available.
+    </div>
+  </div>
+
+  <!-- Notes Section -->
+  <div class="notes-section">
+    <h3>Notes</h3>
+
+    <div class="add-note-form">
+      <textarea
+        [(ngModel)]="newNoteText"
+        placeholder="Add a note about this driver..."
+        rows="2"
+        class="note-textarea"
+      ></textarea>
+      <button
+        class="add-note-btn"
+        (click)="addNote()"
+        [disabled]="addingNote || !newNoteText.trim()"
+      >
+        {{ addingNote ? 'Adding...' : 'Add Note' }}
+      </button>
+    </div>
+
+    <div class="loading" *ngIf="notesLoading">Loading notes...</div>
+
+    <div class="notes-list" *ngIf="!notesLoading">
+      <div class="note-card" *ngFor="let note of notes">
+        <div class="note-body">
+          <div class="note-text">{{ note.text }}</div>
+          <div class="note-meta">
+            <span class="note-author">{{ note.authorName }}</span>
+            <span class="note-date">{{ formatNoteDate(note.createdAt) }}</span>
+          </div>
+        </div>
+        <button class="note-delete" (click)="deleteNote(note.id)">&times;</button>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="!notesLoading && notes.length === 0">No notes yet.</div>
+  </div>
 </div>

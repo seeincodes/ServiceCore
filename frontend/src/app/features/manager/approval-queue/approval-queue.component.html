@@ -18,23 +18,50 @@
   </div>
 
   <div class="ts-list" *ngIf="!loading && timesheets.length > 0">
+    <!-- Bulk action bar -->
+    <div class="bulk-bar" *ngIf="selectedIds.size > 0">
+      <span class="bulk-count">{{ selectedIds.size }} selected</span>
+      <button class="btn btn-approve" (click)="bulkApprove()" [disabled]="bulkInProgress">
+        Approve All
+      </button>
+      <button class="btn btn-reject" (click)="bulkReject()" [disabled]="bulkInProgress">
+        Reject All
+      </button>
+    </div>
+
+    <!-- Select All -->
+    <label class="select-all-row">
+      <input type="checkbox" [checked]="allSelected" (change)="toggleSelectAll()" />
+      <span>Select All</span>
+    </label>
+
     <div
       *ngFor="let ts of timesheets"
       class="ts-card"
       [class.revising]="reviseTimesheetId === ts.id"
     >
-      <div class="ts-info">
-        <span class="ts-name">{{ ts.userName }}</span>
-        <span class="ts-week"
-          >{{ 'approvals.weekEnding' | translate }} {{ formatDate(ts.weekEnding) }}</span
-        >
-        <div class="ts-hours">
-          <span>{{ ts.hoursWorked }}h {{ 'approvals.total' | translate }}</span>
-          <span class="ot" *ngIf="ts.otHours > 0"
-            >{{ ts.otHours }}h {{ 'approvals.ot' | translate }}</span
+      <div class="ts-card-top">
+        <input
+          type="checkbox"
+          class="ts-checkbox"
+          [checked]="selectedIds.has(ts.id)"
+          (change)="toggleSelect(ts.id)"
+          (click)="$event.stopPropagation()"
+        />
+        <div class="ts-info">
+          <span class="ts-name">{{ ts.userName }}</span>
+          <span class="ts-week"
+            >{{ 'approvals.weekEnding' | translate }} {{ formatDate(ts.weekEnding) }}</span
           >
+          <div class="ts-hours">
+            <span>{{ ts.hoursWorked }}h {{ 'approvals.total' | translate }}</span>
+            <span class="ot" *ngIf="ts.otHours > 0"
+              >{{ ts.otHours }}h {{ 'approvals.ot' | translate }}</span
+            >
+          </div>
         </div>
       </div>
+      <!-- end ts-card-top -->
 
       <!-- Actions (when not showing notes or revise panel) -->
       <div class="ts-actions" *ngIf="showNotesFor !== ts.id && reviseTimesheetId !== ts.id">

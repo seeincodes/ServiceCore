@@ -1,0 +1,188 @@
+<div class="schedule-page">
+  <div class="page-header">
+    <h2>Schedule</h2>
+    <div class="week-nav">
+      <button class="nav-btn" (click)="prevWeek()">&larr;</button>
+      <span class="week-label">{{ weekLabel }}</span>
+      <button class="nav-btn" (click)="nextWeek()">&rarr;</button>
+    </div>
+    <button class="template-toggle" (click)="toggleTemplates()">
+      {{ showTemplates ? 'Hide Templates' : 'Templates' }}
+    </button>
+  </div>
+
+  <!-- Templates Section -->
+  <div class="templates-section" *ngIf="showTemplates">
+    <div class="templates-header">
+      <h3>Shift Templates</h3>
+      <button class="add-template-btn" (click)="openAddTemplate()" *ngIf="!showAddTemplate">
+        Add Template
+      </button>
+    </div>
+
+    <!-- Add Template Form -->
+    <div class="template-form" *ngIf="showAddTemplate">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="newTemplate.name" placeholder="Template name" />
+        </div>
+        <div class="form-field">
+          <label>Start</label>
+          <input type="time" [(ngModel)]="newTemplate.shiftStart" />
+        </div>
+        <div class="form-field">
+          <label>End</label>
+          <input type="time" [(ngModel)]="newTemplate.shiftEnd" />
+        </div>
+        <div class="form-field">
+          <label>Project</label>
+          <select [(ngModel)]="newTemplate.projectId">
+            <option value="">-- Select --</option>
+            <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Route</label>
+          <input type="text" [(ngModel)]="newTemplate.routeId" placeholder="Route ID" />
+        </div>
+        <div class="form-field">
+          <label>Color</label>
+          <input type="color" [(ngModel)]="newTemplate.color" />
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-save" (click)="saveNewTemplate()">Save</button>
+        <button class="btn-cancel" (click)="cancelAddTemplate()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Template List -->
+    <div class="template-list">
+      <div class="template-card" *ngFor="let tpl of templates">
+        <ng-container *ngIf="editTemplateId !== tpl.id">
+          <span class="tpl-color" [style.background]="tpl.color"></span>
+          <span class="tpl-name">{{ tpl.name }}</span>
+          <span class="tpl-times">{{ tpl.shiftStart }} - {{ tpl.shiftEnd }}</span>
+          <span class="tpl-project">{{ tpl.projectName || projectName(tpl.projectId) }}</span>
+          <div class="tpl-actions">
+            <button class="tpl-edit" (click)="startEditTemplate(tpl)">Edit</button>
+            <button class="tpl-delete" (click)="deleteTemplate(tpl.id)">&times;</button>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="editTemplateId === tpl.id">
+          <div class="form-row inline">
+            <input type="text" [(ngModel)]="editTemplate.name" class="sm-input" />
+            <input type="time" [(ngModel)]="editTemplate.shiftStart" class="sm-input" />
+            <input type="time" [(ngModel)]="editTemplate.shiftEnd" class="sm-input" />
+            <select [(ngModel)]="editTemplate.projectId" class="sm-input">
+              <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+            </select>
+            <input type="color" [(ngModel)]="editTemplate.color" />
+            <button class="btn-save sm" (click)="saveEditTemplate()">Save</button>
+            <button class="btn-cancel sm" (click)="cancelEditTemplate()">Cancel</button>
+          </div>
+        </ng-container>
+      </div>
+      <div class="empty-templates" *ngIf="!templatesLoading && templates.length === 0">
+        No templates yet.
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Grid -->
+  <div class="loading" *ngIf="loading">Loading schedule...</div>
+
+  <div class="schedule-grid" *ngIf="!loading">
+    <table class="grid-table">
+      <thead>
+        <tr>
+          <th class="driver-col">Driver</th>
+          <th *ngFor="let day of weekDays" class="day-col">{{ dayHeader(day) }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let driver of drivers">
+          <td class="driver-cell">{{ driverName(driver) }}</td>
+          <td
+            *ngFor="let day of weekDays"
+            class="schedule-cell"
+            [style.background]="
+              getEntry(driver.userId, day) ? cellColor(getEntry(driver.userId, day)) + '20' : ''
+            "
+            (click)="onCellClick(driver.userId, day)"
+          >
+            <!-- Display entry -->
+            <div
+              class="cell-content"
+              *ngIf="getEntry(driver.userId, day) && !isEditing(driver.userId, day)"
+            >
+              <span class="cell-project" [style.color]="cellColor(getEntry(driver.userId, day))">
+                {{
+                  getEntry(driver.userId, day)!.projectName ||
+                    getEntry(driver.userId, day)!.projectId
+                }}
+              </span>
+              <span class="cell-times">
+                {{ getEntry(driver.userId, day)!.shiftStart }} -
+                {{ getEntry(driver.userId, day)!.shiftEnd }}
+              </span>
+            </div>
+
+            <div
+              class="cell-empty"
+              *ngIf="!getEntry(driver.userId, day) && !isEditing(driver.userId, day)"
+            >
+              +
+            </div>
+
+            <!-- Edit form (inline dropdown) -->
+            <div
+              class="cell-edit"
+              *ngIf="isEditing(driver.userId, day)"
+              (click)="$event.stopPropagation()"
+            >
+              <div class="edit-mini-form">
+                <select [(ngModel)]="editEntry.projectId" class="mini-select">
+                  <option value="">Project...</option>
+                  <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+                </select>
+                <input
+                  type="text"
+                  [(ngModel)]="editEntry.routeId"
+                  placeholder="Route"
+                  class="mini-input"
+                />
+                <div class="time-row">
+                  <input type="time" [(ngModel)]="editEntry.shiftStart" class="mini-input" />
+                  <input type="time" [(ngModel)]="editEntry.shiftEnd" class="mini-input" />
+                </div>
+                <select
+                  class="mini-select"
+                  (change)="applyTemplate(templates[$any($event.target).selectedIndex - 1])"
+                  *ngIf="templates.length > 0"
+                >
+                  <option>From Template...</option>
+                  <option *ngFor="let tpl of templates">{{ tpl.name }}</option>
+                </select>
+                <div class="mini-actions">
+                  <button class="btn-save sm" (click)="saveSchedule()" [disabled]="saving">
+                    {{ saving ? '...' : 'Save' }}
+                  </button>
+                  <button
+                    class="btn-delete sm"
+                    *ngIf="editMode === 'edit'"
+                    (click)="deleteSchedule()"
+                  >
+                    Delete
+                  </button>
+                  <button class="btn-cancel sm" (click)="cancelEdit()">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

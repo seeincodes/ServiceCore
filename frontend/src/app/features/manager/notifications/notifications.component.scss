@@ -1,0 +1,157 @@
+@use '../../../../styles/variables' as *;
+
+.notifications-page {
+  padding: $spacing-lg;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+}
+
+.unread-badge {
+  background: $primary;
+  color: $white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.mark-all-btn {
+  margin-left: auto;
+  padding: $spacing-sm $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-300;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  color: $neutral-700;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+  }
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.notif-card {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  border-left: 4px solid transparent;
+  transition: border-color 0.15s;
+
+  &.unread {
+    border-left-color: $primary;
+    background: rgba($primary, 0.02);
+  }
+
+  &.read {
+    opacity: 0.7;
+  }
+}
+
+.notif-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+
+  &.icon-success {
+    background: rgba($success, 0.1);
+    color: $success;
+  }
+
+  &.icon-danger {
+    background: rgba($danger, 0.1);
+    color: $danger;
+  }
+
+  &.icon-warning {
+    background: rgba($warning, 0.15);
+    color: darken($warning, 20%);
+  }
+
+  &.icon-primary {
+    background: rgba($primary, 0.1);
+    color: $primary;
+  }
+
+  &.icon-default {
+    background: $neutral-100;
+    color: $neutral-700;
+  }
+}
+
+.notif-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-title {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $neutral-900;
+  margin-bottom: 2px;
+}
+
+.notif-message {
+  font-size: $font-size-sm;
+  color: $neutral-700;
+  margin-bottom: $spacing-xs;
+}
+
+.notif-time {
+  font-size: 12px;
+  color: $neutral-500;
+}
+
+.mark-read-btn {
+  padding: $spacing-xs $spacing-sm;
+  background: rgba($primary, 0.08);
+  color: $primary;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba($primary, 0.15);
+  }
+}

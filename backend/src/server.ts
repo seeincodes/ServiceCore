@@ -26,6 +26,7 @@ import {
 import { sendTimesheetReminders, getReminderType } from './notifications/services/reminder.service';
 import adminRoutes from './auth/routes/admin.routes';
 import routingRoutes from './dispatcher/routes/routing.routes';
+import scheduleRoutes from './time-tracking/routes/schedule.routes';
 
 // Load environment-specific .env file, then fall back to .env
 const env = process.env.NODE_ENV || 'development';
@@ -71,6 +72,7 @@ app.use('/time-off', timeOffRoutes);
 app.use('/dispatcher', dispatcherRoutes);
 app.use('/routes', routingRoutes);
 app.use('/admin', adminRoutes);
+app.use('/manager', scheduleRoutes);
 
 // Start server — run migrations in production only
 // Schedule zero-touch automation jobs

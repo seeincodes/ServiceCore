@@ -166,8 +166,14 @@
   margin: $spacing-xs 0 0;
 }
 
+.btn-row {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
 .generate-btn {
-  width: 100%;
+  flex: 1;
   padding: 14px;
   background: $primary;
   color: $white;
@@ -176,9 +182,27 @@
   font-size: $font-size-base;
   font-weight: 600;
   cursor: pointer;
-  margin-top: $spacing-sm;
   &:hover:not(:disabled) {
     background: $primary-dark;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.export-csv-btn {
+  padding: 14px $spacing-lg;
+  background: $white;
+  color: $primary;
+  border: 1px solid $primary;
+  border-radius: 8px;
+  font-size: $font-size-base;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover:not(:disabled) {
+    background: rgba($primary, 0.05);
   }
   &:disabled {
     opacity: 0.6;

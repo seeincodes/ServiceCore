@@ -173,6 +173,49 @@ router.post(
   },
 );
 
+// POST /timesheets/bulk-approve
+const bulkReviewSchema = z.object({
+  timesheetIds: z.array(z.string()).min(1),
+  action: z.enum(['approved', 'rejected']),
+  notes: z.string().optional(),
+});
+
+router.post(
+  '/bulk-approve',
+  authenticate,
+  authorize('manager', 'org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      const data = bulkReviewSchema.parse(req.body);
+
+      let processed = 0;
+      const errors: string[] = [];
+
+      for (const timesheetId of data.timesheetIds) {
+        try {
+          await timesheetService.reviewTimesheet(
+            user.orgId,
+            timesheetId,
+            user.id,
+            data.action,
+            data.notes,
+          );
+          processed++;
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : 'Unknown error';
+          errors.push(`Timesheet ${timesheetId}: ${msg}`);
+        }
+      }
+
+      sendSuccess(res, { processed, errors });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Bulk approve failed';
+      sendError(res, message, 400);
+    }
+  },
+);
+
 // GET /manager/approvals/pending
 router.get(
   '/approvals/pending',

@@ -146,6 +146,20 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('manager', 'payroll_admin', 'org_admin')],
   },
   {
+    path: 'manager/notifications',
+    loadComponent: () =>
+      import('./features/manager/notifications/notifications.component').then(
+        (m) => m.NotificationsComponent,
+      ),
+    canActivate: [authGuard, roleGuard('manager', 'org_admin')],
+  },
+  {
+    path: 'manager/schedule',
+    loadComponent: () =>
+      import('./features/manager/schedule/schedule.component').then((m) => m.ScheduleComponent),
+    canActivate: [authGuard, roleGuard('manager', 'org_admin')],
+  },
+  {
     path: 'manager/driver/:userId',
     loadComponent: () =>
       import('./features/manager/driver-detail/driver-detail.component').then(

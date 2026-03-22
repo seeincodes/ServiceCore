@@ -7,6 +7,22 @@ import { TranslateModule } from '@ngx-translate/core';
 import { DashboardService, DriverDayEntry } from '../../../core/services/dashboard.service';
 import { environment } from '../../../../environments/environment';
 
+interface PerformanceWeek {
+  weekEnding: string;
+  hours: number;
+  otHours: number;
+  daysWorked: number;
+  avgStart: string;
+  lateArrivals: number;
+}
+
+interface DriverNote {
+  id: string;
+  text: string;
+  authorName: string;
+  createdAt: string;
+}
+
 @Component({
   selector: 'app-driver-detail',
   standalone: true,
@@ -26,6 +42,17 @@ export class DriverDetailComponent implements OnInit {
   saving = false;
   error: string | null = null;
 
+  // Performance
+  performanceData: PerformanceWeek[] = [];
+  performanceLoading = false;
+  showPerformance = false;
+
+  // Notes
+  notes: DriverNote[] = [];
+  notesLoading = false;
+  newNoteText = '';
+  addingNote = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -37,6 +64,7 @@ export class DriverDetailComponent implements OnInit {
     this.userId = this.route.snapshot.paramMap.get('userId') || '';
     this.selectedDate = this.todayString();
     this.loadEntries();
+    this.loadNotes();
   }
 
   goBack(): void {
@@ -92,6 +120,86 @@ export class DriverDetailComponent implements OnInit {
           this.error = err.error?.error || 'Failed to save entry';
         },
       });
+  }
+
+  // Performance
+  togglePerformance(): void {
+    this.showPerformance = !this.showPerformance;
+    if (this.showPerformance && this.performanceData.length === 0) {
+      this.loadPerformance();
+    }
+  }
+
+  private loadPerformance(): void {
+    this.performanceLoading = true;
+    this.http
+      .get<{
+        data: PerformanceWeek[];
+      }>(`${environment.apiUrl}/manager/driver/${this.userId}/performance?weeks=4`)
+      .subscribe({
+        next: (res) => {
+          this.performanceData = res.data || [];
+          this.performanceLoading = false;
+        },
+        error: () => {
+          this.performanceLoading = false;
+        },
+      });
+  }
+
+  // Notes
+  loadNotes(): void {
+    this.notesLoading = true;
+    this.http
+      .get<{ data: DriverNote[] }>(`${environment.apiUrl}/manager/driver/${this.userId}/notes`)
+      .subscribe({
+        next: (res) => {
+          this.notes = res.data || [];
+          this.notesLoading = false;
+        },
+        error: () => {
+          this.notesLoading = false;
+        },
+      });
+  }
+
+  addNote(): void {
+    if (!this.newNoteText.trim()) return;
+    this.addingNote = true;
+    this.http
+      .post<{ data: DriverNote }>(`${environment.apiUrl}/manager/driver/${this.userId}/notes`, {
+        text: this.newNoteText,
+      })
+      .subscribe({
+        next: (res) => {
+          if (res.data) {
+            this.notes.unshift(res.data);
+          }
+          this.newNoteText = '';
+          this.addingNote = false;
+        },
+        error: () => {
+          this.addingNote = false;
+        },
+      });
+  }
+
+  deleteNote(noteId: string): void {
+    this.http
+      .delete(`${environment.apiUrl}/manager/driver/${this.userId}/notes/${noteId}`)
+      .subscribe({
+        next: () => {
+          this.notes = this.notes.filter((n) => n.id !== noteId);
+        },
+      });
+  }
+
+  formatNoteDate(iso: string): string {
+    return new Date(iso).toLocaleDateString([], {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   }
 
   sourceClass(source: string): string {
