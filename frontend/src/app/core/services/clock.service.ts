@@ -11,6 +11,12 @@ export interface ClockStatus {
   todayHours?: number;
   routeId?: string;
   projectId?: string;
+  scheduledProjectId?: string;
+  scheduledProjectName?: string;
+  scheduledRouteId?: string;
+  scheduledShiftStart?: string;
+  scheduledShiftEnd?: string;
+  scheduledNotes?: string;
 }
 
 export interface ClockInResponse {

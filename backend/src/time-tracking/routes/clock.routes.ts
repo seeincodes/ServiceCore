@@ -80,6 +80,41 @@ router.get('/status', authenticate, async (req: Request, res: Response) => {
 
     const todayHours = await getTodayHours(user.orgId, user.id);
 
+    // Fetch today's schedule assignment so driver sees their scheduled project/route
+    const today = new Date().toISOString().split('T')[0];
+    const schedule = await db('schedules')
+      .leftJoin('projects', 'schedules.project_id', 'projects.id')
+      .where({
+        'schedules.org_id': user.orgId,
+        'schedules.user_id': user.id,
+        'schedules.date': today,
+      })
+      .select(
+        'schedules.project_id',
+        'projects.name as project_name',
+        'projects.code as project_code',
+        'schedules.route_id',
+        'schedules.shift_start',
+        'schedules.shift_end',
+        'schedules.notes',
+      )
+      .first();
+
+    const scheduleInfo = schedule
+      ? {
+          scheduledProjectId: schedule.project_id,
+          scheduledProjectName: schedule.project_name
+            ? `${schedule.project_code} — ${schedule.project_name}`
+            : null,
+          scheduledRouteId: schedule.route_id,
+          scheduledShiftStart: schedule.shift_start
+            ? String(schedule.shift_start).slice(0, 5)
+            : null,
+          scheduledShiftEnd: schedule.shift_end ? String(schedule.shift_end).slice(0, 5) : null,
+          scheduledNotes: schedule.notes,
+        }
+      : {};
+
     if (entry) {
       const elapsed = (Date.now() - new Date(entry.clock_in).getTime()) / (1000 * 60 * 60);
       sendSuccess(res, {
@@ -90,15 +125,72 @@ router.get('/status', authenticate, async (req: Request, res: Response) => {
         todayHours: Math.round((todayHours + elapsed) * 100) / 100,
         routeId: entry.route_id,
         projectId: entry.project_id,
+        ...scheduleInfo,
       });
     } else {
       sendSuccess(res, {
         clockedIn: false,
         todayHours: Math.round(todayHours * 100) / 100,
+        ...scheduleInfo,
       });
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Status check failed';
+    sendError(res, message);
+  }
+});
+
+// GET /timesheets/my-schedule — driver's schedule for the current week
+router.get('/my-schedule', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const now = new Date();
+    const weekStart = new Date(now);
+    const day = weekStart.getDay();
+    const diff = day === 0 ? 6 : day - 1;
+    weekStart.setDate(now.getDate() - diff);
+    weekStart.setHours(0, 0, 0, 0);
+
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    const schedules = await db('schedules')
+      .leftJoin('projects', 'schedules.project_id', 'projects.id')
+      .where({ 'schedules.org_id': user.orgId, 'schedules.user_id': user.id })
+      .where('schedules.date', '>=', weekStart.toISOString().split('T')[0])
+      .where('schedules.date', '<=', weekEnd.toISOString().split('T')[0])
+      .select(
+        'schedules.id',
+        'schedules.date',
+        'schedules.project_id',
+        'projects.name as project_name',
+        'projects.code as project_code',
+        'projects.color as project_color',
+        'schedules.route_id',
+        'schedules.shift_start',
+        'schedules.shift_end',
+        'schedules.notes',
+      )
+      .orderBy('schedules.date');
+
+    sendSuccess(res, {
+      schedules: schedules.map((s: any) => ({
+        id: s.id,
+        date:
+          typeof s.date === 'string'
+            ? s.date.split('T')[0]
+            : new Date(s.date).toISOString().split('T')[0],
+        projectId: s.project_id,
+        projectName: s.project_name ? `${s.project_code} — ${s.project_name}` : null,
+        projectColor: s.project_color,
+        routeId: s.route_id,
+        shiftStart: s.shift_start ? String(s.shift_start).slice(0, 5) : null,
+        shiftEnd: s.shift_end ? String(s.shift_end).slice(0, 5) : null,
+        notes: s.notes,
+      })),
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to load schedule';
     sendError(res, message);
   }
 });

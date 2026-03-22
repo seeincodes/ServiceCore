@@ -33,8 +33,8 @@ export interface ClockOutResult {
 }
 
 export async function clockIn(params: ClockInParams): Promise<ClockInResult> {
-  const { orgId, userId, projectId, routeId, locationLat, locationLon, source, idempotencyKey } =
-    params;
+  const { orgId, userId, locationLat, locationLon, source, idempotencyKey } = params;
+  let { projectId, routeId } = params;
 
   // Deduplication: check idempotency key
   if (idempotencyKey) {
@@ -62,6 +62,18 @@ export async function clockIn(params: ClockInParams): Promise<ClockInResult> {
 
   if (openEntry) {
     throw new Error('Already clocked in. Please clock out first.');
+  }
+
+  // Auto-fill project/route from today's schedule if not specified by the driver
+  if (!projectId || !routeId) {
+    const today = new Date().toISOString().split('T')[0];
+    const schedule = await db('schedules')
+      .where({ org_id: orgId, user_id: userId, date: today })
+      .first();
+    if (schedule) {
+      if (!projectId && schedule.project_id) projectId = schedule.project_id;
+      if (!routeId && schedule.route_id) routeId = schedule.route_id;
+    }
   }
 
   // 16-hour safety check: total hours today

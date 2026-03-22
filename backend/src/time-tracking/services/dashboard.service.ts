@@ -9,6 +9,11 @@ export interface DriverStatus {
   projectId: string | null;
   projectName: string | null;
   lastUpdate: string;
+  scheduledProjectId?: string | null;
+  scheduledProjectName?: string | null;
+  scheduledRouteId?: string | null;
+  scheduledShiftStart?: string | null;
+  scheduledShiftEnd?: string | null;
 }
 
 export interface DriverDayDetail {
@@ -76,14 +81,39 @@ export async function getDashboard(orgId: string): Promise<DriverStatus[]> {
     });
   }
 
-  // Resolve project names
-  const projectIds = [...new Set(drivers.map((d) => d.projectId).filter(Boolean))] as string[];
-  if (projectIds.length > 0) {
-    const projects = await db('projects').whereIn('id', projectIds).select('id', 'name', 'code');
+  // Look up today's schedule for all employees
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todaySchedules = await db('schedules')
+    .where({ org_id: orgId, date: todayStr })
+    .select('user_id', 'project_id', 'route_id', 'shift_start', 'shift_end');
+  const scheduleMap = new Map(todaySchedules.map((s: any) => [s.user_id, s]));
+
+  for (const driver of drivers) {
+    const sched = scheduleMap.get(driver.id);
+    if (sched) {
+      driver.scheduledProjectId = sched.project_id;
+      driver.scheduledRouteId = sched.route_id;
+      driver.scheduledShiftStart = sched.shift_start ? String(sched.shift_start).slice(0, 5) : null;
+      driver.scheduledShiftEnd = sched.shift_end ? String(sched.shift_end).slice(0, 5) : null;
+    }
+  }
+
+  // Resolve project names (both active and scheduled)
+  const allProjectIds = [
+    ...new Set([
+      ...drivers.map((d) => d.projectId).filter(Boolean),
+      ...drivers.map((d) => d.scheduledProjectId).filter(Boolean),
+    ]),
+  ] as string[];
+  if (allProjectIds.length > 0) {
+    const projects = await db('projects').whereIn('id', allProjectIds).select('id', 'name', 'code');
     const projectMap = new Map(projects.map((p: any) => [p.id, `${p.code} — ${p.name}`]));
     for (const driver of drivers) {
       if (driver.projectId) {
         driver.projectName = projectMap.get(driver.projectId) || null;
+      }
+      if (driver.scheduledProjectId) {
+        driver.scheduledProjectName = projectMap.get(driver.scheduledProjectId) || null;
       }
     }
   }

@@ -73,6 +73,7 @@ describe('clock.service', () => {
       let call = 0;
       mockDb.mockImplementation(() => {
         call += 1;
+        // call 1: check for open entry
         if (call === 1) {
           return {
             where: jest.fn().mockReturnThis(),
@@ -80,7 +81,15 @@ describe('clock.service', () => {
             first: jest.fn().mockResolvedValue(undefined),
           };
         }
+        // call 2: schedule lookup (auto-fill project/route)
         if (call === 2) {
+          return {
+            where: jest.fn().mockReturnThis(),
+            first: jest.fn().mockResolvedValue(undefined),
+          };
+        }
+        // call 3: getTodayHours — completed entries
+        if (call === 3) {
           return makeThenableArray(closedEntries);
         }
         return {};
@@ -96,6 +105,7 @@ describe('clock.service', () => {
       let call = 0;
       mockDb.mockImplementation(() => {
         call += 1;
+        // call 1: check for open entry
         if (call === 1) {
           return {
             where: jest.fn().mockReturnThis(),
@@ -103,9 +113,11 @@ describe('clock.service', () => {
             first: jest.fn().mockResolvedValue(undefined),
           };
         }
+        // call 2: getTodayHours (schedule lookup skipped — both projectId & routeId provided)
         if (call === 2) {
           return makeThenableArray([]);
         }
+        // call 3: insert clock entry
         if (call === 3) {
           return {
             insert: jest.fn().mockReturnValue({

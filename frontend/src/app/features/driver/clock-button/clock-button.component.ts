@@ -79,6 +79,12 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   activeProjectName = '';
   activeRouteName = '';
 
+  // Schedule assignment from manager
+  scheduledProjectName = '';
+  scheduledShiftStart = '';
+  scheduledShiftEnd = '';
+  scheduledNotes = '';
+
   // Shift dashboard
   routeStops: RouteStop[] = [];
   completedStops = 0;
@@ -409,6 +415,30 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           this.status = res.data;
           this.todayHoursBase = res.data.todayHours ?? 0;
           this.todayHoursNum = this.todayHoursBase;
+
+          // Populate schedule info from today's assignment
+          this.scheduledProjectName = res.data.scheduledProjectName || '';
+          this.scheduledShiftStart = res.data.scheduledShiftStart || '';
+          this.scheduledShiftEnd = res.data.scheduledShiftEnd || '';
+          this.scheduledNotes = res.data.scheduledNotes || '';
+
+          // Auto-select scheduled project/route if driver hasn't picked one yet
+          if (!this.status.clockedIn) {
+            if (res.data.scheduledProjectId && !this.selectedProjectId) {
+              this.selectedProjectId = res.data.scheduledProjectId;
+              // Also filter routes to match the scheduled project
+              this.filteredRoutes = this.availableRoutes.filter(
+                (r) =>
+                  r.projectId === res.data.scheduledProjectId ||
+                  r.projectCode ===
+                    this.projects.find((p) => p.id === res.data.scheduledProjectId)?.code,
+              );
+            }
+            if (res.data.scheduledRouteId && !this.selectedRouteId) {
+              this.selectedRouteId = res.data.scheduledRouteId;
+            }
+          }
+
           if (this.status.clockedIn) {
             this.startTimer();
             this.loadRouteDetails();

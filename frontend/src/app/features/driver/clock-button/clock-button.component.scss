@@ -60,6 +60,47 @@
   margin-bottom: $spacing-xs;
 }
 
+// Schedule assignment banner
+.schedule-banner {
+  background: rgba($primary, 0.06);
+  border: 1px solid rgba($primary, 0.2);
+  border-radius: 12px;
+  padding: $spacing-md;
+
+  .schedule-header {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: $primary;
+    margin-bottom: $spacing-xs;
+  }
+
+  .schedule-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .schedule-project {
+    font-weight: 600;
+    font-size: 1rem;
+    color: $neutral-900;
+  }
+
+  .schedule-route,
+  .schedule-time {
+    font-size: 0.875rem;
+    color: $neutral-700;
+  }
+
+  .schedule-notes {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: $neutral-700;
+  }
+}
+
 // Status card
 .status-card {
   background: $white;

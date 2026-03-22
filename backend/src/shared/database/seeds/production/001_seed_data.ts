@@ -418,13 +418,14 @@ export async function seed(knex: Knex): Promise<void> {
     day.setDate(day.getDate() - dayOffset);
     const dayOfWeek = day.getDay();
 
-    if (dayOfWeek === 0) continue;
-    const isSaturday = dayOfWeek === 6;
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    // Org 1 drivers — weekdays only
-    if (!isSaturday) {
+    // Org 1 drivers — all 7 days, lighter weekend crews
+    {
       for (let dIdx = 0; dIdx < org1Drivers.length; dIdx++) {
         const driver = org1Drivers[dIdx];
+        // On weekends, only 3-4 drivers work
+        if (isWeekend && dIdx >= 4) continue;
         if (dIdx >= 2 && Math.random() < 0.1) continue;
 
         const startHour = 5 + Math.floor(Math.random() * 3);
@@ -499,12 +500,12 @@ export async function seed(knex: Knex): Promise<void> {
     }
 
     // Org 2 drivers — California OT, includes some Saturdays
-    if (!isSaturday || Math.random() < 0.3) {
+    if (!isWeekend || Math.random() < 0.3) {
       for (const driver of org2Drivers) {
-        if (isSaturday && Math.random() < 0.5) continue;
+        if (isWeekend && Math.random() < 0.5) continue;
 
         const startHour = 5 + Math.floor(Math.random() * 2);
-        const workHours = isSaturday ? 4 + Math.random() * 3 : 8 + Math.random() * 4;
+        const workHours = isWeekend ? 4 + Math.random() * 3 : 8 + Math.random() * 4;
         const routeId = routes[Math.floor(Math.random() * routes.length)];
 
         const clockIn = new Date(day);
@@ -525,7 +526,7 @@ export async function seed(knex: Knex): Promise<void> {
     }
 
     // Org 3 drivers — small shop, weekdays only
-    if (!isSaturday) {
+    if (!isWeekend) {
       for (const driver of org3Drivers) {
         if (Math.random() < 0.08) continue;
         const workHours = 6 + Math.random() * 2.5;
@@ -958,7 +959,63 @@ export async function seed(knex: Knex): Promise<void> {
         org1Templates[1],
       ];
 
+      // Weekend schedules — drivers can work any day of the week
+      const weekendSchedules = [
+        // Saturday
+        {
+          driver: org1Drivers[0],
+          template: org1Templates[0],
+          route: 'RES-01',
+          dayOffset: 5,
+          notes: 'Saturday crew',
+        },
+        {
+          driver: org1Drivers[2],
+          template: org1Templates[2],
+          route: 'RCY-01',
+          dayOffset: 5,
+          notes: 'Saturday crew',
+        },
+        {
+          driver: org1Drivers[4],
+          template: org1Templates[3],
+          route: 'BLK-01',
+          dayOffset: 5,
+          notes: 'Saturday crew',
+        },
+        {
+          driver: org1Drivers[5],
+          template: org1Templates[4],
+          route: 'YRD-01',
+          dayOffset: 5,
+          notes: 'Saturday crew',
+        },
+        // Sunday
+        {
+          driver: org1Drivers[1],
+          template: org1Templates[1],
+          route: 'COM-01',
+          dayOffset: 6,
+          notes: 'Sunday crew',
+        },
+        {
+          driver: org1Drivers[3],
+          template: org1Templates[0],
+          route: 'RES-02',
+          dayOffset: 6,
+          notes: 'Sunday crew',
+        },
+        {
+          driver: org1Drivers[5],
+          template: org1Templates[4],
+          route: 'YRD-01',
+          dayOffset: 6,
+          notes: 'Sunday crew',
+        },
+      ];
+
       for (const monday of [thisMonday, nextMonday]) {
+        // Mon-Fri schedules
         for (let dayOff = 0; dayOff < 5; dayOff++) {
           const schedDate = new Date(monday);
           schedDate.setDate(schedDate.getDate() + dayOff);
@@ -995,6 +1052,25 @@ export async function seed(knex: Knex): Promise<void> {
             });
           }
         }
+
+        // Weekend schedules (Sat = +5, Sun = +6 from Monday)
+        for (const ws of weekendSchedules) {
+          const schedDate = new Date(monday);
+          schedDate.setDate(schedDate.getDate() + ws.dayOffset);
+          const dateStr = schedDate.toISOString().split('T')[0];
+
+          await knex('schedules').insert({
+            org_id: org1.id,
+            user_id: ws.driver.id,
+            date: dateStr,
+            project_id: ws.template.project_id,
+            route_id: ws.route,
+            shift_start: ws.template.shift_start,
+            shift_end: ws.template.shift_end,
+            template_id: ws.template.id,
+            notes: ws.notes,
+          });
+        }
       }
     }
   }
@@ -1030,14 +1106,34 @@ export async function seed(knex: Knex): Promise<void> {
   }
 
   // ============================================================
-  // LIVE DEMO DATA — Active clock entries right now
+  // LIVE DEMO DATA — Active clock entries matching schedule for current day
   // ============================================================
-  const demoStartTimes = [
-    { driver: org1Drivers[0], hoursAgo: 3.5, route: 'RES-01', project: 'RES-PICKUP' },
-    { driver: org1Drivers[1], hoursAgo: 2.0, route: 'COM-01', project: 'COM-PICKUP' },
-    { driver: org1Drivers[2], hoursAgo: 4.0, route: 'RCY-01', project: 'RECYCLING' },
-    { driver: org1Drivers[4], hoursAgo: 1.5, route: 'BLK-01', project: 'BULK-WASTE' },
-  ];
+  const currentDayOfWeek = now.getDay(); // 0=Sun, 6=Sat
+
+  let demoStartTimes: { driver: any; hoursAgo: number; route: string; project: string }[];
+
+  if (currentDayOfWeek === 6) {
+    // Saturday crew
+    demoStartTimes = [
+      { driver: org1Drivers[0], hoursAgo: 3.5, route: 'RES-01', project: 'RES-PICKUP' },
+      { driver: org1Drivers[2], hoursAgo: 4.0, route: 'RCY-01', project: 'RECYCLING' },
+      { driver: org1Drivers[4], hoursAgo: 1.5, route: 'BLK-01', project: 'BULK-WASTE' },
+    ];
+  } else if (currentDayOfWeek === 0) {
+    // Sunday crew
+    demoStartTimes = [
+      { driver: org1Drivers[1], hoursAgo: 2.0, route: 'COM-01', project: 'COM-PICKUP' },
+      { driver: org1Drivers[3], hoursAgo: 3.0, route: 'RES-02', project: 'RES-PICKUP' },
+    ];
+  } else {
+    // Weekday crew
+    demoStartTimes = [
+      { driver: org1Drivers[0], hoursAgo: 3.5, route: 'RES-01', project: 'RES-PICKUP' },
+      { driver: org1Drivers[1], hoursAgo: 2.0, route: 'COM-01', project: 'COM-PICKUP' },
+      { driver: org1Drivers[2], hoursAgo: 4.0, route: 'RCY-01', project: 'RECYCLING' },
+      { driver: org1Drivers[4], hoursAgo: 1.5, route: 'BLK-01', project: 'BULK-WASTE' },
+    ];
+  }
 
   for (const demo of demoStartTimes) {
     const clockIn = new Date(now.getTime() - demo.hoursAgo * 3600000);

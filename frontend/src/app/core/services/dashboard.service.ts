@@ -12,6 +12,11 @@ export interface DriverStatus {
   projectId: string | null;
   projectName: string | null;
   lastUpdate: string;
+  scheduledProjectId?: string | null;
+  scheduledProjectName?: string | null;
+  scheduledRouteId?: string | null;
+  scheduledShiftStart?: string | null;
+  scheduledShiftEnd?: string | null;
 }
 
 export interface DriverDayEntry {

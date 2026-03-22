@@ -154,6 +154,16 @@
               >
             </div>
           </div>
+          <div class="driver-schedule" *ngIf="driver.scheduledProjectName">
+            <span class="schedule-tag">Scheduled</span>
+            <span class="schedule-info">{{ driver.scheduledProjectName }}</span>
+            <span class="schedule-route" *ngIf="driver.scheduledRouteId">{{
+              driver.scheduledRouteId
+            }}</span>
+            <span class="schedule-shift" *ngIf="driver.scheduledShiftStart"
+              >{{ driver.scheduledShiftStart }} — {{ driver.scheduledShiftEnd }}</span
+            >
+          </div>
         </div>
       </div>
 

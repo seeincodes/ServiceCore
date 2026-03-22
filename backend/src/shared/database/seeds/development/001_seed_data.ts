@@ -355,14 +355,16 @@ export async function seed(knex: Knex): Promise<void> {
     day.setDate(day.getDate() - dayOffset);
     const dayOfWeek = day.getDay();
 
-    // Skip Sundays; some Saturday work for org2
-    if (dayOfWeek === 0) continue;
-    const isSaturday = dayOfWeek === 6;
+    // Drivers can work any day of the week
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    // Org 1 drivers — weekdays only, some multi-shift days
-    if (!isSaturday) {
+    // Org 1 drivers — all 7 days, lighter weekend crews
+    {
       for (let dIdx = 0; dIdx < org1Drivers.length; dIdx++) {
         const driver = org1Drivers[dIdx];
+
+        // On weekends, only 4 of 6 drivers work
+        if (isWeekend && dIdx >= 4) continue;
 
         // 10% chance a driver is absent (except first 2 drivers who are always present)
         if (dIdx >= 2 && Math.random() < 0.1) continue;
@@ -444,12 +446,12 @@ export async function seed(knex: Knex): Promise<void> {
     }
 
     // Org 2 drivers — California OT, includes some Saturdays
-    if (!isSaturday || Math.random() < 0.3) {
+    if (!isWeekend || Math.random() < 0.3) {
       for (const driver of org2Drivers) {
-        if (isSaturday && Math.random() < 0.5) continue; // half show up on Saturday
+        if (isWeekend && Math.random() < 0.5) continue; // half show up on Saturday
 
         const startHour = 5 + Math.floor(Math.random() * 2);
-        const workHours = isSaturday
+        const workHours = isWeekend
           ? 4 + Math.random() * 3 // 4-7h on Saturday
           : 8 + Math.random() * 4; // 8-12h weekdays (CA OT territory)
         const routeId = routes[Math.floor(Math.random() * routes.length)];
@@ -472,7 +474,7 @@ export async function seed(knex: Knex): Promise<void> {
     }
 
     // Org 3 drivers — small shop, weekdays only
-    if (!isSaturday) {
+    if (!isWeekend) {
       for (const driver of org3Drivers) {
         if (Math.random() < 0.08) continue; // occasional absence
         const workHours = 6 + Math.random() * 2.5;
@@ -988,9 +990,66 @@ export async function seed(knex: Knex): Promise<void> {
         org1Templates[1], // Fri: Commercial (fill-in)
       ];
 
+      // Weekend drivers — drivers can work any day of the week
+      // Saturday crew: John (residential), Bob (recycling), Tom (bulk), Sam (yard)
+      // Sunday crew: Jane (commercial), Alice (residential), Sam (yard)
+      const weekendSchedules = [
+        // Saturday
+        {
+          driver: org1Drivers[0],
+          template: org1Templates[0],
+          route: 'RES-01',
+          dayOffset: 5,
+          notes: 'Saturday crew',
+        },
+        {
+          driver: org1Drivers[2],
+          template: org1Templates[2],
+          route: 'RCY-01',
+          dayOffset: 5,
+          notes: 'Saturday crew',
+        },
+        {
+          driver: org1Drivers[4],
+          template: org1Templates[3],
+          route: 'BLK-01',
+          dayOffset: 5,
+          notes: 'Saturday crew',
+        },
+        {
+          driver: org1Drivers[5],
+          template: org1Templates[4],
+          route: 'YRD-01',
+          dayOffset: 5,
+          notes: 'Saturday crew',
+        },
+        // Sunday
+        {
+          driver: org1Drivers[1],
+          template: org1Templates[1],
+          route: 'COM-01',
+          dayOffset: 6,
+          notes: 'Sunday crew',
+        },
+        {
+          driver: org1Drivers[3],
+          template: org1Templates[0],
+          route: 'RES-02',
+          dayOffset: 6,
+          notes: 'Sunday crew',
+        },
+        {
+          driver: org1Drivers[5],
+          template: org1Templates[4],
+          route: 'YRD-01',
+          dayOffset: 6,
+          notes: 'Sunday crew',
+        },
+      ];
+
       for (const monday of [thisMonday, nextMonday]) {
+        // Mon-Fri schedules
         for (let dayOff = 0; dayOff < 5; dayOff++) {
-          // Mon-Fri
           const schedDate = new Date(monday);
           schedDate.setDate(schedDate.getDate() + dayOff);
           const dateStr = schedDate.toISOString().split('T')[0];
@@ -1029,6 +1088,25 @@ export async function seed(knex: Knex): Promise<void> {
               notes,
             });
           }
+        }
+
+        // Weekend schedules (Sat = +5, Sun = +6 from Monday)
+        for (const ws of weekendSchedules) {
+          const schedDate = new Date(monday);
+          schedDate.setDate(schedDate.getDate() + ws.dayOffset);
+          const dateStr = schedDate.toISOString().split('T')[0];
+
+          await knex('schedules').insert({
+            org_id: org1.id,
+            user_id: ws.driver.id,
+            date: dateStr,
+            project_id: ws.template.project_id,
+            route_id: ws.route,
+            shift_start: ws.template.shift_start,
+            shift_end: ws.template.shift_end,
+            template_id: ws.template.id,
+            notes: ws.notes,
+          });
         }
       }
     }
@@ -1082,17 +1160,37 @@ export async function seed(knex: Knex): Promise<void> {
 
   // ============================================================
   // LIVE DEMO DATA — Active clock entries right now
-  // Always creates some clocked-in drivers regardless of day/time
+  // Creates clocked-in drivers matching the schedule for the current day
   // ============================================================
+  const currentDayOfWeek = now.getDay(); // 0=Sun, 6=Sat
 
-  // 4 of 6 drivers are currently clocked in (2 are "off today" for demo contrast)
-  const demoStartTimes = [
-    { driver: org1Drivers[0], hoursAgo: 3.5, route: 'RES-01', project: 'RES-PICKUP' }, // John — 3.5h into shift
-    { driver: org1Drivers[1], hoursAgo: 2.0, route: 'COM-01', project: 'COM-PICKUP' }, // Jane — 2h into shift
-    { driver: org1Drivers[2], hoursAgo: 4.0, route: 'RCY-01', project: 'RECYCLING' }, // Bob — 4h into shift
-    { driver: org1Drivers[4], hoursAgo: 1.5, route: 'BLK-01', project: 'BULK-WASTE' }, // Tom — 1.5h into shift
-  ];
-  // Alice (org1Drivers[3]) and Sam (org1Drivers[5]) are "off today" for demo
+  // Weekday crew (Mon-Fri): John, Jane, Bob, Tom clocked in; Alice & Sam off
+  // Saturday crew: John, Bob, Tom clocked in
+  // Sunday crew: Jane, Alice clocked in
+  let demoStartTimes: { driver: any; hoursAgo: number; route: string; project: string }[];
+
+  if (currentDayOfWeek === 6) {
+    // Saturday
+    demoStartTimes = [
+      { driver: org1Drivers[0], hoursAgo: 3.5, route: 'RES-01', project: 'RES-PICKUP' }, // John
+      { driver: org1Drivers[2], hoursAgo: 4.0, route: 'RCY-01', project: 'RECYCLING' }, // Bob
+      { driver: org1Drivers[4], hoursAgo: 1.5, route: 'BLK-01', project: 'BULK-WASTE' }, // Tom
+    ];
+  } else if (currentDayOfWeek === 0) {
+    // Sunday
+    demoStartTimes = [
+      { driver: org1Drivers[1], hoursAgo: 2.0, route: 'COM-01', project: 'COM-PICKUP' }, // Jane
+      { driver: org1Drivers[3], hoursAgo: 3.0, route: 'RES-02', project: 'RES-PICKUP' }, // Alice
+    ];
+  } else {
+    // Weekdays
+    demoStartTimes = [
+      { driver: org1Drivers[0], hoursAgo: 3.5, route: 'RES-01', project: 'RES-PICKUP' }, // John
+      { driver: org1Drivers[1], hoursAgo: 2.0, route: 'COM-01', project: 'COM-PICKUP' }, // Jane
+      { driver: org1Drivers[2], hoursAgo: 4.0, route: 'RCY-01', project: 'RECYCLING' }, // Bob
+      { driver: org1Drivers[4], hoursAgo: 1.5, route: 'BLK-01', project: 'BULK-WASTE' }, // Tom
+    ];
+  }
 
   for (const demo of demoStartTimes) {
     const clockIn = new Date(now.getTime() - demo.hoursAgo * 3600000);
@@ -1110,22 +1208,24 @@ export async function seed(knex: Knex): Promise<void> {
     });
   }
 
-  // Also create a completed earlier shift for Alice today (she worked the morning)
-  const aliceMorningIn = new Date(now);
-  aliceMorningIn.setHours(6, 0, 0, 0);
-  const aliceMorningOut = new Date(now);
-  aliceMorningOut.setHours(10, 30, 0, 0);
-  if (aliceMorningOut < now) {
-    await knex('clock_entries').insert({
-      org_id: org1.id,
-      user_id: org1Drivers[3].id,
-      clock_in: aliceMorningIn,
-      clock_out: aliceMorningOut,
-      route_id: 'RES-02',
-      project_id: org1ProjectMap.get('RES-PICKUP'),
-      source: 'app',
-      synced_at: aliceMorningIn,
-    });
+  // Also create a completed earlier shift for Alice on weekdays (she worked the morning)
+  if (currentDayOfWeek >= 1 && currentDayOfWeek <= 5) {
+    const aliceMorningIn = new Date(now);
+    aliceMorningIn.setHours(6, 0, 0, 0);
+    const aliceMorningOut = new Date(now);
+    aliceMorningOut.setHours(10, 30, 0, 0);
+    if (aliceMorningOut < now) {
+      await knex('clock_entries').insert({
+        org_id: org1.id,
+        user_id: org1Drivers[3].id,
+        clock_in: aliceMorningIn,
+        clock_out: aliceMorningOut,
+        route_id: 'RES-02',
+        project_id: org1ProjectMap.get('RES-PICKUP'),
+        source: 'app',
+        synced_at: aliceMorningIn,
+      });
+    }
   }
 
   // Org 2: 2 of 3 drivers clocked in

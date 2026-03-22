@@ -64,6 +64,21 @@
       </div>
     </div>
 
+    <!-- Today's schedule assignment from manager -->
+    <div class="schedule-banner" *ngIf="scheduledProjectName && !onBreak">
+      <div class="schedule-header">Today's Assignment</div>
+      <div class="schedule-detail">
+        <span class="schedule-project">{{ scheduledProjectName }}</span>
+        <span class="schedule-route" *ngIf="status.scheduledRouteId"
+          >Route: {{ status.scheduledRouteId }}</span
+        >
+        <span class="schedule-time" *ngIf="scheduledShiftStart">
+          {{ scheduledShiftStart }} — {{ scheduledShiftEnd }}
+        </span>
+        <span class="schedule-notes" *ngIf="scheduledNotes">{{ scheduledNotes }}</span>
+      </div>
+    </div>
+
     <!-- Project picker (before clock-in) -->
     <div class="route-picker" *ngIf="!onBreak && projects.length > 0">
       <label class="picker-label">{{ 'clock.selectProject' | translate }}</label>
