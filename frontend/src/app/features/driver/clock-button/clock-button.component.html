@@ -147,6 +147,14 @@
         <span class="status-text">{{ 'clock.statusIn' | translate }}</span>
       </div>
 
+      <!-- OT warning -->
+      <div class="ot-banner" *ngIf="weekHoursTotal >= 38">
+        <span *ngIf="weekHoursTotal >= 40">{{ 'clock.otExceeded' | translate }}</span>
+        <span *ngIf="weekHoursTotal >= 38 && weekHoursTotal < 40">{{
+          'clock.otApproaching' | translate
+        }}</span>
+      </div>
+
       <!-- Today's running total (always visible) -->
       <div class="day-total">
         <span class="day-total-value">{{ todayHoursNum | hoursDisplay }}</span>

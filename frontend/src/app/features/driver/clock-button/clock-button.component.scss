@@ -48,6 +48,18 @@
   }
 }
 
+// OT banner
+.ot-banner {
+  background: rgba(#f57c00, 0.1);
+  color: #e65100;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: $spacing-xs;
+}
+
 // Status card
 .status-card {
   background: $white;
