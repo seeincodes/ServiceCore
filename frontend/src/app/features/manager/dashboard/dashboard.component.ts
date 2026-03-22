@@ -125,7 +125,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return Math.round(this.drivers.reduce((sum, d) => sum + d.hours, 0) * 10) / 10;
   }
 
-  get totalCostToday(): number {
+  get totalCostThisWeek(): number {
     return Math.round(this.projectAllocation.reduce((sum, p) => sum + p.cost, 0));
   }
 

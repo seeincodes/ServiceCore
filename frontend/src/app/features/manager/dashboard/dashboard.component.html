@@ -36,9 +36,9 @@
         <span class="stat-value">{{ totalHoursToday }}</span>
         <span class="stat-label">Hours Today</span>
       </div>
-      <div class="stat-card stat-cost" *ngIf="totalCostToday > 0">
-        <span class="stat-value">${{ totalCostToday | number: '1.0-0' }}</span>
-        <span class="stat-label">Labor Cost</span>
+      <div class="stat-card stat-cost" *ngIf="totalCostThisWeek > 0">
+        <span class="stat-value">${{ totalCostThisWeek | number: '1.0-0' }}</span>
+        <span class="stat-label">Labor Cost (This Week)</span>
       </div>
     </div>
 

@@ -141,7 +141,9 @@ export interface ProjectAllocation {
 export async function getProjectAllocation(orgId: string): Promise<ProjectAllocation[]> {
   const now = new Date();
   const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - 7); // Last 7 days (always has data)
+  const day = weekStart.getDay();
+  const diff = day === 0 ? 6 : day - 1; // Monday = start of week
+  weekStart.setDate(now.getDate() - diff);
   weekStart.setHours(0, 0, 0, 0);
 
   const entries = await db('clock_entries')
