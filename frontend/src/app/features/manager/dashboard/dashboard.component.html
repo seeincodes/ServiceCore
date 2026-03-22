@@ -97,9 +97,14 @@
               <span class="driver-time">since {{ formatTime(driver.lastUpdate) }}</span>
             </div>
           </div>
-          <div class="driver-assign" *ngIf="projects.length > 0" (click)="$event.stopPropagation()">
+          <!-- No project yet: show project picker -->
+          <div
+            class="driver-assign"
+            *ngIf="!driver.projectId && projects.length > 0"
+            (click)="$event.stopPropagation()"
+          >
             <select
-              [ngModel]="driver.projectId || ''"
+              [ngModel]="''"
               (ngModelChange)="assignProject(driver, $event)"
               [disabled]="assigningDriverId === driver.id"
               class="assign-select"
@@ -107,6 +112,10 @@
               <option value="">Assign project...</option>
               <option *ngFor="let p of projects" [value]="p.id">{{ p.code }} — {{ p.name }}</option>
             </select>
+          </div>
+          <!-- Project assigned: show route info -->
+          <div class="driver-assigned" *ngIf="driver.projectId">
+            <span class="assigned-route" *ngIf="driver.route">{{ driver.route }}</span>
           </div>
         </div>
       </div>

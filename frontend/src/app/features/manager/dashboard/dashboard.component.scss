@@ -369,6 +369,24 @@
   }
 }
 
+// Assigned state
+.driver-assigned {
+  flex-shrink: 0;
+  margin-left: $spacing-sm;
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.assigned-route {
+  font-size: 13px;
+  font-weight: 600;
+  color: $neutral-700;
+  background: $neutral-100;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
 // Off section
 .off-summary {
   font-size: 13px;

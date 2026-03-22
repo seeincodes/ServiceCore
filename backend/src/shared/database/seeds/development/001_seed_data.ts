@@ -1044,4 +1044,78 @@ export async function seed(knex: Knex): Promise<void> {
       },
     ]);
   }
+
+  // ============================================================
+  // LIVE DEMO DATA — Active clock entries right now
+  // Always creates some clocked-in drivers regardless of day/time
+  // ============================================================
+
+  // 4 of 6 drivers are currently clocked in (2 are "off today" for demo contrast)
+  const demoStartTimes = [
+    { driver: org1Drivers[0], hoursAgo: 3.5, route: 'RES-01', project: 'RES-PICKUP' }, // John — 3.5h into shift
+    { driver: org1Drivers[1], hoursAgo: 2.0, route: 'COM-01', project: 'COM-PICKUP' }, // Jane — 2h into shift
+    { driver: org1Drivers[2], hoursAgo: 4.0, route: 'RCY-01', project: 'RECYCLING' }, // Bob — 4h into shift
+    { driver: org1Drivers[4], hoursAgo: 1.5, route: 'BLK-01', project: 'BULK-WASTE' }, // Tom — 1.5h into shift
+  ];
+  // Alice (org1Drivers[3]) and Sam (org1Drivers[5]) are "off today" for demo
+
+  for (const demo of demoStartTimes) {
+    const clockIn = new Date(now.getTime() - demo.hoursAgo * 3600000);
+    await knex('clock_entries').insert({
+      org_id: org1.id,
+      user_id: demo.driver.id,
+      clock_in: clockIn,
+      clock_out: null, // still clocked in
+      route_id: demo.route,
+      project_id: org1ProjectMap.get(demo.project),
+      location_lat: 37.7749 + (Math.random() - 0.5) * 0.05,
+      location_lon: -122.4194 + (Math.random() - 0.5) * 0.05,
+      source: 'app',
+      synced_at: clockIn,
+    });
+  }
+
+  // Also create a completed earlier shift for Alice today (she worked the morning)
+  const aliceMorningIn = new Date(now);
+  aliceMorningIn.setHours(6, 0, 0, 0);
+  const aliceMorningOut = new Date(now);
+  aliceMorningOut.setHours(10, 30, 0, 0);
+  if (aliceMorningOut < now) {
+    await knex('clock_entries').insert({
+      org_id: org1.id,
+      user_id: org1Drivers[3].id,
+      clock_in: aliceMorningIn,
+      clock_out: aliceMorningOut,
+      route_id: 'RES-02',
+      project_id: org1ProjectMap.get('RES-PICKUP'),
+      source: 'app',
+      synced_at: aliceMorningIn,
+    });
+  }
+
+  // Org 2: 2 of 3 drivers clocked in
+  const org2Projects = await knex('projects').where({ org_id: org2.id }).select('id', 'code');
+  const org2ProjectMap = new Map(org2Projects.map((p: any) => [p.code, p.id]));
+
+  await knex('clock_entries').insert({
+    org_id: org2.id,
+    user_id: org2Drivers[0].id,
+    clock_in: new Date(now.getTime() - 5 * 3600000),
+    clock_out: null,
+    route_id: 'RES-01',
+    project_id: org2ProjectMap.get('RES-PICKUP'),
+    source: 'app',
+    synced_at: new Date(now.getTime() - 5 * 3600000),
+  });
+
+  await knex('clock_entries').insert({
+    org_id: org2.id,
+    user_id: org2Drivers[1].id,
+    clock_in: new Date(now.getTime() - 3 * 3600000),
+    clock_out: null,
+    route_id: 'COM-01',
+    project_id: org2ProjectMap.get('COM-PICKUP'),
+    source: 'app',
+    synced_at: new Date(now.getTime() - 3 * 3600000),
+  });
 }
