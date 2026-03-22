@@ -4,14 +4,21 @@
     <div class="pin-setup-card">
       <h2>{{ 'clock.setupPinTitle' | translate }}</h2>
       <p>{{ 'clock.setupPinDesc' | translate }}</p>
+      <div class="pin-dots">
+        <span
+          class="pin-dot"
+          *ngFor="let i of [0, 1, 2, 3]"
+          [class.filled]="setupPin.length > i"
+        ></span>
+      </div>
       <input
-        type="password"
+        type="tel"
         maxlength="4"
         inputmode="numeric"
         pattern="[0-9]*"
         [(ngModel)]="setupPin"
-        [placeholder]="'clock.enterPin' | translate"
-        class="pin-field"
+        class="pin-hidden-input"
+        autofocus
       />
       <div class="pin-actions">
         <button class="pin-cancel" (click)="skipPinSetup()">
@@ -116,14 +123,21 @@
     <!-- PIN input -->
     <div class="pin-prompt" *ngIf="showPinInput">
       <span class="pin-prompt-label">{{ 'clock.enterPin' | translate }}</span>
+      <div class="pin-dots">
+        <span
+          class="pin-dot"
+          *ngFor="let i of [0, 1, 2, 3]"
+          [class.filled]="pinInput.length > i"
+        ></span>
+      </div>
       <input
-        type="password"
+        type="tel"
         maxlength="4"
         inputmode="numeric"
         pattern="[0-9]*"
         [(ngModel)]="pinInput"
         (keyup.enter)="verifyAndAct()"
-        class="pin-field"
+        class="pin-hidden-input"
         autofocus
       />
       <div class="pin-actions">
@@ -284,14 +298,21 @@
     <!-- PIN input (for clock-out) -->
     <div class="pin-prompt" *ngIf="showPinInput">
       <span class="pin-prompt-label">{{ 'clock.enterPin' | translate }}</span>
+      <div class="pin-dots">
+        <span
+          class="pin-dot"
+          *ngFor="let i of [0, 1, 2, 3]"
+          [class.filled]="pinInput.length > i"
+        ></span>
+      </div>
       <input
-        type="password"
+        type="tel"
         maxlength="4"
         inputmode="numeric"
         pattern="[0-9]*"
         [(ngModel)]="pinInput"
         (keyup.enter)="verifyAndAct()"
-        class="pin-field"
+        class="pin-hidden-input"
         autofocus
       />
       <div class="pin-actions">
