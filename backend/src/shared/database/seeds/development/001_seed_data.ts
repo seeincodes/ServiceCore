@@ -2,8 +2,16 @@ import { Knex } from 'knex';
 import bcrypt from 'bcrypt';
 
 export async function seed(knex: Knex): Promise<void> {
-  // Clean tables in reverse FK order
+  // Clean tables in reverse FK order (safe deletes for tables that may not exist yet)
+  const safeDelete = async (table: string) => {
+    const exists = await knex.schema.hasTable(table);
+    if (exists) await knex(table).del();
+  };
+
   await knex('audit_log').del();
+  await safeDelete('notifications');
+  await safeDelete('schedules');
+  await safeDelete('shift_templates');
   await knex('time_off_requests').del();
   await knex('time_off_balances').del();
   await knex('timesheet_approvals').del();
@@ -852,5 +860,188 @@ export async function seed(knex: Knex): Promise<void> {
   // Batch insert audit log entries
   for (let i = 0; i < auditEntries.length; i += 50) {
     await knex('audit_log').insert(auditEntries.slice(i, i + 50));
+  }
+
+  // ============================================================
+  // SHIFT TEMPLATES + SCHEDULES + NOTIFICATIONS (only if tables exist)
+  // ============================================================
+  const hasTemplates = await knex.schema.hasTable('shift_templates');
+  const hasSchedules = await knex.schema.hasTable('schedules');
+  const hasNotifications = await knex.schema.hasTable('notifications');
+
+  if (hasTemplates) {
+    const org1Templates = await knex('shift_templates')
+      .insert([
+        {
+          org_id: org1.id,
+          name: 'Early Morning Residential',
+          shift_start: '05:30',
+          shift_end: '13:30',
+          project_id: org1ProjectMap.get('RES-PICKUP'),
+          route_id: 'RES-01',
+          color: '#2e7d32',
+        },
+        {
+          org_id: org1.id,
+          name: 'Late Morning Commercial',
+          shift_start: '07:00',
+          shift_end: '15:00',
+          project_id: org1ProjectMap.get('COM-PICKUP'),
+          route_id: 'COM-01',
+          color: '#1565c0',
+        },
+        {
+          org_id: org1.id,
+          name: 'Recycling Route',
+          shift_start: '06:00',
+          shift_end: '14:00',
+          project_id: org1ProjectMap.get('RECYCLING'),
+          route_id: 'RCY-01',
+          color: '#00897b',
+        },
+        {
+          org_id: org1.id,
+          name: 'Bulk Pickup Afternoon',
+          shift_start: '10:00',
+          shift_end: '18:00',
+          project_id: org1ProjectMap.get('BULK-WASTE'),
+          route_id: 'BLK-01',
+          color: '#6a1b9a',
+        },
+        {
+          org_id: org1.id,
+          name: 'Yard Maintenance',
+          shift_start: '07:00',
+          shift_end: '15:30',
+          project_id: org1ProjectMap.get('YARD-WORK'),
+          color: '#ef6c00',
+        },
+      ])
+      .returning(['id', 'project_id', 'route_id', 'shift_start', 'shift_end']);
+
+    if (hasSchedules) {
+      const thisMonday = new Date(now);
+      thisMonday.setDate(thisMonday.getDate() - ((thisMonday.getDay() + 6) % 7));
+      thisMonday.setHours(0, 0, 0, 0);
+
+      const nextMonday = new Date(thisMonday);
+      nextMonday.setDate(nextMonday.getDate() + 7);
+
+      // Each driver has a primary assignment that reflects their actual work
+      // John Davis — Residential pickup, early morning, RES-01/RES-02
+      // Jane Wilson — Commercial pickup, late morning, COM-01/COM-02
+      // Bob Martinez — Recycling collection, early morning, RCY-01
+      // Alice Johnson — Residential pickup, early morning, RES-02 (covers different area)
+      // Tom Brown — Bulk waste removal, afternoon shift, BLK-01
+      // Sam Garcia — Yard maintenance + fill-in, varies by day
+
+      const driverSchedules = [
+        { driver: org1Drivers[0], primary: org1Templates[0], altRoute: 'RES-02', offDay: -1 }, // John — residential daily
+        { driver: org1Drivers[1], primary: org1Templates[1], altRoute: 'COM-02', offDay: -1 }, // Jane — commercial daily
+        { driver: org1Drivers[2], primary: org1Templates[2], altRoute: null, offDay: 4 }, // Bob — recycling Mon-Thu, off Fri
+        { driver: org1Drivers[3], primary: org1Templates[0], altRoute: 'RES-02', offDay: -1 }, // Alice — residential daily (RES-02)
+        { driver: org1Drivers[4], primary: org1Templates[3], altRoute: null, offDay: -1 }, // Tom — bulk waste daily
+        { driver: org1Drivers[5], primary: null, altRoute: null, offDay: -1 }, // Sam — varies by day
+      ];
+
+      // Sam's rotating schedule — different project each day
+      const samRotation = [
+        org1Templates[4], // Mon: Yard
+        org1Templates[0], // Tue: Residential (fill-in)
+        org1Templates[4], // Wed: Yard
+        org1Templates[2], // Thu: Recycling (fill-in for Bob area)
+        org1Templates[1], // Fri: Commercial (fill-in)
+      ];
+
+      for (const monday of [thisMonday, nextMonday]) {
+        for (let dayOff = 0; dayOff < 5; dayOff++) {
+          // Mon-Fri
+          const schedDate = new Date(monday);
+          schedDate.setDate(schedDate.getDate() + dayOff);
+          const dateStr = schedDate.toISOString().split('T')[0];
+
+          for (let dIdx = 0; dIdx < driverSchedules.length; dIdx++) {
+            const ds = driverSchedules[dIdx];
+
+            // Skip if this is the driver's day off
+            if (ds.offDay === dayOff) continue;
+
+            let template;
+            let routeId;
+            let notes: string | null = null;
+
+            if (dIdx === 5) {
+              // Sam — rotating schedule
+              template = samRotation[dayOff];
+              routeId = template.route_id;
+              notes = dayOff === 1 || dayOff === 3 || dayOff === 4 ? 'Fill-in' : null;
+            } else {
+              template = ds.primary!;
+              // Alternate route on Wed/Fri for drivers with alt routes
+              routeId =
+                ds.altRoute && (dayOff === 2 || dayOff === 4) ? ds.altRoute : template.route_id;
+            }
+
+            await knex('schedules').insert({
+              org_id: org1.id,
+              user_id: ds.driver.id,
+              date: dateStr,
+              project_id: template.project_id,
+              route_id: routeId,
+              shift_start: template.shift_start,
+              shift_end: template.shift_end,
+              template_id: template.id,
+              notes,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  if (hasNotifications) {
+    const managerUserId = org1Manager.id;
+    await knex('notifications').insert([
+      {
+        org_id: org1.id,
+        user_id: managerUserId,
+        type: 'timesheet_submitted',
+        title: 'Timesheet submitted',
+        message: 'John Davis submitted their timesheet for review.',
+        data: JSON.stringify({ userId: org1Drivers[0].id }),
+      },
+      {
+        org_id: org1.id,
+        user_id: managerUserId,
+        type: 'ot_alert',
+        title: 'Overtime threshold reached',
+        message: 'Bob Martinez has worked 42 hours this week.',
+        data: JSON.stringify({ userId: org1Drivers[2].id, hours: 42 }),
+      },
+      {
+        org_id: org1.id,
+        user_id: managerUserId,
+        type: 'time_off_request',
+        title: 'Time-off request',
+        message: 'Alice Johnson requested 3 days PTO starting next Monday.',
+        data: JSON.stringify({ userId: org1Drivers[3].id }),
+      },
+      {
+        org_id: org1.id,
+        user_id: managerUserId,
+        type: 'missing_clock_in',
+        title: 'Missing clock-in',
+        message: 'Sam Garcia has not clocked in today.',
+        data: JSON.stringify({ userId: org1Drivers[5].id }),
+      },
+      {
+        org_id: org1.id,
+        user_id: managerUserId,
+        type: 'schedule_conflict',
+        title: 'Schedule conflict',
+        message: 'Tom Brown is scheduled for two overlapping shifts on Friday.',
+        data: JSON.stringify({ userId: org1Drivers[4].id }),
+      },
+    ]);
   }
 }

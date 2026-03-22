@@ -19,7 +19,9 @@
     "map": "Mapa",
     "zones": "Zonas",
     "review": "Cola de Revisión",
-    "projects": "Proyectos"
+    "projects": "Proyectos",
+    "schedule": "Horario",
+    "notifications": "Notificaciones"
   },
   "login": {
     "title": "TimeKeeper",

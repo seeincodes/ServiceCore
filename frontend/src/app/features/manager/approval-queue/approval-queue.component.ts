@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { TimesheetService, TimesheetSummary } from '../../../core/services/timesheet.service';
 import { environment } from '../../../../environments/environment';
 
@@ -21,6 +21,12 @@ interface ClockEntry {
   saving?: boolean;
 }
 
+interface BalanceInfo {
+  total: number;
+  used: number;
+  available: number;
+}
+
 @Component({
   selector: 'app-approval-queue',
   standalone: true,
@@ -29,6 +35,9 @@ interface ClockEntry {
   styleUrls: ['./approval-queue.component.scss'],
 })
 export class ApprovalQueueComponent implements OnInit {
+  // Main tab
+  mainTab: 'timesheets' | 'timeoff' = 'timesheets';
+
   timesheets: TimesheetSummary[] = [];
   loading = true;
   actionInProgress: string | null = null;
@@ -46,14 +55,126 @@ export class ApprovalQueueComponent implements OnInit {
   reviseLoading = false;
   reviseUserId: string | null = null;
 
+  // Time-off data
+  timeOffRequests: any[] = [];
+  timeOffLoading = false;
+  timeOffTab: 'pending' | 'all' | 'balances' = 'pending';
+  pendingTimeOffCount = 0;
+  timeOffReviewNotes: Record<string, string> = {};
+  employeeBalanceMap: Record<string, Record<string, BalanceInfo>> = {};
+  employeeBalanceList: {
+    name: string;
+    pto: BalanceInfo;
+    sick: BalanceInfo;
+    personal: BalanceInfo;
+  }[] = [];
+
+  private timeOffLoaded = false;
+
+  private typeKeys: Record<string, string> = {
+    pto: 'timeOff.pto',
+    sick: 'timeOff.sick',
+    personal: 'timeOff.personal',
+    bereavement: 'timeOff.bereavement',
+    jury_duty: 'timeOff.juryDuty',
+  };
+
   constructor(
     private timesheetService: TimesheetService,
     private http: HttpClient,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
     this.loadPending();
+    // Pre-load pending count for time-off badge
+    this.http.get<any>(`${environment.apiUrl}/time-off/requests?status=pending`).subscribe({
+      next: (res) => {
+        this.pendingTimeOffCount = (res.data?.requests || []).length;
+      },
+    });
   }
+
+  switchMainTab(tab: 'timesheets' | 'timeoff'): void {
+    this.mainTab = tab;
+    if (tab === 'timeoff' && !this.timeOffLoaded) {
+      this.timeOffLoaded = true;
+      this.loadTimeOffRequests();
+    }
+  }
+
+  // ---- Time-off methods ----
+
+  loadTimeOffRequests(): void {
+    this.timeOffLoading = true;
+    const params = this.timeOffTab === 'pending' ? '?status=pending' : '';
+    this.http.get<any>(`${environment.apiUrl}/time-off/requests${params}`).subscribe({
+      next: (res) => {
+        this.timeOffRequests = res.data.requests;
+        this.timeOffLoading = false;
+        if (this.timeOffTab === 'pending') {
+          this.pendingTimeOffCount = this.timeOffRequests.length;
+          this.loadRequestUserBalances();
+        } else {
+          this.pendingTimeOffCount = this.timeOffRequests.filter(
+            (r: any) => r.status === 'pending',
+          ).length;
+        }
+      },
+      error: () => {
+        this.timeOffLoading = false;
+      },
+    });
+  }
+
+  loadEmployeeBalances(): void {
+    this.timeOffLoading = true;
+    this.http.get<any>(`${environment.apiUrl}/time-off/all-balances`).subscribe({
+      next: (res) => {
+        const defaultBal: BalanceInfo = { total: 0, used: 0, available: 0 };
+        this.employeeBalanceList = (res.data.employees || []).map((emp: any) => ({
+          name: emp.name,
+          pto: emp.pto || defaultBal,
+          sick: emp.sick || defaultBal,
+          personal: emp.personal || defaultBal,
+        }));
+        this.timeOffLoading = false;
+      },
+      error: () => {
+        this.timeOffLoading = false;
+      },
+    });
+  }
+
+  approveTimeOff(id: string): void {
+    this.http
+      .post(`${environment.apiUrl}/time-off/${id}/approve`, { notes: this.timeOffReviewNotes[id] })
+      .subscribe({ next: () => this.loadTimeOffRequests() });
+  }
+
+  denyTimeOff(id: string): void {
+    this.http
+      .post(`${environment.apiUrl}/time-off/${id}/deny`, { notes: this.timeOffReviewNotes[id] })
+      .subscribe({ next: () => this.loadTimeOffRequests() });
+  }
+
+  timeOffTypeLabel(type: string): string {
+    const key = this.typeKeys[type];
+    return key ? this.translate.instant(key) : type;
+  }
+
+  private loadRequestUserBalances(): void {
+    const userIds = [...new Set(this.timeOffRequests.map((r) => r.user_id))];
+    for (const userId of userIds) {
+      this.http.get<any>(`${environment.apiUrl}/time-off/balances?userId=${userId}`).subscribe({
+        next: (res) => {
+          this.employeeBalanceMap[userId] = res.data.balances;
+        },
+      });
+    }
+  }
+
+  // ---- Timesheet methods (existing) ----
 
   // Bulk selection methods
   toggleSelect(tsId: string): void {

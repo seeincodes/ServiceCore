@@ -108,16 +108,18 @@
             *ngFor="let day of weekDays"
             class="schedule-cell"
             [style.background]="
-              getEntry(driver.userId, day) ? cellColor(getEntry(driver.userId, day)) + '20' : ''
+              getEntry(driver.userId, day) ? cellColor(getEntry(driver.userId, day)) + '18' : ''
             "
-            (click)="onCellClick(driver.userId, day)"
+            [style.border-left]="
+              getEntry(driver.userId, day)
+                ? '3px solid ' + cellColor(getEntry(driver.userId, day))
+                : ''
+            "
+            (click)="onCellClick(driver.userId, day, $event)"
           >
             <!-- Display entry -->
-            <div
-              class="cell-content"
-              *ngIf="getEntry(driver.userId, day) && !isEditing(driver.userId, day)"
-            >
-              <span class="cell-project" [style.color]="cellColor(getEntry(driver.userId, day))">
+            <div class="cell-content" *ngIf="getEntry(driver.userId, day)">
+              <span class="cell-project">
                 {{
                   getEntry(driver.userId, day)!.projectName ||
                     getEntry(driver.userId, day)!.projectId
@@ -127,62 +129,58 @@
                 {{ getEntry(driver.userId, day)!.shiftStart }} -
                 {{ getEntry(driver.userId, day)!.shiftEnd }}
               </span>
+              <span class="cell-route" *ngIf="getEntry(driver.userId, day)!.routeId">
+                {{ getEntry(driver.userId, day)!.routeId }}
+              </span>
             </div>
 
-            <div
-              class="cell-empty"
-              *ngIf="!getEntry(driver.userId, day) && !isEditing(driver.userId, day)"
-            >
-              +
-            </div>
-
-            <!-- Edit form (inline dropdown) -->
-            <div
-              class="cell-edit"
-              *ngIf="isEditing(driver.userId, day)"
-              (click)="$event.stopPropagation()"
-            >
-              <div class="edit-mini-form">
-                <select [(ngModel)]="editEntry.projectId" class="mini-select">
-                  <option value="">Project...</option>
-                  <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
-                </select>
-                <input
-                  type="text"
-                  [(ngModel)]="editEntry.routeId"
-                  placeholder="Route"
-                  class="mini-input"
-                />
-                <div class="time-row">
-                  <input type="time" [(ngModel)]="editEntry.shiftStart" class="mini-input" />
-                  <input type="time" [(ngModel)]="editEntry.shiftEnd" class="mini-input" />
-                </div>
-                <select
-                  class="mini-select"
-                  (change)="applyTemplate(templates[$any($event.target).selectedIndex - 1])"
-                  *ngIf="templates.length > 0"
-                >
-                  <option>From Template...</option>
-                  <option *ngFor="let tpl of templates">{{ tpl.name }}</option>
-                </select>
-                <div class="mini-actions">
-                  <button class="btn-save sm" (click)="saveSchedule()" [disabled]="saving">
-                    {{ saving ? '...' : 'Save' }}
-                  </button>
-                  <button
-                    class="btn-delete sm"
-                    *ngIf="editMode === 'edit'"
-                    (click)="deleteSchedule()"
-                  >
-                    Delete
-                  </button>
-                  <button class="btn-cancel sm" (click)="cancelEdit()">Cancel</button>
-                </div>
-              </div>
-            </div>
+            <div class="cell-empty" *ngIf="!getEntry(driver.userId, day)">+</div>
           </td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- Fixed popover for editing (outside table to avoid clipping) -->
+  <div class="popover-backdrop" *ngIf="editingCell" (click)="cancelEdit()"></div>
+  <div
+    class="cell-edit"
+    *ngIf="editingCell"
+    [ngStyle]="popoverStyle"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="edit-mini-form">
+      <select [(ngModel)]="editEntry.projectId" class="mini-select">
+        <option value="">Project...</option>
+        <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+      </select>
+      <input
+        type="text"
+        [(ngModel)]="editEntry.routeId"
+        placeholder="Route ID"
+        class="mini-input"
+      />
+      <div class="time-row">
+        <input type="time" [(ngModel)]="editEntry.shiftStart" class="mini-input" />
+        <input type="time" [(ngModel)]="editEntry.shiftEnd" class="mini-input" />
+      </div>
+      <select
+        class="mini-select"
+        (change)="applyTemplate(templates[$any($event.target).selectedIndex - 1])"
+        *ngIf="templates.length > 0"
+      >
+        <option>From Template...</option>
+        <option *ngFor="let tpl of templates">{{ tpl.name }}</option>
+      </select>
+      <div class="mini-actions">
+        <button class="btn-save sm" (click)="saveSchedule()" [disabled]="saving">
+          {{ saving ? '...' : 'Save' }}
+        </button>
+        <button class="btn-delete sm" *ngIf="editMode === 'edit'" (click)="deleteSchedule()">
+          Delete
+        </button>
+        <button class="btn-cancel sm" (click)="cancelEdit()">Cancel</button>
+      </div>
+    </div>
   </div>
 </div>

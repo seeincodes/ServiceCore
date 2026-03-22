@@ -12,6 +12,18 @@ interface Notification {
   createdAt: string;
 }
 
+interface Alert {
+  id: string;
+  type: string;
+  priority: string;
+  title: string;
+  message: string;
+  employeeName: string | null;
+  userId: string | null;
+  timestamp: string;
+  resolved: boolean;
+}
+
 @Component({
   selector: 'app-notifications',
   standalone: true,
@@ -20,16 +32,28 @@ interface Notification {
   styleUrls: ['./notifications.component.scss'],
 })
 export class NotificationsComponent implements OnInit {
+  // Main tab
+  mainTab: 'notifications' | 'alerts' = 'notifications';
+
   notifications: Notification[] = [];
   loading = true;
 
+  // Alerts data
+  alerts: Alert[] = [];
+  alertsLoading = false;
+  activeFilter: string = 'all';
+
   private apiUrl = environment.apiUrl;
+  private alertsLoaded = false;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadNotifications();
+    this.loadAlerts();
   }
+
+  // ---- Notifications ----
 
   get unreadCount(): number {
     return this.notifications.filter((n) => !n.read).length;
@@ -98,6 +122,75 @@ export class NotificationsComponent implements OnInit {
     return d.toLocaleDateString();
   }
 
+  // ---- Alerts ----
+
+  switchMainTab(tab: 'notifications' | 'alerts'): void {
+    this.mainTab = tab;
+    if (tab === 'alerts' && !this.alertsLoaded) {
+      this.alertsLoaded = true;
+      this.loadAlerts();
+    }
+  }
+
+  get filteredAlerts(): Alert[] {
+    if (this.activeFilter === 'all') {
+      return this.alerts;
+    }
+    return this.alerts.filter((a) => a.priority === this.activeFilter && !a.resolved);
+  }
+
+  get criticalCount(): number {
+    return this.alerts.filter((a) => a.priority === 'critical' && !a.resolved).length;
+  }
+
+  get warningCount(): number {
+    return this.alerts.filter((a) => a.priority === 'warning' && !a.resolved).length;
+  }
+
+  get infoCount(): number {
+    return this.alerts.filter((a) => a.priority === 'info' && !a.resolved).length;
+  }
+
+  get allAlertCount(): number {
+    return this.alerts.length;
+  }
+
+  resolveAlert(alert: Alert): void {
+    this.http.post(`${this.apiUrl}/manager/alerts/${alert.id}/resolve`, {}).subscribe({
+      next: () => {
+        alert.resolved = true;
+      },
+    });
+  }
+
+  priorityClass(priority: string): string {
+    return priority === 'critical' ? 'critical' : priority === 'warning' ? 'warning' : 'info';
+  }
+
+  alertTypeIcon(type: string): string {
+    switch (type) {
+      case 'midnight_auto_close':
+        return 'Forgot to clock out';
+      case 'missing_clock_in':
+        return 'No clock-in';
+      case 'timesheet_flagged':
+        return 'Anomaly detected';
+      default:
+        return type;
+    }
+  }
+
+  formatAlertTime(iso: string): string {
+    return new Date(iso).toLocaleString([], {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  }
+
+  // ---- Private ----
+
   private loadNotifications(): void {
     this.http.get<{ data: Notification[] }>(`${this.apiUrl}/manager/notifications`).subscribe({
       next: (res) => {
@@ -106,6 +199,22 @@ export class NotificationsComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
+      },
+    });
+  }
+
+  private loadAlerts(): void {
+    this.alertsLoading = true;
+    this.http.get<any>(`${this.apiUrl}/manager/alerts`).subscribe({
+      next: (res) => {
+        this.alerts = (res.data?.alerts || []).map((a: any) => ({
+          ...a,
+          resolved: false,
+        }));
+        this.alertsLoading = false;
+      },
+      error: () => {
+        this.alertsLoading = false;
       },
     });
   }

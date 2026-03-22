@@ -308,6 +308,8 @@
 
 .schedule-grid {
   overflow-x: auto;
+  overflow-y: visible;
+  position: relative;
 }
 
 .grid-table {
@@ -383,49 +385,72 @@
 
 .cell-project {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  color: $neutral-900;
 }
 
 .cell-times {
   font-size: 11px;
+  font-weight: 500;
+  color: $neutral-700;
+}
+
+.cell-route {
+  font-size: 10px;
+  font-weight: 600;
   color: $neutral-500;
+  background: $neutral-100;
+  padding: 1px 4px;
+  border-radius: 3px;
+  align-self: flex-start;
 }
 
 .cell-empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 40px;
+  height: 50px;
   color: $neutral-300;
-  font-size: 18px;
+  font-size: 20px;
+  font-weight: 300;
+  transition: color 0.15s;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.05);
 }
 
 // Cell edit form
 .cell-edit {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 10;
-  min-width: 200px;
+  position: fixed;
+  z-index: 100;
+  min-width: 240px;
 }
 
 .edit-mini-form {
   background: $white;
-  border: 1px solid $neutral-300;
-  border-radius: 8px;
-  padding: $spacing-sm;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 2px solid $primary;
+  border-radius: 10px;
+  padding: $spacing-md;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  gap: $spacing-xs;
+  gap: $spacing-sm;
 }
 
 .mini-select,
 .mini-input {
-  padding: 4px 6px;
+  padding: 6px 8px;
   border: 1px solid $neutral-300;
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: 6px;
+  font-size: 13px;
   font-family: inherit;
   width: 100%;
   box-sizing: border-box;

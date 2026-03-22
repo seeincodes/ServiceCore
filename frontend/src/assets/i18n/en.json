@@ -19,7 +19,9 @@
     "map": "Map",
     "zones": "Zones",
     "review": "Review Queue",
-    "projects": "Projects"
+    "projects": "Projects",
+    "schedule": "Schedule",
+    "notifications": "Notifications"
   },
   "login": {
     "title": "TimeKeeper",

@@ -49,12 +49,15 @@ router.get(
           id: s.id,
           userId: s.user_id,
           userName: s.user_name,
-          date: s.date,
+          date:
+            typeof s.date === 'string'
+              ? s.date.split('T')[0]
+              : new Date(s.date).toISOString().split('T')[0],
           projectId: s.project_id,
           projectName: s.project_name,
           routeId: s.route_id,
-          shiftStart: s.shift_start,
-          shiftEnd: s.shift_end,
+          shiftStart: s.shift_start ? String(s.shift_start).slice(0, 5) : null,
+          shiftEnd: s.shift_end ? String(s.shift_end).slice(0, 5) : null,
           templateId: s.template_id,
           notes: s.notes,
         })),

@@ -170,15 +170,13 @@ export class NavBarComponent implements OnInit, OnDestroy {
 
     const managerLinks: NavLink[] = [
       { path: '/manager', label: 'nav.dashboard', icon: icons.dashboard },
-      { path: '/manager/schedule', label: 'Schedule', icon: icons.schedule },
+      { path: '/manager/schedule', label: 'nav.schedule', icon: icons.hours },
       ...(environment.features.managerMap
         ? [{ path: '/manager/map', label: 'nav.map', icon: icons.map }]
         : []),
       { path: '/manager/approvals', label: 'nav.approvals', icon: icons.approvals },
-      { path: '/manager/review', label: 'nav.review', icon: icons.timesheet },
-      { path: '/manager/time-off', label: 'nav.timeOff', icon: icons.timeOff },
       { path: '/manager/reports', label: 'nav.reports', icon: icons.reports },
-      { path: '/manager/notifications', label: 'Notifications', icon: icons.notifications },
+      { path: '/manager/notifications', label: 'nav.notifications', icon: icons.timesheet },
     ];
 
     switch (role) {

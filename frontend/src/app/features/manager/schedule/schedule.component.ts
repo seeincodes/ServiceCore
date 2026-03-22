@@ -6,13 +6,12 @@ import { environment } from '../../../../environments/environment';
 
 interface ScheduleEntry {
   id: string;
-  driverId: string;
+  userId: string;
   date: string;
   projectId: string;
   projectName: string;
   projectColor: string;
   routeId: string;
-  routeName: string;
   shiftStart: string;
   shiftEnd: string;
 }
@@ -60,11 +59,12 @@ export class ScheduleComponent implements OnInit {
   loading = true;
 
   // Editing state
-  editingCell: { driverId: string; date: string } | null = null;
+  editingCell: { userId: string; date: string } | null = null;
   editEntry: Partial<ScheduleEntry> = {};
   editMode: 'add' | 'edit' = 'add';
   editEntryId: string | null = null;
   saving = false;
+  popoverStyle: Record<string, string> = {};
 
   // Templates
   showTemplates = false;
@@ -136,40 +136,45 @@ export class ScheduleComponent implements OnInit {
   private loadSchedule(): void {
     this.loading = true;
     const ws = this.dateStr(this.weekStart);
-    this.http
-      .get<{ data: ScheduleEntry[] }>(`${this.apiUrl}/manager/schedule?weekStart=${ws}`)
-      .subscribe({
-        next: (res) => {
-          this.scheduleEntries = res.data || [];
-          this.loading = false;
-        },
-        error: () => {
-          this.scheduleEntries = [];
-          this.loading = false;
-        },
-      });
+    this.http.get<any>(`${this.apiUrl}/manager/schedule?weekStart=${ws}`).subscribe({
+      next: (res) => {
+        this.scheduleEntries = res.data?.schedules || [];
+        this.loading = false;
+      },
+      error: () => {
+        this.scheduleEntries = [];
+        this.loading = false;
+      },
+    });
   }
 
   private loadDrivers(): void {
-    this.http.get<{ data: { drivers: Driver[] } }>(`${this.apiUrl}/manager/dashboard`).subscribe({
+    this.http.get<any>(`${this.apiUrl}/manager/dashboard`).subscribe({
       next: (res) => {
-        this.drivers = res.data?.drivers || [];
+        this.drivers = (res.data?.drivers || []).map((d: any) => {
+          const parts = (d.name || '').split(' ');
+          return {
+            userId: d.id,
+            firstName: parts[0] || '',
+            lastName: parts.slice(1).join(' ') || '',
+          };
+        });
       },
     });
   }
 
   private loadProjects(): void {
-    this.http.get<{ data: Project[] }>(`${this.apiUrl}/admin/projects`).subscribe({
+    this.http.get<any>(`${this.apiUrl}/admin/projects`).subscribe({
       next: (res) => {
-        this.projects = res.data || [];
+        this.projects = res.data?.projects || [];
       },
     });
   }
 
   // Grid helpers
-  getEntry(driverId: string, date: Date): ScheduleEntry | undefined {
+  getEntry(userId: string, date: Date): ScheduleEntry | undefined {
     const ds = this.dateStr(date);
-    return this.scheduleEntries.find((e) => e.driverId === driverId && e.date === ds);
+    return this.scheduleEntries.find((e) => e.userId === userId && e.date === ds);
   }
 
   cellColor(entry: ScheduleEntry | undefined): string {
@@ -178,8 +183,8 @@ export class ScheduleComponent implements OnInit {
   }
 
   // Cell click
-  onCellClick(driverId: string, date: Date): void {
-    const existing = this.getEntry(driverId, date);
+  onCellClick(userId: string, date: Date, event: MouseEvent): void {
+    const existing = this.getEntry(userId, date);
     if (existing) {
       this.editMode = 'edit';
       this.editEntryId = existing.id;
@@ -188,7 +193,7 @@ export class ScheduleComponent implements OnInit {
       this.editMode = 'add';
       this.editEntryId = null;
       this.editEntry = {
-        driverId,
+        userId,
         date: this.dateStr(date),
         projectId: '',
         routeId: '',
@@ -196,11 +201,31 @@ export class ScheduleComponent implements OnInit {
         shiftEnd: '15:00',
       };
     }
-    this.editingCell = { driverId, date: this.dateStr(date) };
+    this.editingCell = { userId, date: this.dateStr(date) };
+
+    // Position popover near click, keeping it on screen
+    const td = event.currentTarget as HTMLElement;
+    const rect = td.getBoundingClientRect();
+    const popoverH = 300;
+    const popoverW = 240;
+    let top = rect.top;
+    let left = rect.left;
+
+    if (top + popoverH > window.innerHeight) {
+      top = window.innerHeight - popoverH - 16;
+    }
+    if (left + popoverW > window.innerWidth) {
+      left = window.innerWidth - popoverW - 16;
+    }
+
+    this.popoverStyle = {
+      top: `${Math.max(8, top)}px`,
+      left: `${Math.max(8, left)}px`,
+    };
   }
 
-  isEditing(driverId: string, date: Date): boolean {
-    return this.editingCell?.driverId === driverId && this.editingCell?.date === this.dateStr(date);
+  isEditing(userId: string, date: Date): boolean {
+    return this.editingCell?.userId === userId && this.editingCell?.date === this.dateStr(date);
   }
 
   cancelEdit(): void {
@@ -211,7 +236,7 @@ export class ScheduleComponent implements OnInit {
   saveSchedule(): void {
     this.saving = true;
     const body = {
-      driverId: this.editEntry.driverId,
+      userId: this.editEntry.userId,
       date: this.editEntry.date,
       projectId: this.editEntry.projectId,
       routeId: this.editEntry.routeId,
