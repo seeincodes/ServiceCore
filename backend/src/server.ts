@@ -24,6 +24,10 @@ import {
   checkMissingClockIns,
 } from './time-tracking/services/zero-touch.service';
 import { sendTimesheetReminders, getReminderType } from './notifications/services/reminder.service';
+import {
+  generateWeeklySchedules,
+  ensureCurrentWeekSchedules,
+} from './time-tracking/services/schedule-generator.service';
 import adminRoutes from './auth/routes/admin.routes';
 import routingRoutes from './dispatcher/routes/routing.routes';
 import scheduleRoutes from './time-tracking/routes/schedule.routes';
@@ -129,8 +133,22 @@ function scheduleZeroTouchJobs(): void {
     60 * 60 * 1000,
   );
 
+  // Weekly schedule generation: Sunday 10pm, copy this week's schedules to next week
+  setInterval(
+    async () => {
+      const now = new Date();
+      if (now.getDay() === 0 && now.getHours() === 22) {
+        await generateWeeklySchedules();
+      }
+    },
+    60 * 60 * 1000,
+  );
+
+  // Ensure current week has schedules on startup
+  ensureCurrentWeekSchedules();
+
   logger.info(
-    'Zero-touch automation scheduled: reminders, auto-submit, auto-approve, midnight-close, missing-clockin',
+    'Zero-touch automation scheduled: reminders, auto-submit, auto-approve, midnight-close, missing-clockin, schedule-generation',
   );
 }
 
