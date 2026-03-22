@@ -1,4 +1,29 @@
 <div class="clock-page">
+  <!-- PIN Setup prompt (first time) -->
+  <div class="pin-setup-prompt" *ngIf="showPinSetup">
+    <div class="pin-setup-card">
+      <h2>{{ 'clock.setupPinTitle' | translate }}</h2>
+      <p>{{ 'clock.setupPinDesc' | translate }}</p>
+      <input
+        type="password"
+        maxlength="4"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        [(ngModel)]="setupPin"
+        [placeholder]="'clock.enterPin' | translate"
+        class="pin-field"
+      />
+      <div class="pin-actions">
+        <button class="pin-cancel" (click)="skipPinSetup()">
+          {{ 'clock.skipForNow' | translate }}
+        </button>
+        <button class="pin-confirm" (click)="saveSetupPin()" [disabled]="setupPin.length !== 4">
+          {{ 'clock.setPin' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast notification -->
   <div
     class="toast"

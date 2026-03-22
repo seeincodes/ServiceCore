@@ -52,7 +52,9 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
 
   // PIN
   showPinInput = false;
+  showPinSetup = false;
   pinInput = '';
+  setupPin = '';
   pinError = '';
   pinRequired = false;
   private pendingAction: 'clock_in' | 'break' | 'end_of_day' | 'end_of_day_confirmed' | null = null;
@@ -107,6 +109,9 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.http.get<any>(`${environment.apiUrl}/auth/pin/status`).subscribe({
       next: (res) => {
         this.pinRequired = res.data?.pinSet || false;
+        if (!this.pinRequired) {
+          this.showPinSetup = true; // Prompt first-time setup
+        }
       },
     });
   }
@@ -140,6 +145,25 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
         this.pinInput = '';
       },
     });
+  }
+
+  saveSetupPin(): void {
+    if (this.setupPin.length !== 4) return;
+    this.http.post<any>(`${environment.apiUrl}/auth/pin/set`, { pin: this.setupPin }).subscribe({
+      next: () => {
+        this.pinRequired = true;
+        this.showPinSetup = false;
+        this.setupPin = '';
+        this.showToast('PIN set successfully', 'success');
+      },
+      error: () => {
+        this.pinError = 'Failed to set PIN';
+      },
+    });
+  }
+
+  skipPinSetup(): void {
+    this.showPinSetup = false;
   }
 
   cancelPin(): void {
@@ -397,10 +421,21 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   }
 
   private loadRouteDetails(): void {
-    // Set project name
+    // Set project name — resolve from loaded projects or fetch from API
     if (this.status.projectId) {
       const project = this.projects.find((p) => p.id === this.status.projectId);
-      this.activeProjectName = project?.name || this.status.projectId;
+      if (project) {
+        this.activeProjectName = project.name;
+      } else {
+        // Projects not loaded yet — fetch name from API
+        this.activeProjectName = '';
+        this.http.get<any>(`${environment.apiUrl}/admin/projects`).subscribe({
+          next: (res) => {
+            const proj = (res.data.projects || []).find((p: any) => p.id === this.status.projectId);
+            this.activeProjectName = proj?.name || '';
+          },
+        });
+      }
     }
 
     if (!this.status.routeId) {
@@ -411,7 +446,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     }
 
     const route = this.availableRoutes.find((r) => r.id === this.status.routeId);
-    this.activeRouteName = route?.name || this.status.routeId;
+    this.activeRouteName = route?.name || '';
 
     // Load waypoints for this route
     this.http.get<any>(`${environment.apiUrl}/dispatcher/routes`).subscribe({
