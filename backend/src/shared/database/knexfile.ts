@@ -56,7 +56,7 @@ const knexConfig: Record<string, Knex.Config> = {
     },
     seeds: {
       directory: path.resolve(__dirname, 'seeds/production'),
-      extension: 'ts',
+      extension: 'js',
     },
     pool: { min: 5, max: 30 },
   },
