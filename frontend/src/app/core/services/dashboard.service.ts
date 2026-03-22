@@ -9,6 +9,8 @@ export interface DriverStatus {
   status: 'clocked_in' | 'clocked_out';
   hours: number;
   route: string | null;
+  projectId: string | null;
+  projectName: string | null;
   lastUpdate: string;
 }
 

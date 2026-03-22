@@ -2,9 +2,17 @@
   <button class="back-btn" (click)="goBack()">&larr; {{ 'driverDetail.back' | translate }}</button>
 
   <h2>{{ 'driverDetail.title' | translate }}</h2>
+
+  <div class="date-picker">
+    <label>Date:</label>
+    <input type="date" [(ngModel)]="selectedDate" (change)="onDateChange()" />
+  </div>
+
   <p class="total" *ngIf="!loading">{{ 'driverDetail.total' | translate }}: {{ totalHours }}h</p>
 
   <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
+
+  <div class="error-msg" *ngIf="error">{{ error }}</div>
 
   <table class="entries-table" *ngIf="!loading && entries.length > 0">
     <thead>
@@ -13,19 +21,63 @@
         <th>{{ 'driverDetail.clockOut' | translate }}</th>
         <th>{{ 'driverDetail.hours' | translate }}</th>
         <th>{{ 'driverDetail.route' | translate }}</th>
+        <th>Project</th>
         <th>{{ 'driverDetail.source' | translate }}</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let entry of entries" [class.open]="!entry.clockOut">
-        <td>{{ formatTime(entry.clockIn) }}</td>
-        <td>{{ formatTime(entry.clockOut) }}</td>
-        <td>
-          {{ entry.hours !== null ? entry.hours + 'h' : ('driverDetail.active' | translate) }}
-        </td>
-        <td>{{ entry.routeId || '-' }}</td>
-        <td>{{ entry.source }}</td>
-      </tr>
+      <ng-container *ngFor="let entry of entries">
+        <!-- Display row -->
+        <tr
+          *ngIf="editingEntryId !== entry.id"
+          [class.open]="!entry.clockOut"
+          class="entry-row"
+          (click)="startEdit(entry)"
+        >
+          <td>{{ formatTime(entry.clockIn) }}</td>
+          <td>{{ formatTime(entry.clockOut) }}</td>
+          <td>
+            {{ entry.hours !== null ? entry.hours + 'h' : ('driverDetail.active' | translate) }}
+          </td>
+          <td>{{ entry.routeId || '-' }}</td>
+          <td>{{ entry.projectId || '-' }}</td>
+          <td>
+            <span class="source-badge" [ngClass]="sourceClass(entry.source)">
+              {{ entry.source }}
+            </span>
+          </td>
+          <td class="edit-hint">Edit</td>
+        </tr>
+
+        <!-- Edit row -->
+        <tr *ngIf="editingEntryId === entry.id" class="editing-row">
+          <td colspan="7">
+            <div class="edit-form">
+              <div class="edit-fields">
+                <div class="edit-field">
+                  <label>Clock In</label>
+                  <input type="datetime-local" [(ngModel)]="editClockIn" />
+                </div>
+                <div class="edit-field">
+                  <label>Clock Out</label>
+                  <input type="datetime-local" [(ngModel)]="editClockOut" />
+                </div>
+              </div>
+              <div class="edit-actions">
+                <button
+                  class="save-btn"
+                  (click)="saveEdit(entry.id)"
+                  [disabled]="saving || !editClockIn"
+                >
+                  {{ saving ? 'Saving...' : 'Save' }}
+                </button>
+                <button class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </ng-container>
     </tbody>
   </table>
 

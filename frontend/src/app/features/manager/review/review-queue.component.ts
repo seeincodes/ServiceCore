@@ -14,6 +14,7 @@ interface Alert {
   employeeName: string | null;
   userId: string | null;
   timestamp: string;
+  resolved: boolean;
 }
 
 @Component({
@@ -26,11 +27,43 @@ interface Alert {
 export class ReviewQueueComponent implements OnInit {
   alerts: Alert[] = [];
   loading = true;
+  activeFilter: string = 'all';
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadAlerts();
+  }
+
+  get filteredAlerts(): Alert[] {
+    if (this.activeFilter === 'all') {
+      return this.alerts;
+    }
+    return this.alerts.filter((a) => a.priority === this.activeFilter && !a.resolved);
+  }
+
+  get criticalCount(): number {
+    return this.alerts.filter((a) => a.priority === 'critical' && !a.resolved).length;
+  }
+
+  get warningCount(): number {
+    return this.alerts.filter((a) => a.priority === 'warning' && !a.resolved).length;
+  }
+
+  get infoCount(): number {
+    return this.alerts.filter((a) => a.priority === 'info' && !a.resolved).length;
+  }
+
+  get allCount(): number {
+    return this.alerts.length;
+  }
+
+  resolveAlert(alert: Alert): void {
+    this.http.post(`${environment.apiUrl}/manager/alerts/${alert.id}/resolve`, {}).subscribe({
+      next: () => {
+        alert.resolved = true;
+      },
+    });
   }
 
   priorityClass(priority: string): string {
@@ -62,7 +95,10 @@ export class ReviewQueueComponent implements OnInit {
   private loadAlerts(): void {
     this.http.get<any>(`${environment.apiUrl}/manager/alerts`).subscribe({
       next: (res) => {
-        this.alerts = res.data.alerts;
+        this.alerts = res.data.alerts.map((a: any) => ({
+          ...a,
+          resolved: false,
+        }));
         this.loading = false;
       },
       error: () => {

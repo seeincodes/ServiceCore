@@ -167,6 +167,7 @@ export class NavBarComponent implements OnInit, OnDestroy {
         ? [{ path: '/manager/map', label: 'nav.map', icon: icons.map }]
         : []),
       { path: '/manager/approvals', label: 'nav.approvals', icon: icons.approvals },
+      { path: '/manager/review', label: 'nav.review', icon: icons.timesheet },
       { path: '/manager/time-off', label: 'nav.timeOff', icon: icons.timeOff },
       { path: '/manager/reports', label: 'nav.reports', icon: icons.reports },
     ];
@@ -184,13 +185,11 @@ export class NavBarComponent implements OnInit, OnDestroy {
       case 'org_admin':
         return [
           { path: '/admin', label: 'nav.dashboard', icon: icons.building },
-          { path: '/admin/users', label: 'nav.users', icon: icons.users },
-          { path: '/admin/zones', label: 'nav.zones', icon: icons.map },
-          { path: '/admin/settings', label: 'nav.settings', icon: icons.settings },
           { path: '/manager', label: 'nav.drivers', icon: icons.dashboard },
           { path: '/manager/approvals', label: 'nav.approvals', icon: icons.approvals },
-          { path: '/manager/time-off', label: 'nav.timeOff', icon: icons.timeOff },
           { path: '/manager/reports', label: 'nav.reports', icon: icons.reports },
+          { path: '/admin/users', label: 'nav.users', icon: icons.users },
+          { path: '/admin/projects', label: 'nav.projects', icon: icons.hours },
         ];
       default:
         return driverLinks;

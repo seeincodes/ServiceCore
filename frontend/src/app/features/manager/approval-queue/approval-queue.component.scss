@@ -132,3 +132,112 @@
   display: flex;
   gap: $spacing-sm;
 }
+
+// Revise panel
+.ts-card.revising {
+  border-color: #f57c00;
+  background: rgba(#f57c00, 0.02);
+}
+
+.revise-panel {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $neutral-200;
+}
+
+.revise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.revise-total {
+  font-size: 14px;
+  font-weight: 700;
+  color: $primary;
+}
+
+.revise-loading,
+.revise-empty {
+  text-align: center;
+  padding: $spacing-md;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+.entry-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+  margin-bottom: $spacing-md;
+
+  th {
+    text-align: left;
+    padding: $spacing-xs $spacing-sm;
+    font-size: 11px;
+    font-weight: 600;
+    color: $neutral-500;
+    text-transform: uppercase;
+    border-bottom: 1px solid $neutral-200;
+  }
+
+  td {
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px solid $neutral-100;
+  }
+}
+
+.editing-row {
+  background: rgba($primary, 0.03);
+}
+
+.edit-entry-btn {
+  padding: 4px 10px;
+  background: rgba($primary, 0.08);
+  color: $primary;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  &:hover {
+    background: rgba($primary, 0.15);
+  }
+}
+
+.edit-time {
+  padding: 4px 6px;
+  border: 1px solid $neutral-300;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+.edit-actions {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.revise-actions {
+  display: flex;
+  gap: $spacing-sm;
+  padding-top: $spacing-sm;
+}

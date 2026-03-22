@@ -2,7 +2,7 @@
 
 .detail {
   padding: $spacing-lg;
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -21,7 +21,33 @@
 }
 
 h2 {
-  margin: 0 0 $spacing-xs;
+  margin: 0 0 $spacing-sm;
+}
+
+.date-picker {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+
+  label {
+    font-size: $font-size-sm;
+    font-weight: 500;
+    color: $neutral-700;
+  }
+
+  input[type='date'] {
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $neutral-300;
+    border-radius: 8px;
+    font-size: $font-size-sm;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+    }
+  }
 }
 
 .total {
@@ -36,25 +62,156 @@ h2 {
   color: $neutral-500;
 }
 
+.error-msg {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+  background: rgba($danger, 0.1);
+  color: $danger;
+}
+
 .entries-table {
   width: 100%;
   border-collapse: collapse;
+  background: $white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid $neutral-200;
 
   th {
     text-align: left;
     padding: $spacing-sm $spacing-md;
+    background: $neutral-50;
     border-bottom: 2px solid $neutral-200;
     font-size: $font-size-sm;
     color: $neutral-700;
+    font-weight: 600;
   }
 
   td {
     padding: $spacing-sm $spacing-md;
     border-bottom: 1px solid $neutral-100;
+    font-size: $font-size-sm;
   }
 
   tr.open td {
     background-color: rgba($success, 0.04);
     font-weight: 500;
   }
+
+  tr.entry-row {
+    cursor: pointer;
+
+    &:hover td {
+      background-color: $neutral-50;
+    }
+  }
+
+  tr.editing-row td {
+    background: $neutral-50;
+    padding: $spacing-md;
+  }
+}
+
+.source-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.badge-mobile {
+    background: rgba($primary, 0.1);
+    color: $primary;
+  }
+
+  &.badge-web {
+    background: rgba($success, 0.1);
+    color: darken($success, 10%);
+  }
+
+  &.badge-admin {
+    background: rgba($warning, 0.15);
+    color: darken($warning, 20%);
+  }
+
+  &.badge-default {
+    background: $neutral-100;
+    color: $neutral-700;
+  }
+}
+
+.edit-hint {
+  font-size: 12px;
+  color: $neutral-500;
+  font-style: italic;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.edit-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+
+  label {
+    font-size: $font-size-sm;
+    font-weight: 500;
+    color: $neutral-700;
+  }
+
+  input[type='datetime-local'] {
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $neutral-300;
+    border-radius: 8px;
+    font-size: $font-size-sm;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+    }
+  }
+}
+
+.edit-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.save-btn {
+  padding: $spacing-sm $spacing-md;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.cancel-btn {
+  padding: $spacing-sm $spacing-md;
+  background: $neutral-200;
+  color: $neutral-700;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: $font-size-sm;
+  cursor: pointer;
 }

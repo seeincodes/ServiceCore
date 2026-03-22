@@ -255,6 +255,78 @@ router.put(
   },
 );
 
+// GET /admin/stats/trends — daily active users + weekly hours totals
+router.get(
+  '/stats/trends',
+  authenticate,
+  authorize('org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const { orgId } = (req as AuthenticatedRequest).user;
+
+      // Daily active users for the last 30 days
+      const dailyActive = [];
+      for (let i = 0; i < 30; i++) {
+        const date = new Date();
+        date.setDate(date.getDate() - i);
+        const dateStr = date.toISOString().split('T')[0];
+        const dayStart = `${dateStr}T00:00:00.000Z`;
+        const dayEnd = `${dateStr}T23:59:59.999Z`;
+
+        const result = await db('clock_entries')
+          .where({ org_id: orgId })
+          .where('clock_in', '>=', dayStart)
+          .where('clock_in', '<=', dayEnd)
+          .countDistinct('user_id as count')
+          .first();
+
+        dailyActive.push({
+          date: dateStr,
+          count: Number(result?.count || 0),
+        });
+      }
+
+      // Weekly hours totals for the last 8 weeks
+      const weeklyHours = [];
+      for (let i = 0; i < 8; i++) {
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const sundayOffset = -dayOfWeek - i * 7;
+        const weekEnd = new Date(now);
+        weekEnd.setDate(now.getDate() + sundayOffset);
+        weekEnd.setHours(23, 59, 59, 999);
+
+        const weekStart = new Date(weekEnd);
+        weekStart.setDate(weekEnd.getDate() - 6);
+        weekStart.setHours(0, 0, 0, 0);
+
+        const weekEndingStr = weekEnd.toISOString().split('T')[0];
+
+        const result = await db('clock_entries')
+          .where({ org_id: orgId })
+          .where('clock_in', '>=', weekStart.toISOString())
+          .where('clock_in', '<=', weekEnd.toISOString())
+          .whereNotNull('clock_out')
+          .select(
+            db.raw(
+              'COALESCE(SUM(EXTRACT(EPOCH FROM (clock_out - clock_in)) / 3600), 0) as total_hours',
+            ),
+          )
+          .first();
+
+        weeklyHours.push({
+          weekEnding: weekEndingStr,
+          hours: Math.round(Number(result?.total_hours || 0) * 100) / 100,
+        });
+      }
+
+      sendSuccess(res, { dailyActive, weeklyHours });
+    } catch (err: unknown) {
+      sendError(res, (err as Error).message);
+    }
+  },
+);
+
 // ============================================================
 // WORK ZONES (Depots / Locations)
 // ============================================================

@@ -4,9 +4,13 @@ import bcrypt from 'bcrypt';
 export async function seed(knex: Knex): Promise<void> {
   // Clean tables in reverse FK order
   await knex('audit_log').del();
+  await knex('time_off_requests').del();
+  await knex('time_off_balances').del();
   await knex('timesheet_approvals').del();
   await knex('timesheets').del();
   await knex('clock_entries').del();
+  await knex('projects').del();
+  await knex('work_zones').del();
   await knex('users').del();
   await knex('orgs').del();
 
@@ -118,6 +122,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'John',
         last_name: 'Davis',
         role: 'employee',
+        hourly_rate: 22.5,
+        ot_multiplier: 1.5,
       },
       {
         org_id: org1.id,
@@ -127,6 +133,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'Jane',
         last_name: 'Wilson',
         role: 'employee',
+        hourly_rate: 24.0,
+        ot_multiplier: 1.5,
       },
       {
         org_id: org1.id,
@@ -136,6 +144,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'Bob',
         last_name: 'Martinez',
         role: 'employee',
+        hourly_rate: 21.0,
+        ot_multiplier: 1.5,
       },
       {
         org_id: org1.id,
@@ -145,6 +155,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'Alice',
         last_name: 'Johnson',
         role: 'employee',
+        hourly_rate: 23.0,
+        ot_multiplier: 1.5,
       },
       {
         org_id: org1.id,
@@ -154,6 +166,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'Tom',
         last_name: 'Brown',
         role: 'employee',
+        hourly_rate: 20.0,
+        ot_multiplier: 1.5,
       },
       {
         org_id: org1.id,
@@ -163,6 +177,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'Sam',
         last_name: 'Garcia',
         role: 'employee',
+        hourly_rate: 25.0,
+        ot_multiplier: 1.5,
       },
     ])
     .returning(['id', 'role']);
@@ -196,6 +212,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'Carlos',
         last_name: 'Ruiz',
         role: 'employee',
+        hourly_rate: 26.0,
+        ot_multiplier: 1.5,
       },
       {
         org_id: org2.id,
@@ -205,6 +223,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'Maria',
         last_name: 'Santos',
         role: 'employee',
+        hourly_rate: 27.5,
+        ot_multiplier: 1.5,
       },
       {
         org_id: org2.id,
@@ -214,6 +234,8 @@ export async function seed(knex: Knex): Promise<void> {
         first_name: 'Diego',
         last_name: 'Flores',
         role: 'employee',
+        hourly_rate: 24.0,
+        ot_multiplier: 1.5,
       },
     ])
     .returning(['id', 'role']);
@@ -254,7 +276,6 @@ export async function seed(knex: Knex): Promise<void> {
   // ============================================================
   // PROJECTS (must be before clock entries for project_id FK)
   // ============================================================
-  await knex('projects').del();
   const org1Projects = await knex('projects')
     .insert([
       { org_id: org1.id, code: 'RES-PICKUP', name: 'Residential Pickup', color: '#2e7d32' },
@@ -274,7 +295,7 @@ export async function seed(knex: Knex): Promise<void> {
   ]);
 
   // ============================================================
-  // CLOCK ENTRIES — Last 2 weeks of realistic data
+  // CLOCK ENTRIES — Last 6 weeks of realistic data
   // ============================================================
   const now = new Date();
   const org1Drivers = org1Users.filter((u) => u.role === 'employee');
@@ -283,148 +304,528 @@ export async function seed(knex: Knex): Promise<void> {
 
   const routes = ['RES-01', 'RES-02', 'COM-01', 'COM-02', 'RCY-01', 'BLK-01', 'YRD-01'];
   const org1ProjectCodes = ['RES-PICKUP', 'COM-PICKUP', 'RECYCLING', 'BULK-WASTE', 'YARD-WORK'];
+  const sources: ('app' | 'sms')[] = ['app', 'app', 'app', 'app', 'sms'];
 
-  // Generate 2 weeks of clock entries for each driver
-  for (let dayOffset = 13; dayOffset >= 0; dayOffset--) {
+  // Generate 6 weeks of clock entries for each driver
+  for (let dayOffset = 41; dayOffset >= 0; dayOffset--) {
     const day = new Date(now);
     day.setDate(day.getDate() - dayOffset);
     const dayOfWeek = day.getDay();
 
-    // Skip weekends
-    if (dayOfWeek === 0 || dayOfWeek === 6) continue;
+    // Skip Sundays; some Saturday work for org2
+    if (dayOfWeek === 0) continue;
+    const isSaturday = dayOfWeek === 6;
 
-    // Org 1 drivers
-    for (const driver of org1Drivers) {
-      const startHour = 6 + Math.floor(Math.random() * 2); // 6-7am
-      const workHours = 7.5 + Math.random() * 2.5; // 7.5-10h
-      const routeId = routes[Math.floor(Math.random() * routes.length)];
+    // Org 1 drivers — weekdays only, some multi-shift days
+    if (!isSaturday) {
+      for (let dIdx = 0; dIdx < org1Drivers.length; dIdx++) {
+        const driver = org1Drivers[dIdx];
 
-      const clockIn = new Date(day);
-      clockIn.setHours(startHour, Math.floor(Math.random() * 30), 0, 0);
+        // 10% chance a driver is absent (except first 2 drivers who are always present)
+        if (dIdx >= 2 && Math.random() < 0.1) continue;
 
-      const clockOut = new Date(clockIn);
-      clockOut.setTime(clockIn.getTime() + workHours * 60 * 60 * 1000);
+        const startHour = 5 + Math.floor(Math.random() * 3); // 5-7am
+        const startMin = Math.floor(Math.random() * 45);
 
-      const projectCode = org1ProjectCodes[Math.floor(Math.random() * org1ProjectCodes.length)];
-      const projectId = org1ProjectMap.get(projectCode);
+        // Some drivers do split shifts (break in the middle)
+        const doSplitShift = Math.random() < 0.25;
 
-      await knex('clock_entries').insert({
-        org_id: org1.id,
-        user_id: driver.id,
-        clock_in: clockIn,
-        clock_out: clockOut,
-        route_id: routeId,
-        project_id: projectId,
-        location_lat: 37.7749 + (Math.random() - 0.5) * 0.1,
-        location_lon: -122.4194 + (Math.random() - 0.5) * 0.1,
-        source: Math.random() > 0.8 ? 'sms' : 'app',
-        synced_at: clockIn,
-      });
+        if (doSplitShift) {
+          // Morning shift
+          const morningHours = 3.5 + Math.random() * 1.5; // 3.5-5h
+          const clockIn1 = new Date(day);
+          clockIn1.setHours(startHour, startMin, 0, 0);
+          const clockOut1 = new Date(clockIn1);
+          clockOut1.setTime(clockIn1.getTime() + morningHours * 3600000);
+
+          const projectCode1 =
+            org1ProjectCodes[Math.floor(Math.random() * org1ProjectCodes.length)];
+          await knex('clock_entries').insert({
+            org_id: org1.id,
+            user_id: driver.id,
+            clock_in: clockIn1,
+            clock_out: clockOut1,
+            route_id: routes[Math.floor(Math.random() * routes.length)],
+            project_id: org1ProjectMap.get(projectCode1),
+            location_lat: 37.7749 + (Math.random() - 0.5) * 0.1,
+            location_lon: -122.4194 + (Math.random() - 0.5) * 0.1,
+            source: sources[Math.floor(Math.random() * sources.length)],
+            synced_at: clockIn1,
+          });
+
+          // Afternoon shift (30-60 min break)
+          const breakMin = 30 + Math.floor(Math.random() * 30);
+          const clockIn2 = new Date(clockOut1);
+          clockIn2.setTime(clockOut1.getTime() + breakMin * 60000);
+          const afternoonHours = 3 + Math.random() * 2; // 3-5h
+          const clockOut2 = new Date(clockIn2);
+          clockOut2.setTime(clockIn2.getTime() + afternoonHours * 3600000);
+
+          const projectCode2 =
+            org1ProjectCodes[Math.floor(Math.random() * org1ProjectCodes.length)];
+          await knex('clock_entries').insert({
+            org_id: org1.id,
+            user_id: driver.id,
+            clock_in: clockIn2,
+            clock_out: clockOut2,
+            route_id: routes[Math.floor(Math.random() * routes.length)],
+            project_id: org1ProjectMap.get(projectCode2),
+            location_lat: 37.7749 + (Math.random() - 0.5) * 0.1,
+            location_lon: -122.4194 + (Math.random() - 0.5) * 0.1,
+            source: sources[Math.floor(Math.random() * sources.length)],
+            synced_at: clockIn2,
+          });
+        } else {
+          // Single shift
+          const workHours = 7 + Math.random() * 3.5; // 7-10.5h
+          const clockIn = new Date(day);
+          clockIn.setHours(startHour, startMin, 0, 0);
+          const clockOut = new Date(clockIn);
+          clockOut.setTime(clockIn.getTime() + workHours * 3600000);
+
+          const projectCode = org1ProjectCodes[Math.floor(Math.random() * org1ProjectCodes.length)];
+          await knex('clock_entries').insert({
+            org_id: org1.id,
+            user_id: driver.id,
+            clock_in: clockIn,
+            clock_out: clockOut,
+            route_id: routes[Math.floor(Math.random() * routes.length)],
+            project_id: org1ProjectMap.get(projectCode),
+            location_lat: 37.7749 + (Math.random() - 0.5) * 0.1,
+            location_lon: -122.4194 + (Math.random() - 0.5) * 0.1,
+            source: sources[Math.floor(Math.random() * sources.length)],
+            synced_at: clockIn,
+          });
+        }
+      }
     }
 
-    // Org 2 drivers (California — some with >8h days)
-    for (const driver of org2Drivers) {
-      const startHour = 5 + Math.floor(Math.random() * 2); // 5-6am
-      const workHours = 8 + Math.random() * 4; // 8-12h (CA OT territory)
-      const routeId = routes[Math.floor(Math.random() * routes.length)];
+    // Org 2 drivers — California OT, includes some Saturdays
+    if (!isSaturday || Math.random() < 0.3) {
+      for (const driver of org2Drivers) {
+        if (isSaturday && Math.random() < 0.5) continue; // half show up on Saturday
 
-      const clockIn = new Date(day);
-      clockIn.setHours(startHour, Math.floor(Math.random() * 30), 0, 0);
+        const startHour = 5 + Math.floor(Math.random() * 2);
+        const workHours = isSaturday
+          ? 4 + Math.random() * 3 // 4-7h on Saturday
+          : 8 + Math.random() * 4; // 8-12h weekdays (CA OT territory)
+        const routeId = routes[Math.floor(Math.random() * routes.length)];
 
-      const clockOut = new Date(clockIn);
-      clockOut.setTime(clockIn.getTime() + workHours * 60 * 60 * 1000);
+        const clockIn = new Date(day);
+        clockIn.setHours(startHour, Math.floor(Math.random() * 30), 0, 0);
+        const clockOut = new Date(clockIn);
+        clockOut.setTime(clockIn.getTime() + workHours * 3600000);
 
-      await knex('clock_entries').insert({
-        org_id: org2.id,
-        user_id: driver.id,
-        clock_in: clockIn,
-        clock_out: clockOut,
-        route_id: routeId,
-        source: 'app',
-        synced_at: clockIn,
-      });
+        await knex('clock_entries').insert({
+          org_id: org2.id,
+          user_id: driver.id,
+          clock_in: clockIn,
+          clock_out: clockOut,
+          route_id: routeId,
+          source: Math.random() > 0.9 ? 'sms' : 'app',
+          synced_at: clockIn,
+        });
+      }
     }
 
-    // Org 3 drivers (small shop, shorter days)
-    for (const driver of org3Drivers) {
-      const startHour = 7;
-      const workHours = 6 + Math.random() * 2;
+    // Org 3 drivers — small shop, weekdays only
+    if (!isSaturday) {
+      for (const driver of org3Drivers) {
+        if (Math.random() < 0.08) continue; // occasional absence
+        const workHours = 6 + Math.random() * 2.5;
+        const clockIn = new Date(day);
+        clockIn.setHours(7, Math.floor(Math.random() * 15), 0, 0);
+        const clockOut = new Date(clockIn);
+        clockOut.setTime(clockIn.getTime() + workHours * 3600000);
 
-      const clockIn = new Date(day);
-      clockIn.setHours(startHour, 0, 0, 0);
-
-      const clockOut = new Date(clockIn);
-      clockOut.setTime(clockIn.getTime() + workHours * 60 * 60 * 1000);
-
-      await knex('clock_entries').insert({
-        org_id: org3.id,
-        user_id: driver.id,
-        clock_in: clockIn,
-        clock_out: clockOut,
-        route_id: 'R1',
-        source: 'app',
-        synced_at: clockIn,
-      });
+        await knex('clock_entries').insert({
+          org_id: org3.id,
+          user_id: driver.id,
+          clock_in: clockIn,
+          clock_out: clockOut,
+          route_id: 'R1',
+          source: 'app',
+          synced_at: clockIn,
+        });
+      }
     }
   }
 
   // ============================================================
-  // TIMESHEETS — Last week (submitted + some approved)
+  // TIMESHEETS — Last 4 weeks (mix of statuses)
   // ============================================================
-  const lastFriday = new Date(now);
-  lastFriday.setDate(lastFriday.getDate() - ((now.getDay() + 2) % 7)); // Previous Friday
-  const weekEnding = lastFriday.toISOString().split('T')[0];
-
   const org1Manager = org1Users.find((u) => u.role === 'manager')!;
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const org2Manager = org2Users.find((u) => u.role === 'manager')!;
 
-  // Org 1 timesheets
-  for (let i = 0; i < org1Drivers.length; i++) {
-    const hours = 38 + Math.random() * 8; // 38-46h
-    const otHours = hours > 40 ? Math.round((hours - 40) * 100) / 100 : 0;
-    const status = i < 3 ? 'approved' : i < 5 ? 'submitted' : 'draft';
+  for (let weekBack = 0; weekBack < 4; weekBack++) {
+    const friday = new Date(now);
+    friday.setDate(friday.getDate() - friday.getDay() - 2 - weekBack * 7); // Previous Fridays
+    const weekEnding = friday.toISOString().split('T')[0];
 
-    const [ts] = await knex('timesheets')
-      .insert({
-        org_id: org1.id,
-        user_id: org1Drivers[i].id,
-        week_ending: weekEnding,
-        status,
-        hours_worked: Math.round(hours * 100) / 100,
-        ot_hours: otHours,
-      })
-      .returning('id');
+    // Org 1 timesheets
+    for (let i = 0; i < org1Drivers.length; i++) {
+      const baseHours = 36 + Math.random() * 12; // 36-48h range
+      const hours = Math.round(baseHours * 100) / 100;
+      const otHours = hours > 40 ? Math.round((hours - 40) * 100) / 100 : 0;
 
-    // Add approval record for approved timesheets
-    if (status === 'approved') {
-      await knex('timesheet_approvals').insert({
+      // Older weeks more likely approved, recent weeks more pending
+      let status: string;
+      if (weekBack >= 2) {
+        status = 'approved';
+      } else if (weekBack === 1) {
+        status = i < 4 ? 'approved' : 'submitted';
+      } else {
+        status = i < 2 ? 'approved' : i < 4 ? 'submitted' : 'draft';
+      }
+
+      const [ts] = await knex('timesheets')
+        .insert({
+          org_id: org1.id,
+          user_id: org1Drivers[i].id,
+          week_ending: weekEnding,
+          status,
+          hours_worked: hours,
+          ot_hours: otHours,
+        })
+        .returning('id');
+
+      if (status === 'approved') {
+        await knex('timesheet_approvals').insert({
+          org_id: org1.id,
+          timesheet_id: ts.id,
+          manager_id: org1Manager.id,
+          status: 'approved',
+          notes: ['Looks good', 'Approved', 'All checks out', 'OK'][Math.floor(Math.random() * 4)],
+        });
+      }
+    }
+
+    // Org 2 timesheets
+    for (const driver of org2Drivers) {
+      const hours = 40 + Math.random() * 12; // 40-52h (heavy OT)
+      const status = weekBack >= 1 ? 'approved' : 'submitted';
+      const [ts] = await knex('timesheets')
+        .insert({
+          org_id: org2.id,
+          user_id: driver.id,
+          week_ending: weekEnding,
+          status,
+          hours_worked: Math.round(hours * 100) / 100,
+          ot_hours: Math.round((hours - 40) * 100) / 100,
+        })
+        .returning('id');
+
+      if (status === 'approved') {
+        await knex('timesheet_approvals').insert({
+          org_id: org2.id,
+          timesheet_id: ts.id,
+          manager_id: org2Manager.id,
+          status: 'approved',
+          notes: 'Reviewed and approved',
+        });
+      }
+    }
+  }
+
+  // ============================================================
+  // WORK ZONES — Depots and job sites
+  // ============================================================
+  await knex('work_zones').del();
+  await knex('work_zones').insert([
+    {
+      org_id: org1.id,
+      name: 'Main Depot',
+      type: 'depot',
+      lat: 37.7749,
+      lon: -122.4194,
+      radius_meters: 200,
+      address: '100 Recycling Way, San Francisco, CA',
+    },
+    {
+      org_id: org1.id,
+      name: 'North Yard',
+      type: 'depot',
+      lat: 37.8044,
+      lon: -122.2712,
+      radius_meters: 150,
+      address: '500 Industrial Blvd, Oakland, CA',
+    },
+    {
+      org_id: org1.id,
+      name: 'Bayview Transfer Station',
+      type: 'transfer_station',
+      lat: 37.7295,
+      lon: -122.3925,
+      radius_meters: 300,
+      address: '1 Transfer Rd, San Francisco, CA',
+    },
+    {
+      org_id: org1.id,
+      name: 'Sunset Landfill',
+      type: 'landfill',
+      lat: 37.7559,
+      lon: -122.4945,
+      radius_meters: 500,
+      address: '2000 Landfill Dr, Daly City, CA',
+    },
+    {
+      org_id: org2.id,
+      name: 'Metro HQ',
+      type: 'depot',
+      lat: 34.0522,
+      lon: -118.2437,
+      radius_meters: 200,
+      address: '1 Metro Plaza, Los Angeles, CA',
+    },
+    {
+      org_id: org2.id,
+      name: 'East LA Yard',
+      type: 'depot',
+      lat: 34.0236,
+      lon: -118.1699,
+      radius_meters: 250,
+      address: '800 E Industrial, East LA, CA',
+    },
+    {
+      org_id: org3.id,
+      name: 'Sunrise Base',
+      type: 'depot',
+      lat: 40.7128,
+      lon: -74.006,
+      radius_meters: 200,
+      address: '10 Sunrise Lane, Newark, NJ',
+    },
+  ]);
+
+  // ============================================================
+  // TIME-OFF REQUESTS
+  // ============================================================
+  await knex('time_off_requests').del();
+
+  // A few approved, a few pending
+  const twoWeeksOut = new Date(now);
+  twoWeeksOut.setDate(twoWeeksOut.getDate() + 14);
+  const nextWeek = new Date(now);
+  nextWeek.setDate(nextWeek.getDate() + 7);
+  const lastWeek = new Date(now);
+  lastWeek.setDate(lastWeek.getDate() - 7);
+
+  await knex('time_off_requests').insert([
+    {
+      org_id: org1.id,
+      user_id: org1Drivers[0].id,
+      type: 'pto',
+      start_date: nextWeek.toISOString().split('T')[0],
+      end_date: new Date(nextWeek.getTime() + 2 * 86400000).toISOString().split('T')[0],
+      hours_requested: 24,
+      status: 'pending',
+      notes: 'Family vacation',
+    },
+    {
+      org_id: org1.id,
+      user_id: org1Drivers[1].id,
+      type: 'sick',
+      start_date: lastWeek.toISOString().split('T')[0],
+      end_date: lastWeek.toISOString().split('T')[0],
+      hours_requested: 8,
+      status: 'approved',
+      notes: 'Doctor appointment',
+    },
+    {
+      org_id: org1.id,
+      user_id: org1Drivers[2].id,
+      type: 'personal',
+      start_date: twoWeeksOut.toISOString().split('T')[0],
+      end_date: twoWeeksOut.toISOString().split('T')[0],
+      hours_requested: 8,
+      status: 'pending',
+      notes: 'Moving day',
+    },
+    {
+      org_id: org1.id,
+      user_id: org1Drivers[3].id,
+      type: 'pto',
+      start_date: lastWeek.toISOString().split('T')[0],
+      end_date: new Date(lastWeek.getTime() + 4 * 86400000).toISOString().split('T')[0],
+      hours_requested: 40,
+      status: 'approved',
+      notes: 'Spring break with kids',
+    },
+    {
+      org_id: org2.id,
+      user_id: org2Drivers[0].id,
+      type: 'jury_duty',
+      start_date: nextWeek.toISOString().split('T')[0],
+      end_date: new Date(nextWeek.getTime() + 4 * 86400000).toISOString().split('T')[0],
+      hours_requested: 40,
+      status: 'pending',
+      notes: 'Jury duty summons',
+    },
+  ]);
+
+  // ============================================================
+  // TIME-OFF BALANCES
+  // ============================================================
+  await knex('time_off_balances').del();
+  const currentYear = now.getFullYear();
+
+  for (const driver of org1Drivers) {
+    const ptoUsed = 16 + Math.floor(Math.random() * 24);
+    const sickUsed = Math.floor(Math.random() * 16);
+    const persUsed = Math.floor(Math.random() * 8);
+    await knex('time_off_balances').insert([
+      {
         org_id: org1.id,
-        timesheet_id: ts.id,
-        manager_id: org1Manager.id,
-        status: 'approved',
-        notes: 'Looks good',
+        user_id: driver.id,
+        type: 'pto',
+        year: currentYear,
+        accrued_hours: 80,
+        balance_hours: 80 - ptoUsed,
+        used_hours: ptoUsed,
+      },
+      {
+        org_id: org1.id,
+        user_id: driver.id,
+        type: 'sick',
+        year: currentYear,
+        accrued_hours: 40,
+        balance_hours: 40 - sickUsed,
+        used_hours: sickUsed,
+      },
+      {
+        org_id: org1.id,
+        user_id: driver.id,
+        type: 'personal',
+        year: currentYear,
+        accrued_hours: 24,
+        balance_hours: 24 - persUsed,
+        used_hours: persUsed,
+      },
+    ]);
+  }
+  for (const driver of org2Drivers) {
+    const ptoUsed = Math.floor(Math.random() * 32);
+    const sickUsed = Math.floor(Math.random() * 16);
+    await knex('time_off_balances').insert([
+      {
+        org_id: org2.id,
+        user_id: driver.id,
+        type: 'pto',
+        year: currentYear,
+        accrued_hours: 80,
+        balance_hours: 80 - ptoUsed,
+        used_hours: ptoUsed,
+      },
+      {
+        org_id: org2.id,
+        user_id: driver.id,
+        type: 'sick',
+        year: currentYear,
+        accrued_hours: 48,
+        balance_hours: 48 - sickUsed,
+        used_hours: sickUsed,
+      },
+    ]);
+  }
+
+  // ============================================================
+  // AUDIT LOG — Rich alert data for review queue
+  // ============================================================
+  const alertTypes = [
+    {
+      action: 'manager_alert:midnight_auto_close',
+      make: (userId: string) => ({
+        type: 'midnight_auto_close',
+        priority: 'critical',
+        title: 'Forgot to clock out',
+        message: '8 hours auto-logged. Please review and adjust if needed.',
+        userId,
+      }),
+    },
+    {
+      action: 'manager_alert:missing_clock_in',
+      make: (userId: string) => ({
+        type: 'missing_clock_in',
+        priority: 'warning',
+        title: 'Missing clock-in',
+        message: "Employee hasn't clocked in today.",
+        userId,
+      }),
+    },
+    {
+      action: 'manager_alert:timesheet_flagged',
+      make: (userId: string) => ({
+        type: 'timesheet_flagged',
+        priority: 'warning',
+        title: 'Timesheet anomaly',
+        message: 'Unusual hours pattern detected. 3 days with >10h.',
+        userId,
+      }),
+    },
+    {
+      action: 'manager_alert:overtime_exceeded',
+      make: (userId: string) => ({
+        type: 'overtime_exceeded',
+        priority: 'critical',
+        title: 'Overtime limit exceeded',
+        message: 'Employee has worked over 50 hours this week.',
+        userId,
+      }),
+    },
+    {
+      action: 'manager_alert:late_arrival',
+      make: (userId: string) => ({
+        type: 'late_arrival',
+        priority: 'info',
+        title: 'Late arrival',
+        message: 'Employee clocked in 2+ hours after typical start time.',
+        userId,
+      }),
+    },
+  ];
+
+  const auditEntries: any[] = [];
+
+  // Generate alerts spread over the last 2 weeks
+  for (let dayBack = 0; dayBack < 14; dayBack++) {
+    const alertDate = new Date(now);
+    alertDate.setDate(alertDate.getDate() - dayBack);
+    if (alertDate.getDay() === 0 || alertDate.getDay() === 6) continue;
+
+    // 1-3 alerts per day for org1
+    const alertCount = 1 + Math.floor(Math.random() * 3);
+    for (let a = 0; a < alertCount; a++) {
+      const alertType = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+      const targetDriver = org1Drivers[Math.floor(Math.random() * org1Drivers.length)];
+      alertDate.setHours(7 + Math.floor(Math.random() * 4), Math.floor(Math.random() * 60));
+
+      auditEntries.push({
+        org_id: org1.id,
+        user_id: targetDriver.id,
+        action: alertType.action,
+        entity_type: 'clock_entry',
+        details: JSON.stringify(alertType.make(targetDriver.id)),
+        created_at: new Date(alertDate),
+      });
+    }
+
+    // Fewer alerts for org2
+    if (Math.random() < 0.5) {
+      const alertType = alertTypes[Math.floor(Math.random() * alertTypes.length)];
+      const targetDriver = org2Drivers[Math.floor(Math.random() * org2Drivers.length)];
+      auditEntries.push({
+        org_id: org2.id,
+        user_id: targetDriver.id,
+        action: alertType.action,
+        entity_type: 'clock_entry',
+        details: JSON.stringify(alertType.make(targetDriver.id)),
+        created_at: new Date(alertDate),
       });
     }
   }
 
-  // Org 2 timesheets (all submitted, pending approval)
-  for (const driver of org2Drivers) {
-    const hours = 40 + Math.random() * 10; // 40-50h (CA OT)
-    await knex('timesheets').insert({
-      org_id: org2.id,
-      user_id: driver.id,
-      week_ending: weekEnding,
-      status: 'submitted',
-      hours_worked: Math.round(hours * 100) / 100,
-      ot_hours: Math.round((hours - 40) * 100) / 100,
-    });
-  }
-
-  // ============================================================
-  // AUDIT LOG — sample entries
-  // ============================================================
-  await knex('audit_log').insert([
+  // General audit entries (non-alert)
+  auditEntries.push(
     {
       org_id: org1.id,
       user_id: org1Manager.id,
@@ -446,5 +847,10 @@ export async function seed(knex: Knex): Promise<void> {
       entity_type: 'org',
       details: JSON.stringify({ field: 'primaryColor' }),
     },
-  ]);
+  );
+
+  // Batch insert audit log entries
+  for (let i = 0; i < auditEntries.length; i += 50) {
+    await knex('audit_log').insert(auditEntries.slice(i, i + 50));
+  }
 }

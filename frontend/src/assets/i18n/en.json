@@ -18,7 +18,8 @@
     "timeOff": "Time Off",
     "map": "Map",
     "zones": "Zones",
-    "review": "Review Queue"
+    "review": "Review Queue",
+    "projects": "Projects"
   },
   "login": {
     "title": "TimeKeeper",
@@ -348,6 +349,7 @@
     "pinIsSet": "Your 4-digit PIN is set. Required for clock-in and clock-out.",
     "pinNotSet": "Set a 4-digit PIN to secure your clock actions.",
     "enterPin": "Enter 4-digit PIN",
+    "language": "Language",
     "timeFormat": "Time Format",
     "distanceUnit": "Distance Unit",
     "miles": "Miles",

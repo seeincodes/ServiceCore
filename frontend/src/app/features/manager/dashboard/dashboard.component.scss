@@ -287,3 +287,40 @@
   font-size: 11px;
   color: $neutral-500;
 }
+
+.alloc-cost {
+  font-weight: 600;
+  color: $success;
+}
+
+// Project assignment
+.card-project {
+  font-size: 12px;
+  color: $primary;
+  font-weight: 500;
+}
+
+.card-assign {
+  margin-top: $spacing-xs;
+  padding-top: $spacing-xs;
+  border-top: 1px solid $neutral-100;
+}
+
+.assign-select {
+  width: 100%;
+  padding: 6px $spacing-sm;
+  border: 1px solid $neutral-200;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  background: $white;
+  cursor: pointer;
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

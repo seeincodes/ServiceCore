@@ -6,6 +6,7 @@
     *ngIf="message"
     [class.success]="message.type === 'success'"
     [class.error]="message.type === 'error'"
+    (click)="message = null"
   >
     {{ message.text }}
   </div>
@@ -17,7 +18,11 @@
   </div>
 
   <div class="ts-list" *ngIf="!loading && timesheets.length > 0">
-    <div *ngFor="let ts of timesheets" class="ts-card">
+    <div
+      *ngFor="let ts of timesheets"
+      class="ts-card"
+      [class.revising]="reviseTimesheetId === ts.id"
+    >
       <div class="ts-info">
         <span class="ts-name">{{ ts.userName }}</span>
         <span class="ts-week"
@@ -31,7 +36,8 @@
         </div>
       </div>
 
-      <div class="ts-actions" *ngIf="showNotesFor !== ts.id">
+      <!-- Actions (when not showing notes or revise panel) -->
+      <div class="ts-actions" *ngIf="showNotesFor !== ts.id && reviseTimesheetId !== ts.id">
         <button
           class="btn btn-approve"
           (click)="approve(ts)"
@@ -41,31 +47,103 @@
         </button>
         <button
           class="btn btn-revision"
-          (click)="requestRevision(ts)"
+          (click)="openRevise(ts)"
           [disabled]="actionInProgress === ts.id"
         >
-          {{ 'approvals.revise' | translate }}
+          Revise
         </button>
         <button class="btn btn-reject" (click)="reject(ts)" [disabled]="actionInProgress === ts.id">
           {{ 'approvals.reject' | translate }}
         </button>
       </div>
 
-      <div class="notes-form" *ngIf="showNotesFor === ts.id">
+      <!-- Reject notes -->
+      <div class="notes-form" *ngIf="showNotesFor === ts.id && reviseTimesheetId !== ts.id">
         <textarea
           [(ngModel)]="rejectNotes[ts.id]"
           [placeholder]="'approvals.notesPlaceholder' | translate"
           rows="2"
         ></textarea>
         <div class="notes-actions">
-          <button class="btn btn-revision" (click)="submitRevisionRequest(ts.id)">
-            {{ 'approvals.sendRevision' | translate }}
-          </button>
           <button class="btn btn-reject" (click)="submitRejection(ts.id)">
             {{ 'approvals.reject' | translate }}
           </button>
           <button class="btn btn-cancel" (click)="cancelNotes()">
             {{ 'approvals.cancelAction' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Revise panel: show clock entries for the week -->
+      <div class="revise-panel" *ngIf="reviseTimesheetId === ts.id">
+        <div class="revise-header">
+          <h3>Clock Entries for {{ ts.userName }}</h3>
+          <span class="revise-total">{{ reviseTotalHours }}h total</span>
+        </div>
+
+        <div class="revise-loading" *ngIf="reviseLoading">Loading entries...</div>
+
+        <div class="revise-empty" *ngIf="!reviseLoading && reviseEntries.length === 0">
+          No clock entries found for this week.
+        </div>
+
+        <table class="entry-table" *ngIf="!reviseLoading && reviseEntries.length > 0">
+          <thead>
+            <tr>
+              <th>Day</th>
+              <th>Clock In</th>
+              <th>Clock Out</th>
+              <th>Hours</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let entry of reviseEntries" [class.editing-row]="entry.editing">
+              <td>{{ formatDay(entry.clockIn) }}</td>
+
+              <!-- View mode -->
+              <ng-container *ngIf="!entry.editing">
+                <td>{{ formatTime(entry.clockIn) }}</td>
+                <td>{{ formatTime(entry.clockOut) }}</td>
+                <td>{{ entry.hours !== null ? entry.hours + 'h' : 'active' }}</td>
+                <td>
+                  <button class="edit-entry-btn" (click)="startEdit(entry)">Edit</button>
+                </td>
+              </ng-container>
+
+              <!-- Edit mode -->
+              <ng-container *ngIf="entry.editing">
+                <td>
+                  <input type="datetime-local" [(ngModel)]="entry.editClockIn" class="edit-time" />
+                </td>
+                <td>
+                  <input type="datetime-local" [(ngModel)]="entry.editClockOut" class="edit-time" />
+                </td>
+                <td colspan="2" class="edit-actions">
+                  <button
+                    class="btn btn-approve btn-sm"
+                    (click)="saveEdit(entry)"
+                    [disabled]="entry.saving"
+                  >
+                    {{ entry.saving ? '...' : 'Save' }}
+                  </button>
+                  <button class="btn btn-cancel btn-sm" (click)="cancelEdit(entry)">Cancel</button>
+                </td>
+              </ng-container>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="revise-actions">
+          <button
+            class="btn btn-approve"
+            (click)="approveAfterRevise()"
+            [disabled]="actionInProgress === ts.id"
+          >
+            Approve (with changes)
+          </button>
+          <button class="btn btn-cancel" (click)="reviseTimesheetId = null; reviseEntries = []">
+            Cancel
           </button>
         </div>
       </div>

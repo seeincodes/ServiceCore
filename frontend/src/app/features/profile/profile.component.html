@@ -140,6 +140,102 @@
     </div>
   </div>
 
+  <!-- Org Settings (admin only) -->
+  <div class="card" *ngIf="isAdmin">
+    <div class="card-header">
+      <h2>Organization Settings</h2>
+    </div>
+
+    <div class="field-group">
+      <div class="form-field">
+        <label>Organization Name</label>
+        <span class="field-value">{{ profile.orgName }}</span>
+      </div>
+
+      <div class="form-field">
+        <label>Overtime Rules</label>
+        <select [(ngModel)]="orgSettings.config.ot_rules" class="select-input">
+          <option value="federal">Federal (40h/week)</option>
+          <option value="california">California (8h/day + 40h/week)</option>
+        </select>
+      </div>
+
+      <div class="pref-row">
+        <span class="pref-label">Approval Required</span>
+        <div class="pref-toggle">
+          <button
+            class="pref-btn"
+            [class.active]="orgSettings.config.approval_required"
+            (click)="orgSettings.config.approval_required = true"
+          >
+            Yes
+          </button>
+          <button
+            class="pref-btn"
+            [class.active]="!orgSettings.config.approval_required"
+            (click)="orgSettings.config.approval_required = false"
+          >
+            No
+          </button>
+        </div>
+      </div>
+
+      <div class="pref-row">
+        <span class="pref-label">SMS Clock-In</span>
+        <div class="pref-toggle">
+          <button
+            class="pref-btn"
+            [class.active]="orgSettings.config.sms_enabled"
+            (click)="orgSettings.config.sms_enabled = true"
+          >
+            Enabled
+          </button>
+          <button
+            class="pref-btn"
+            [class.active]="!orgSettings.config.sms_enabled"
+            (click)="orgSettings.config.sms_enabled = false"
+          >
+            Disabled
+          </button>
+        </div>
+      </div>
+
+      <div class="pref-row">
+        <span class="pref-label">QuickBooks Sync</span>
+        <div class="pref-toggle">
+          <button
+            class="pref-btn"
+            [class.active]="orgSettings.config.qb_enabled"
+            (click)="orgSettings.config.qb_enabled = true"
+          >
+            Enabled
+          </button>
+          <button
+            class="pref-btn"
+            [class.active]="!orgSettings.config.qb_enabled"
+            (click)="orgSettings.config.qb_enabled = false"
+          >
+            Disabled
+          </button>
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label>Primary Color</label>
+        <input type="color" [(ngModel)]="orgSettings.branding.primaryColor" class="color-input" />
+      </div>
+
+      <div class="form-field">
+        <label>Logo URL</label>
+        <input [(ngModel)]="orgSettings.branding.logo" name="logo" placeholder="https://..." />
+      </div>
+    </div>
+
+    <button class="save-btn" (click)="saveOrgSettings()" [disabled]="savingOrgSettings">
+      {{ savingOrgSettings ? 'Saving...' : 'Save Organization Settings' }}
+    </button>
+  </div>
+
   <!-- Preferences -->
   <div class="card">
     <div class="card-header">
@@ -147,6 +243,19 @@
     </div>
 
     <div class="pref-group">
+      <div class="pref-row">
+        <span class="pref-label">{{ 'profile.language' | translate }}</span>
+        <select
+          class="lang-select"
+          [ngModel]="currentLang"
+          (ngModelChange)="switchLanguage($event)"
+        >
+          <option value="en">English</option>
+          <option value="es">Espa&ntilde;ol</option>
+          <option value="pt">Portugu&ecirc;s</option>
+        </select>
+      </div>
+
       <div class="pref-row">
         <span class="pref-label">{{ 'profile.timeFormat' | translate }}</span>
         <div class="pref-toggle">

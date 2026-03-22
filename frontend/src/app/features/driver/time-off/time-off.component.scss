@@ -49,39 +49,39 @@
 
 .balance-card {
   background: $white;
-  border: 1px solid $neutral-100;
+  border: 1px solid $neutral-200;
   border-radius: 12px;
   padding: $spacing-md $spacing-sm;
   text-align: center;
 }
 
 .balance-type {
-  font-size: 10px;
-  color: $neutral-500;
+  font-size: 11px;
+  color: $neutral-700;
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.5px;
   margin-bottom: $spacing-xs;
 }
 .balance-hours {
-  margin: 4px 0 8px;
+  margin: 4px 0 10px;
   line-height: 1;
 }
 .available {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 700;
-  color: $neutral-900;
+  color: $primary;
 }
 .total {
-  font-size: 13px;
-  color: $neutral-300;
+  font-size: 14px;
+  color: $neutral-500;
   font-weight: 500;
 }
 
 .balance-bar {
-  height: 4px;
-  background: $neutral-100;
-  border-radius: 2px;
+  height: 6px;
+  background: $neutral-200;
+  border-radius: 3px;
   overflow: hidden;
   margin: 0 auto $spacing-xs;
   width: 80%;
@@ -90,12 +90,13 @@
 .balance-fill {
   height: 100%;
   background: $primary;
-  border-radius: 2px;
+  border-radius: 3px;
   transition: width 0.3s;
 }
 .balance-used {
-  font-size: 11px;
-  color: $neutral-300;
+  font-size: 12px;
+  color: $neutral-500;
+  font-weight: 500;
 }
 
 // Form

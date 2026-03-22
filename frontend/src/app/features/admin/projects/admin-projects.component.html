@@ -1,0 +1,151 @@
+<div class="admin-projects">
+  <div class="page-header">
+    <h1>Projects</h1>
+    <button class="add-btn" (click)="toggleAddForm()">
+      {{ showAddForm ? 'Cancel' : 'Add Project' }}
+    </button>
+  </div>
+
+  <div
+    class="message"
+    *ngIf="message"
+    [class.success]="message.type === 'success'"
+    [class.error]="message.type === 'error'"
+  >
+    {{ message.text }}
+  </div>
+
+  <div class="error-box" *ngIf="error">{{ error }}</div>
+
+  <!-- Add project form -->
+  <div class="form-card" *ngIf="showAddForm">
+    <h2>New Project</h2>
+    <form (ngSubmit)="addProject()" class="project-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Code</label>
+          <input [(ngModel)]="newProject.code" name="code" required placeholder="e.g. PROJ-01" />
+        </div>
+        <div class="form-field">
+          <label>Name</label>
+          <input [(ngModel)]="newProject.name" name="name" required placeholder="Project name" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Color</label>
+          <div class="color-input">
+            <input type="color" [(ngModel)]="newProject.color" name="color" />
+            <span class="color-value">{{ newProject.color }}</span>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>Description</label>
+          <input
+            [(ngModel)]="newProject.description"
+            name="description"
+            placeholder="Optional description"
+          />
+        </div>
+      </div>
+      <button
+        type="submit"
+        class="save-btn"
+        [disabled]="saving || !newProject.code || !newProject.name"
+      >
+        {{ saving ? 'Creating...' : 'Create Project' }}
+      </button>
+    </form>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">Loading...</div>
+
+  <!-- Project table -->
+  <div class="table-scroll" *ngIf="!loading && projects.length > 0">
+    <table class="project-table">
+      <thead>
+        <tr>
+          <th>Color</th>
+          <th>Code</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let project of projects">
+          <!-- Display row -->
+          <tr *ngIf="editingProjectId !== project.id" [class.inactive]="!project.isActive">
+            <td>
+              <span class="color-dot" [style.background-color]="project.color || '#ccc'"></span>
+            </td>
+            <td class="project-code">{{ project.code }}</td>
+            <td>
+              <div class="project-name">{{ project.name }}</div>
+              <div class="project-desc" *ngIf="project.description">{{ project.description }}</div>
+            </td>
+            <td>
+              <span
+                class="status"
+                [class.active]="project.isActive"
+                [class.disabled]="!project.isActive"
+              >
+                {{ project.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="actions">
+              <button class="action-btn" (click)="startEdit(project)">Edit</button>
+              <button class="action-btn toggle" (click)="toggleActive(project)">
+                {{ project.isActive ? 'Deactivate' : 'Activate' }}
+              </button>
+              <button class="action-btn delete" (click)="deleteProject(project)">Delete</button>
+            </td>
+          </tr>
+
+          <!-- Inline edit row -->
+          <tr *ngIf="editingProjectId === project.id" class="edit-row">
+            <td colspan="5">
+              <form (ngSubmit)="saveEdit(project.id)" class="inline-edit-form">
+                <div class="form-row">
+                  <div class="form-field">
+                    <label>Code</label>
+                    <input [(ngModel)]="editProject.code" name="editCode" required />
+                  </div>
+                  <div class="form-field">
+                    <label>Name</label>
+                    <input [(ngModel)]="editProject.name" name="editName" required />
+                  </div>
+                  <div class="form-field">
+                    <label>Color</label>
+                    <div class="color-input">
+                      <input type="color" [(ngModel)]="editProject.color" name="editColor" />
+                    </div>
+                  </div>
+                </div>
+                <div class="form-field">
+                  <label>Description</label>
+                  <input
+                    [(ngModel)]="editProject.description"
+                    name="editDescription"
+                    placeholder="Optional"
+                  />
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="save-btn" [disabled]="saving">
+                    {{ saving ? 'Saving...' : 'Save' }}
+                  </button>
+                  <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+                </div>
+              </form>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="empty" *ngIf="!loading && !error && projects.length === 0">
+    No projects yet. Click "Add Project" to create one.
+  </div>
+</div>

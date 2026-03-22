@@ -41,7 +41,7 @@ jobs:
 
       - run: cd backend && npm ci
       - run: cd backend && npx tsc --noEmit
-      - run: cd backend && npx eslint src/ --ext .ts
+      - run: cd backend && npx eslint src/
       - run: cd backend && npm test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/timekeeper_test

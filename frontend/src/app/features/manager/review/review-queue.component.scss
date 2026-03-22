@@ -15,6 +15,72 @@
   }
 }
 
+.filter-tabs {
+  display: flex;
+  gap: $spacing-xs;
+  margin-bottom: $spacing-md;
+  overflow-x: auto;
+}
+
+.filter-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: $spacing-xs $spacing-sm;
+  border: 1px solid $neutral-200;
+  border-radius: 8px;
+  background: $white;
+  font-size: 13px;
+  font-weight: 500;
+  color: $neutral-700;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+  white-space: nowrap;
+
+  &:hover {
+    background: $neutral-50;
+  }
+
+  &.active {
+    background: $primary;
+    color: $white;
+    border-color: $primary;
+
+    .tab-badge {
+      background: rgba($white, 0.25);
+      color: $white;
+    }
+  }
+
+  &.critical.active {
+    background: $danger;
+    border-color: $danger;
+  }
+
+  &.warning.active {
+    background: #f57c00;
+    border-color: #f57c00;
+  }
+
+  &.info.active {
+    background: $primary;
+    border-color: $primary;
+  }
+}
+
+.tab-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: $neutral-100;
+  color: $neutral-700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
 .loading,
 .empty {
   text-align: center;
@@ -34,6 +100,7 @@
   border-radius: 12px;
   padding: $spacing-md;
   border-left: 4px solid $neutral-300;
+  transition: opacity 0.2s;
 
   &.critical {
     border-left-color: $danger;
@@ -48,6 +115,10 @@
   &.info {
     border-left-color: $primary;
   }
+
+  &.resolved {
+    opacity: 0.5;
+  }
 }
 
 .alert-header {
@@ -55,6 +126,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: $spacing-xs;
+  gap: $spacing-xs;
 }
 
 .alert-priority {
@@ -79,9 +151,21 @@
   }
 }
 
+.resolved-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: $neutral-100;
+  color: $neutral-500;
+}
+
 .alert-time {
   font-size: 12px;
   color: $neutral-500;
+  margin-left: auto;
 }
 
 .alert-title {
@@ -100,4 +184,29 @@
   font-size: 13px;
   color: $neutral-500;
   margin-top: $spacing-xs;
+}
+
+.alert-actions {
+  margin-top: $spacing-sm;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.resolve-btn {
+  padding: $spacing-xs $spacing-sm;
+  font-size: 12px;
+  font-weight: 600;
+  color: $success;
+  background: transparent;
+  border: 1px solid $success;
+  border-radius: 6px;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover {
+    background: $success;
+    color: $white;
+  }
 }

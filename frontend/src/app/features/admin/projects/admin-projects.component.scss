@@ -1,0 +1,261 @@
+@use '../../../../styles/variables' as *;
+
+.admin-projects {
+  padding: $spacing-md;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.add-btn {
+  padding: $spacing-sm $spacing-md;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+.message {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+  &.success {
+    background: rgba($success, 0.1);
+    color: darken($success, 10%);
+  }
+  &.error {
+    background: rgba($danger, 0.1);
+    color: $danger;
+  }
+}
+
+.error-box {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+  background: rgba($danger, 0.1);
+  color: $danger;
+}
+
+.form-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  h2 {
+    font-size: 18px;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.project-form,
+.inline-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  label {
+    font-size: $font-size-sm;
+    font-weight: 500;
+    color: $neutral-700;
+  }
+  input,
+  select {
+    padding: 10px $spacing-md;
+    border: 1px solid $neutral-300;
+    border-radius: 8px;
+    font-size: $font-size-base;
+    font-family: inherit;
+    &:focus {
+      outline: none;
+      border-color: $primary;
+    }
+  }
+}
+
+.color-input {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  input[type='color'] {
+    width: 40px;
+    height: 40px;
+    padding: 2px;
+    border: 1px solid $neutral-300;
+    border-radius: 8px;
+    cursor: pointer;
+    background: none;
+  }
+  .color-value {
+    font-size: $font-size-sm;
+    color: $neutral-500;
+  }
+}
+
+.save-btn {
+  padding: 12px;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.cancel-btn {
+  padding: 12px;
+  background: $neutral-200;
+  color: $neutral-700;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+.project-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  background: $white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid $neutral-200;
+
+  th {
+    text-align: left;
+    padding: $spacing-sm $spacing-md;
+    background: $neutral-50;
+    font-size: $font-size-sm;
+    color: $neutral-700;
+    font-weight: 600;
+    border-bottom: 1px solid $neutral-200;
+  }
+
+  td {
+    padding: $spacing-sm $spacing-md;
+    border-bottom: 1px solid $neutral-100;
+    font-size: $font-size-sm;
+    vertical-align: middle;
+  }
+
+  tr.inactive td {
+    opacity: 0.5;
+  }
+
+  tr.edit-row td {
+    background: $neutral-50;
+    padding: $spacing-md;
+  }
+}
+
+.color-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid $neutral-200;
+}
+
+.project-code {
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.project-name {
+  font-weight: 500;
+}
+
+.project-desc {
+  font-size: 12px;
+  color: $neutral-500;
+  margin-top: 2px;
+}
+
+.status {
+  font-size: 12px;
+  font-weight: 600;
+  &.active {
+    color: $success;
+  }
+  &.disabled {
+    color: $danger;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.action-btn {
+  padding: 4px 10px;
+  border: 1px solid $neutral-300;
+  border-radius: 6px;
+  background: $white;
+  font-size: 12px;
+  cursor: pointer;
+  color: $neutral-700;
+  &:hover {
+    background: $neutral-50;
+  }
+  &.toggle {
+    color: $warning;
+    border-color: rgba($warning, 0.3);
+  }
+  &.delete {
+    color: $danger;
+    border-color: rgba($danger, 0.3);
+  }
+}

@@ -96,6 +96,14 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('org_admin')],
   },
   {
+    path: 'admin/projects',
+    loadComponent: () =>
+      import('./features/admin/projects/admin-projects.component').then(
+        (m) => m.AdminProjectsComponent,
+      ),
+    canActivate: [authGuard, roleGuard('org_admin')],
+  },
+  {
     path: 'admin/settings',
     loadComponent: () =>
       import('./features/admin/settings/admin-settings.component').then(

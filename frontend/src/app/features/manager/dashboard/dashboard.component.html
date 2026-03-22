@@ -52,7 +52,23 @@
       <div class="card-details">
         <span>{{ driver.hours }}h</span>
         <span *ngIf="driver.route">{{ 'dashboard.route' | translate }} {{ driver.route }}</span>
+        <span *ngIf="driver.projectName" class="card-project">{{ driver.projectName }}</span>
         <span>{{ formatTime(driver.lastUpdate) }}</span>
+      </div>
+      <div
+        class="card-assign"
+        *ngIf="driver.status === 'clocked_in' && projects.length > 0"
+        (click)="$event.stopPropagation()"
+      >
+        <select
+          [ngModel]="driver.projectId || ''"
+          (ngModelChange)="assignProject(driver, $event)"
+          [disabled]="assigningDriverId === driver.id"
+          class="assign-select"
+        >
+          <option value="">No project</option>
+          <option *ngFor="let p of projects" [value]="p.id">{{ p.code }} — {{ p.name }}</option>
+        </select>
       </div>
     </div>
   </div>
@@ -65,6 +81,7 @@
         <th>{{ 'dashboard.status' | translate }}</th>
         <th>{{ 'dashboard.hours' | translate }}</th>
         <th>{{ 'dashboard.route' | translate }}</th>
+        <th>Project</th>
         <th>{{ 'dashboard.lastUpdate' | translate }}</th>
       </tr>
     </thead>
@@ -90,6 +107,19 @@
         </td>
         <td>{{ driver.hours }}h</td>
         <td>{{ driver.route || '-' }}</td>
+        <td (click)="$event.stopPropagation()">
+          <select
+            *ngIf="driver.status === 'clocked_in' && projects.length > 0"
+            [ngModel]="driver.projectId || ''"
+            (ngModelChange)="assignProject(driver, $event)"
+            [disabled]="assigningDriverId === driver.id"
+            class="assign-select"
+          >
+            <option value="">—</option>
+            <option *ngFor="let p of projects" [value]="p.id">{{ p.code }}</option>
+          </select>
+          <span *ngIf="driver.status !== 'clocked_in'">{{ driver.projectName || '-' }}</span>
+        </td>
         <td>{{ formatTime(driver.lastUpdate) }}</td>
       </tr>
     </tbody>
@@ -117,6 +147,7 @@
         </div>
         <div class="alloc-meta">
           <span>{{ item.percentage }}%</span>
+          <span *ngIf="item.cost > 0" class="alloc-cost">${{ item.cost | number: '1.0-0' }}</span>
           <span
             >{{ item.driverCount }}
             {{
