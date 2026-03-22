@@ -181,7 +181,9 @@ export async function getProjectAllocation(orgId: string): Promise<ProjectAlloca
   const projectIds = [...projectMap.keys()].filter((k) => k !== 'Unassigned');
   const projectRecords =
     projectIds.length > 0
-      ? await db('projects').whereIn('id', projectIds).select('id', 'name', 'code', 'color')
+      ? await db('projects')
+          .whereIn('id', projectIds)
+          .select('id', 'name', 'code', 'color', 'budgeted_hours', 'budget_amount')
       : [];
   const projectNameMap = new Map(projectRecords.map((p) => [p.id, p]));
 
@@ -189,6 +191,7 @@ export async function getProjectAllocation(orgId: string): Promise<ProjectAlloca
     .map(([projectId, data]) => {
       const proj = projectNameMap.get(projectId);
       return {
+        projectId: projectId !== 'Unassigned' ? projectId : null,
         project: proj ? `${proj.code} — ${proj.name}` : projectId,
         projectCode: proj?.code || null,
         color: proj?.color || null,
@@ -196,6 +199,8 @@ export async function getProjectAllocation(orgId: string): Promise<ProjectAlloca
         percentage: totalHours > 0 ? Math.round((data.hours / totalHours) * 100) : 0,
         driverCount: data.drivers.size,
         cost: Math.round(data.cost * 100) / 100,
+        budgetedHours: proj?.budgeted_hours ? Number(proj.budgeted_hours) : null,
+        budgetAmount: proj?.budget_amount ? Number(proj.budget_amount) : null,
       };
     })
     .sort((a, b) => b.hours - a.hours);

@@ -454,6 +454,8 @@ const createProjectSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   color: z.string().optional(),
+  budgetedHours: z.number().min(0).optional(),
+  budgetAmount: z.number().min(0).optional(),
 });
 
 router.post(
@@ -464,9 +466,16 @@ router.post(
     try {
       const { orgId } = (req as AuthenticatedRequest).user;
       const data = createProjectSchema.parse(req.body);
-      const [project] = await db('projects')
-        .insert({ org_id: orgId, ...data })
-        .returning('*');
+      const insert: Record<string, unknown> = {
+        org_id: orgId,
+        code: data.code,
+        name: data.name,
+        description: data.description,
+        color: data.color,
+      };
+      if (data.budgetedHours !== undefined) insert.budgeted_hours = data.budgetedHours;
+      if (data.budgetAmount !== undefined) insert.budget_amount = data.budgetAmount;
+      const [project] = await db('projects').insert(insert).returning('*');
       sendSuccess(res, { project }, 201);
     } catch (err: unknown) {
       sendError(res, (err as Error).message, 400);
@@ -474,11 +483,11 @@ router.post(
   },
 );
 
-// PUT /admin/projects/:id — update a project
+// PUT /admin/projects/:id — update a project (managers can update budgets)
 router.put(
   '/projects/:id',
   authenticate,
-  authorize('org_admin'),
+  authorize('manager', 'org_admin'),
   async (req: Request, res: Response) => {
     try {
       const { orgId } = (req as AuthenticatedRequest).user;
@@ -496,6 +505,8 @@ router.put(
       if (data.code) updates.code = data.code;
       if (data.description !== undefined) updates.description = data.description;
       if (data.color !== undefined) updates.color = data.color;
+      if (data.budgetedHours !== undefined) updates.budgeted_hours = data.budgetedHours;
+      if (data.budgetAmount !== undefined) updates.budget_amount = data.budgetAmount;
       if (data.isActive !== undefined) updates.is_active = data.isActive;
 
       await db('projects').where({ id }).update(updates);

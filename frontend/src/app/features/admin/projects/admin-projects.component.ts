@@ -11,6 +11,11 @@ interface Project {
   description: string | null;
   color: string | null;
   isActive: boolean;
+  budgetedHours: number | null;
+  budgetAmount: number | null;
+  hours?: number;
+  cost?: number;
+  driverCount?: number;
 }
 
 @Component({
@@ -27,11 +32,25 @@ export class AdminProjectsComponent implements OnInit {
   message: { text: string; type: 'success' | 'error' } | null = null;
 
   showAddForm = false;
-  newProject = { code: '', name: '', description: '', color: '#1a73e8' };
+  newProject = {
+    code: '',
+    name: '',
+    description: '',
+    color: '#1a73e8',
+    budgetedHours: null as number | null,
+    budgetAmount: null as number | null,
+  };
   saving = false;
 
   editingProjectId: string | null = null;
-  editProject = { code: '', name: '', description: '', color: '#1a73e8' };
+  editProject = {
+    code: '',
+    name: '',
+    description: '',
+    color: '#1a73e8',
+    budgetedHours: null as number | null,
+    budgetAmount: null as number | null,
+  };
 
   private apiUrl = `${environment.apiUrl}/admin/projects`;
 
@@ -45,7 +64,14 @@ export class AdminProjectsComponent implements OnInit {
     this.showAddForm = !this.showAddForm;
     this.editingProjectId = null;
     this.message = null;
-    this.newProject = { code: '', name: '', description: '', color: '#1a73e8' };
+    this.newProject = {
+      code: '',
+      name: '',
+      description: '',
+      color: '#1a73e8',
+      budgetedHours: null,
+      budgetAmount: null,
+    };
   }
 
   addProject(): void {
@@ -56,6 +82,8 @@ export class AdminProjectsComponent implements OnInit {
     };
     if (this.newProject.description) body.description = this.newProject.description;
     if (this.newProject.color) body.color = this.newProject.color;
+    if (this.newProject.budgetedHours) body.budgetedHours = this.newProject.budgetedHours;
+    if (this.newProject.budgetAmount) body.budgetAmount = this.newProject.budgetAmount;
 
     this.http.post<any>(this.apiUrl, body).subscribe({
       next: () => {
@@ -78,6 +106,8 @@ export class AdminProjectsComponent implements OnInit {
       name: project.name,
       description: project.description || '',
       color: project.color || '#1a73e8',
+      budgetedHours: project.budgetedHours,
+      budgetAmount: project.budgetAmount,
     };
     this.showAddForm = false;
     this.message = null;
@@ -95,6 +125,8 @@ export class AdminProjectsComponent implements OnInit {
         name: this.editProject.name,
         description: this.editProject.description || null,
         color: this.editProject.color,
+        budgetedHours: this.editProject.budgetedHours,
+        budgetAmount: this.editProject.budgetAmount,
       })
       .subscribe({
         next: () => {
@@ -143,12 +175,39 @@ export class AdminProjectsComponent implements OnInit {
     this.error = null;
     this.http.get<any>(this.apiUrl).subscribe({
       next: (res) => {
-        this.projects = res.data.projects;
+        this.projects = (res.data.projects || []).map((p: any) => ({
+          id: p.id,
+          code: p.code,
+          name: p.name,
+          description: p.description,
+          color: p.color,
+          isActive: p.is_active ?? p.isActive ?? true,
+          budgetedHours: p.budgeted_hours != null ? Number(p.budgeted_hours) : null,
+          budgetAmount: p.budget_amount != null ? Number(p.budget_amount) : null,
+        }));
         this.loading = false;
+        this.loadAllocation();
       },
       error: (err) => {
         this.loading = false;
         this.error = err.error?.error || 'Failed to load projects';
+      },
+    });
+  }
+
+  private loadAllocation(): void {
+    this.http.get<any>(`${environment.apiUrl}/manager/project-allocation`).subscribe({
+      next: (res) => {
+        const allocations = res.data?.allocation || [];
+        for (const alloc of allocations) {
+          // Match by project name which contains the code
+          const project = this.projects.find((p) => alloc.project?.includes(p.code));
+          if (project) {
+            project.hours = alloc.hours;
+            project.cost = alloc.cost;
+            project.driverCount = alloc.driverCount;
+          }
+        }
       },
     });
   }

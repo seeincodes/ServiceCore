@@ -286,11 +286,46 @@ export async function seed(knex: Knex): Promise<void> {
   // ============================================================
   const org1Projects = await knex('projects')
     .insert([
-      { org_id: org1.id, code: 'RES-PICKUP', name: 'Residential Pickup', color: '#2e7d32' },
-      { org_id: org1.id, code: 'COM-PICKUP', name: 'Commercial Pickup', color: '#1565c0' },
-      { org_id: org1.id, code: 'RECYCLING', name: 'Recycling Collection', color: '#00897b' },
-      { org_id: org1.id, code: 'BULK-WASTE', name: 'Bulk Waste Removal', color: '#6a1b9a' },
-      { org_id: org1.id, code: 'YARD-WORK', name: 'Yard Maintenance', color: '#ef6c00' },
+      {
+        org_id: org1.id,
+        code: 'RES-PICKUP',
+        name: 'Residential Pickup',
+        color: '#2e7d32',
+        budgeted_hours: 120,
+        budget_amount: 2800,
+      },
+      {
+        org_id: org1.id,
+        code: 'COM-PICKUP',
+        name: 'Commercial Pickup',
+        color: '#1565c0',
+        budgeted_hours: 80,
+        budget_amount: 2000,
+      },
+      {
+        org_id: org1.id,
+        code: 'RECYCLING',
+        name: 'Recycling Collection',
+        color: '#00897b',
+        budgeted_hours: 60,
+        budget_amount: 1400,
+      },
+      {
+        org_id: org1.id,
+        code: 'BULK-WASTE',
+        name: 'Bulk Waste Removal',
+        color: '#6a1b9a',
+        budgeted_hours: 40,
+        budget_amount: 1000,
+      },
+      {
+        org_id: org1.id,
+        code: 'YARD-WORK',
+        name: 'Yard Maintenance',
+        color: '#ef6c00',
+        budgeted_hours: 30,
+        budget_amount: 700,
+      },
     ])
     .returning(['id', 'code']);
   const org1ProjectMap = new Map(org1Projects.map((p) => [p.code, p.id]));

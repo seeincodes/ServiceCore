@@ -10,12 +10,18 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { environment } from '../../../../environments/environment';
 
 interface ProjectAllocation {
+  projectId: string | null;
   project: string;
   hours: number;
   percentage: number;
   driverCount: number;
   color: string | null;
   cost: number;
+  budgetedHours: number | null;
+  budgetAmount: number | null;
+  editingBudget?: boolean;
+  editBudgetedHours?: number | null;
+  editBudgetAmount?: number | null;
 }
 
 interface Project {
@@ -156,6 +162,32 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.error = err.error?.error || 'Failed to assign project';
         },
       });
+  }
+
+  startEditBudget(item: ProjectAllocation): void {
+    item.editingBudget = true;
+    item.editBudgetedHours = item.budgetedHours;
+    item.editBudgetAmount = item.budgetAmount;
+  }
+
+  saveBudget(item: ProjectAllocation): void {
+    if (!item.projectId) return;
+    this.http
+      .put<any>(`${environment.apiUrl}/admin/projects/${item.projectId}`, {
+        budgetedHours: item.editBudgetedHours,
+        budgetAmount: item.editBudgetAmount,
+      })
+      .subscribe({
+        next: () => {
+          item.budgetedHours = item.editBudgetedHours || null;
+          item.budgetAmount = item.editBudgetAmount || null;
+          item.editingBudget = false;
+        },
+      });
+  }
+
+  cancelEditBudget(item: ProjectAllocation): void {
+    item.editingBudget = false;
   }
 
   formatTime(isoString: string): string {

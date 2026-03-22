@@ -178,17 +178,65 @@
             <div class="proj-bar">
               <div
                 class="proj-fill"
-                [style.width.%]="item.percentage"
-                [style.background]="item.color || '#1a73e8'"
+                [style.width.%]="
+                  item.budgetedHours ? (item.hours / item.budgetedHours) * 100 : item.percentage
+                "
+                [style.background]="
+                  item.budgetedHours && item.hours > item.budgetedHours
+                    ? '#ea4335'
+                    : item.color || '#1a73e8'
+                "
               ></div>
             </div>
           </div>
-          <div class="proj-stats">
-            <span class="proj-hours">{{ item.hours }}h</span>
-            <span class="proj-cost" *ngIf="item.cost > 0">${{ item.cost | number: '1.0-0' }}</span>
+
+          <!-- View mode -->
+          <div class="proj-stats" *ngIf="!item.editingBudget">
+            <span
+              class="proj-hours"
+              [class.over-budget]="item.budgetedHours && item.hours > item.budgetedHours"
+            >
+              {{ item.hours }}h
+              <span class="budget-of" *ngIf="item.budgetedHours">/ {{ item.budgetedHours }}h</span>
+            </span>
+            <span
+              class="proj-cost"
+              [class.over-budget]="item.budgetAmount && item.cost > item.budgetAmount"
+              *ngIf="item.cost > 0"
+            >
+              ${{ item.cost | number: '1.0-0' }}
+              <span class="budget-of" *ngIf="item.budgetAmount"
+                >/ ${{ item.budgetAmount | number: '1.0-0' }}</span
+              >
+            </span>
             <span class="proj-drivers"
               >{{ item.driverCount }} {{ item.driverCount === 1 ? 'driver' : 'drivers' }}</span
             >
+            <button
+              class="budget-edit-btn"
+              *ngIf="item.projectId"
+              (click)="startEditBudget(item); $event.stopPropagation()"
+            >
+              Set Budget
+            </button>
+          </div>
+
+          <!-- Budget edit mode -->
+          <div
+            class="proj-budget-edit"
+            *ngIf="item.editingBudget"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="budget-field">
+              <label>Hours/wk</label>
+              <input type="number" [(ngModel)]="item.editBudgetedHours" min="0" />
+            </div>
+            <div class="budget-field">
+              <label>Budget $</label>
+              <input type="number" [(ngModel)]="item.editBudgetAmount" min="0" />
+            </div>
+            <button class="budget-save" (click)="saveBudget(item)">Save</button>
+            <button class="budget-cancel" (click)="cancelEditBudget(item)">Cancel</button>
           </div>
         </div>
       </div>
