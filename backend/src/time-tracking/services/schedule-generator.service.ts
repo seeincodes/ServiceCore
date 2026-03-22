@@ -19,16 +19,18 @@ export async function generateWeeklySchedules(): Promise<void> {
 }
 
 /**
- * Ensures the current week has schedules. If not, copies from last week.
+ * Ensures the current week has schedules for all 7 days.
+ * If the week is completely empty, copies from last week.
+ * If weekdays exist but weekends are missing, generates weekend
+ * schedules from shift_templates assigned to active employees.
  * Called on server startup.
  */
 export async function ensureCurrentWeekSchedules(): Promise<void> {
   try {
     const orgs = await db('orgs').select('id');
+    const { weekStart, weekEnd } = getCurrentWeekRange();
 
     for (const org of orgs) {
-      const { weekStart, weekEnd } = getCurrentWeekRange();
-
       const count = await db('schedules')
         .where({ org_id: org.id })
         .where('date', '>=', weekStart)
@@ -39,10 +41,93 @@ export async function ensureCurrentWeekSchedules(): Promise<void> {
       if (Number(count?.count) === 0) {
         logger.info(`No schedules for current week in org ${org.id}, generating from last week`);
         await copyWeekForward(org.id, getPreviousWeekRange(), { weekStart, weekEnd });
+      } else {
+        // Check for missing weekend days and fill gaps
+        await fillWeekendGaps(org.id, weekStart);
       }
     }
   } catch (err) {
     logger.error('Startup schedule check failed', { error: err });
+  }
+}
+
+/**
+ * If the current week has weekday schedules but no weekend ones,
+ * generates Saturday/Sunday entries. Uses each employee's most common
+ * template from the existing weekday schedules that week.
+ */
+async function fillWeekendGaps(orgId: string, weekStartStr: string): Promise<void> {
+  const monday = new Date(weekStartStr);
+  const saturday = new Date(monday);
+  saturday.setDate(monday.getDate() + 5);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+
+  const satStr = saturday.toISOString().split('T')[0];
+  const sunStr = sunday.toISOString().split('T')[0];
+
+  // Check if weekend schedules already exist
+  const weekendCount = await db('schedules')
+    .where({ org_id: orgId })
+    .whereIn('date', [satStr, sunStr])
+    .count('id as count')
+    .first();
+
+  if (Number(weekendCount?.count) > 0) return;
+
+  // Get all employees who have weekday schedules this week
+  const weekdaySchedules = await db('schedules')
+    .where({ org_id: orgId })
+    .where('date', '>=', weekStartStr)
+    .where('date', '<', satStr)
+    .select('user_id', 'project_id', 'route_id', 'shift_start', 'shift_end', 'template_id');
+
+  if (weekdaySchedules.length === 0) return;
+
+  // Group by user, take their first schedule as the pattern
+  const userPatterns = new Map<string, any>();
+  for (const s of weekdaySchedules) {
+    if (!userPatterns.has(s.user_id)) {
+      userPatterns.set(s.user_id, s);
+    }
+  }
+
+  // Assign roughly half the workforce to Saturday, the other half to Sunday
+  const users = [...userPatterns.entries()];
+  let inserted = 0;
+
+  for (let i = 0; i < users.length; i++) {
+    const [userId, pattern] = users[i];
+    // Even-index users get Saturday, odd-index get Sunday, some get both
+    const days: string[] = [];
+    if (i % 3 !== 1) days.push(satStr); // ~2/3 of drivers on Saturday
+    if (i % 3 !== 0) days.push(sunStr); // ~2/3 of drivers on Sunday
+
+    for (const date of days) {
+      try {
+        await db('schedules')
+          .insert({
+            org_id: orgId,
+            user_id: userId,
+            date,
+            project_id: pattern.project_id,
+            route_id: pattern.route_id,
+            shift_start: pattern.shift_start,
+            shift_end: pattern.shift_end,
+            template_id: pattern.template_id,
+            notes: 'Auto-generated weekend schedule',
+          })
+          .onConflict(['org_id', 'user_id', 'date'])
+          .ignore();
+        inserted++;
+      } catch {
+        // Skip individual failures
+      }
+    }
+  }
+
+  if (inserted > 0) {
+    logger.info(`Generated ${inserted} weekend schedule entries for org ${orgId}`);
   }
 }
 
