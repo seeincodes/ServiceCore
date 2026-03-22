@@ -25,7 +25,7 @@ describe('Auth Integration (requires DB)', () => {
       body: JSON.stringify({ email: 'driver1@greenwaste.com', password: 'password123' }),
     });
 
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(data.success).toBe(true);
     expect(data.data.token).toBeDefined();
     expect(data.data.user.role).toBe('employee');
@@ -40,7 +40,7 @@ describe('Auth Integration (requires DB)', () => {
       body: JSON.stringify({ email: 'driver1@greenwaste.com', password: 'wrongpassword' }),
     });
 
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(data.success).toBe(false);
   });
 
@@ -52,12 +52,12 @@ describe('Auth Integration (requires DB)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'driver1@greenwaste.com', password: 'password123' }),
     });
-    const loginData = await loginRes.json();
+    const loginData = (await loginRes.json()) as any;
 
     const meRes = await fetch(`${API_URL}/auth/me`, {
       headers: { Authorization: `Bearer ${loginData.data.token}` },
     });
-    const meData = await meRes.json();
+    const meData = (await meRes.json()) as any;
     expect(meData.success).toBe(true);
     expect(meData.data.user.email).toBe('driver1@greenwaste.com');
   });
@@ -66,7 +66,7 @@ describe('Auth Integration (requires DB)', () => {
     if (!(await canConnect())) return;
 
     const res = await fetch(`${API_URL}/auth/me`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     expect(data.success).toBe(false);
     expect(res.status).toBe(401);
   });

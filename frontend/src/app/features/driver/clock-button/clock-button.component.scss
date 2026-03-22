@@ -12,6 +12,42 @@
   justify-content: center;
 }
 
+// PIN setup prompt (overlay)
+.pin-setup-prompt {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-md;
+}
+
+.pin-setup-card {
+  background: $white;
+  border-radius: 16px;
+  padding: $spacing-lg;
+  max-width: 350px;
+  width: 100%;
+  text-align: center;
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 $spacing-xs;
+  }
+  p {
+    font-size: 13px;
+    color: $neutral-500;
+    margin: 0 0 $spacing-md;
+    line-height: 1.4;
+  }
+}
+
 // Status card
 .status-card {
   background: $white;
@@ -649,4 +685,83 @@
   &:hover {
     background: $neutral-200;
   }
+}
+
+// PIN prompt
+.pin-prompt {
+  background: $white;
+  border: 2px solid $primary;
+  border-radius: 16px;
+  padding: $spacing-lg;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-md;
+}
+
+.pin-prompt-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: $neutral-700;
+}
+
+.pin-input {
+  width: 160px;
+  padding: 16px;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 12px;
+  border: 2px solid $neutral-200;
+  border-radius: 12px;
+  background: $neutral-50;
+  color: $neutral-900;
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    background: $white;
+  }
+  &::placeholder {
+    color: $neutral-300;
+    letter-spacing: 8px;
+  }
+}
+
+.pin-actions {
+  display: flex;
+  gap: $spacing-sm;
+  width: 100%;
+  margin-top: $spacing-md;
+}
+
+.pin-cancel {
+  flex: 1;
+  padding: 12px;
+  background: $neutral-100;
+  color: $neutral-700;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pin-confirm {
+  flex: 1;
+  padding: 12px;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.pin-error {
+  color: $danger;
+  font-size: 13px;
+  font-weight: 500;
 }

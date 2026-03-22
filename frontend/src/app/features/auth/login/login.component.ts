@@ -40,14 +40,7 @@ export class LoginComponent {
     this.authService.login(this.email, this.password).subscribe({
       next: (res) => {
         this.loading = false;
-        const role = res.data.user.role;
-        if (role === 'org_admin') {
-          this.router.navigate(['/admin']);
-        } else if (role === 'manager' || role === 'payroll_admin') {
-          this.router.navigate(['/manager']);
-        } else {
-          this.router.navigate(['/clock']);
-        }
+        this.redirectByRole(res.data.user.role);
       },
       error: (err) => {
         this.loading = false;
@@ -56,12 +49,20 @@ export class LoginComponent {
     });
   }
 
-  private redirectByRole(): void {
-    const user = this.authService.currentUser;
-    if (user?.role === 'manager' || user?.role === 'org_admin' || user?.role === 'payroll_admin') {
-      this.router.navigate(['/manager']);
-    } else {
-      this.router.navigate(['/clock']);
+  private redirectByRole(role?: string): void {
+    const r = role || this.authService.currentUser?.role;
+    switch (r) {
+      case 'org_admin':
+        this.router.navigate(['/admin']);
+        break;
+      case 'manager':
+        this.router.navigate(['/manager']);
+        break;
+      case 'payroll_admin':
+        this.router.navigate(['/manager/reports']);
+        break;
+      default:
+        this.router.navigate(['/clock']);
     }
   }
 }

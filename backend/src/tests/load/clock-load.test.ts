@@ -25,7 +25,7 @@ describe('Load Test: Concurrent Clock-In (requires DB)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'driver1@greenwaste.com', password: 'password123' }),
     });
-    const { data } = await loginRes.json();
+    const { data } = (await loginRes.json()) as any;
     const token = data.token;
 
     // Fire 100 concurrent status requests

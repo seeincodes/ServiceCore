@@ -4,7 +4,7 @@ import db from '../../shared/database/connection';
 import { AuthenticatedUser, UserRole } from '../../shared/types';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
-const JWT_EXPIRY = (process.env.JWT_EXPIRY || '1h') as jwt.SignOptions['expiresIn'];
+const JWT_EXPIRY = (process.env.JWT_EXPIRY || '24h') as jwt.SignOptions['expiresIn'];
 const REFRESH_TOKEN_EXPIRY = (process.env.REFRESH_TOKEN_EXPIRY ||
   '7d') as jwt.SignOptions['expiresIn'];
 
