@@ -2,6 +2,14 @@
 
 Waste services employee time tracking platform. White-label SaaS with offline-first design, SMS/IVR clock-in, real-time manager dashboards, and QuickBooks payroll integration.
 
+## Production URLs
+
+| Service  | URL |
+|----------|-----|
+| Frontend | http://timekeeper-frontend-prod.s3-website-us-east-1.amazonaws.com |
+| API      | http://timekeeper-alb-487875782.us-east-1.elb.amazonaws.com |
+| Health   | http://timekeeper-alb-487875782.us-east-1.elb.amazonaws.com/health |
+
 ## Quick Start
 
 ```bash
