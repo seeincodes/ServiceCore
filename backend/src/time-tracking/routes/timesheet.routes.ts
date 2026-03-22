@@ -234,7 +234,126 @@ router.get(
 );
 
 // ============================================================
-// TIME EDIT REQUESTS (driver self-service)
+// DRIVER DIRECT EDIT (pre-submission only, notifies manager)
+// ============================================================
+
+const directEditSchema = z.object({
+  clockIn: z.string().optional(),
+  clockOut: z.string().optional(),
+  reason: z.string().min(1, 'A reason is required'),
+});
+
+// PUT /timesheets/entries/:entryId — driver edits own entry (draft timesheet only)
+router.put('/entries/:entryId', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const { entryId } = req.params;
+    const data = directEditSchema.parse(req.body);
+
+    // Verify entry belongs to this user
+    const entry = await db('clock_entries')
+      .where({ id: entryId, org_id: user.orgId, user_id: user.id })
+      .first();
+    if (!entry) {
+      return sendError(res, 'Clock entry not found', 404);
+    }
+
+    // Check timesheet is still draft (not submitted/approved/locked)
+    const entryDate = new Date(entry.clock_in);
+    const day = entryDate.getDay();
+    const diff = day <= 5 ? 5 - day : 5 - day + 7;
+    const friday = new Date(entryDate);
+    friday.setDate(entryDate.getDate() + diff);
+    const weekEnding = friday.toISOString().split('T')[0];
+
+    const timesheet = await db('timesheets')
+      .where({ org_id: user.orgId, user_id: user.id, week_ending: weekEnding })
+      .first();
+    if (timesheet && timesheet.status !== 'draft') {
+      return sendError(
+        res,
+        'Cannot edit entries after timesheet is submitted. Submit an edit request instead.',
+        400,
+      );
+    }
+
+    // Validate times
+    const newClockIn = data.clockIn ? new Date(data.clockIn) : new Date(entry.clock_in);
+    const newClockOut = data.clockOut
+      ? new Date(data.clockOut)
+      : entry.clock_out
+        ? new Date(entry.clock_out)
+        : null;
+    if (newClockOut && newClockOut <= newClockIn) {
+      return sendError(res, 'Clock out must be after clock in', 400);
+    }
+    if (newClockOut) {
+      const hours = (newClockOut.getTime() - newClockIn.getTime()) / (1000 * 60 * 60);
+      if (hours > 16) return sendError(res, 'Entry cannot exceed 16 hours', 400);
+    }
+
+    const oldValues = { clock_in: entry.clock_in, clock_out: entry.clock_out };
+    const updates: Record<string, any> = {};
+    if (data.clockIn) updates.clock_in = data.clockIn;
+    if (data.clockOut) updates.clock_out = data.clockOut;
+
+    await db('clock_entries').where({ id: entryId }).update(updates);
+
+    // Audit log
+    await db('audit_log').insert({
+      org_id: user.orgId,
+      user_id: user.id,
+      action: 'clock_entry_self_edited',
+      entity_type: 'clock_entry',
+      entity_id: entryId,
+      details: JSON.stringify({ old_values: oldValues, new_values: updates, reason: data.reason }),
+    });
+
+    // Notify all managers in this org
+    const { createNotification } = require('../../notifications/services/in-app.service');
+    const editingUser = await db('users').where({ id: user.id }).first();
+    const userName = editingUser
+      ? `${editingUser.first_name} ${editingUser.last_name}`
+      : user.email;
+    const managers = await db('users')
+      .where({ org_id: user.orgId })
+      .whereIn('role', ['manager', 'org_admin']);
+
+    for (const mgr of managers) {
+      await createNotification({
+        orgId: user.orgId,
+        userId: mgr.id,
+        type: 'time_edit',
+        title: 'Time Entry Edited',
+        message: `${userName} edited a time entry: "${data.reason}"`,
+        data: { entryId, editedBy: user.id, reason: data.reason },
+      });
+    }
+
+    // Return updated entry
+    const updated = await db('clock_entries').where({ id: entryId }).first();
+    const hours = updated.clock_out
+      ? (new Date(updated.clock_out).getTime() - new Date(updated.clock_in).getTime()) / 3600000
+      : null;
+
+    sendSuccess(res, {
+      entry: {
+        id: updated.id,
+        clockIn: updated.clock_in,
+        clockOut: updated.clock_out,
+        hours: hours !== null ? Math.round(hours * 100) / 100 : null,
+        routeId: updated.route_id,
+        source: updated.source,
+      },
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Edit failed';
+    sendError(res, message, 400);
+  }
+});
+
+// ============================================================
+// TIME EDIT REQUESTS (driver self-service, post-submission)
 // ============================================================
 
 const editRequestSchema = z.object({

@@ -164,6 +164,10 @@ export class MyHoursComponent implements OnInit {
     this.editMessage = null;
   }
 
+  get isDraftTimesheet(): boolean {
+    return !this.week?.timesheet?.status || this.week.timesheet.status === 'draft';
+  }
+
   submitEditRequest(): void {
     if (!this.editReason.trim()) {
       this.editMessage = { text: 'Please provide a reason for this change', type: 'error' };
@@ -175,6 +179,34 @@ export class MyHoursComponent implements OnInit {
     }
 
     this.editSubmitting = true;
+
+    // Draft timesheet: direct edit (applies immediately, notifies manager)
+    if (this.isDraftTimesheet && this.editFormType === 'edit' && this.editEntryId) {
+      this.http
+        .put<any>(`${environment.apiUrl}/timesheets/entries/${this.editEntryId}`, {
+          clockIn: new Date(this.editClockIn).toISOString(),
+          clockOut: new Date(this.editClockOut).toISOString(),
+          reason: this.editReason,
+        })
+        .subscribe({
+          next: () => {
+            this.editSubmitting = false;
+            this.showEditForm = false;
+            this.editMessage = null;
+            this.loadWeek(); // Reload to show updated hours
+          },
+          error: (err) => {
+            this.editSubmitting = false;
+            this.editMessage = {
+              text: err.error?.error || 'Failed to save edit',
+              type: 'error',
+            };
+          },
+        });
+      return;
+    }
+
+    // Submitted/approved/locked timesheet OR adding new entry: submit request for approval
     this.http
       .post<any>(`${environment.apiUrl}/timesheets/edit-requests`, {
         type: this.editFormType,

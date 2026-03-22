@@ -99,7 +99,15 @@
 <!-- Edit/Add Request Modal -->
 <div class="modal-overlay" *ngIf="showEditForm" (click)="cancelEdit()">
   <div class="modal-content" (click)="$event.stopPropagation()">
-    <h2>{{ editFormType === 'add' ? 'Add Missing Entry' : 'Request Time Edit' }}</h2>
+    <h2>
+      {{
+        editFormType === 'add'
+          ? 'Add Missing Entry'
+          : isDraftTimesheet
+            ? 'Edit Time Entry'
+            : 'Request Time Edit'
+      }}
+    </h2>
 
     <div class="form-group">
       <label>Clock In</label>
@@ -120,11 +128,19 @@
     </div>
 
     <div class="form-group">
-      <label>Reason (required)</label>
+      <label>{{
+        isDraftTimesheet && editFormType === 'edit'
+          ? 'Note for manager (required)'
+          : 'Reason (required)'
+      }}</label>
       <textarea
         [(ngModel)]="editReason"
         rows="3"
-        placeholder="e.g. Forgot to clock in, was on the schedule for Residential Pickup route"
+        [placeholder]="
+          isDraftTimesheet && editFormType === 'edit'
+            ? 'e.g. Corrected start time — actually arrived at 7:15am not 7:00am'
+            : 'e.g. Forgot to clock in, was on the schedule for Residential Pickup route'
+        "
       ></textarea>
     </div>
 
@@ -135,7 +151,13 @@
     <div class="modal-actions">
       <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
       <button class="btn-submit" (click)="submitEditRequest()" [disabled]="editSubmitting">
-        {{ editSubmitting ? 'Submitting...' : 'Submit for Approval' }}
+        {{
+          editSubmitting
+            ? 'Saving...'
+            : isDraftTimesheet && editFormType === 'edit'
+              ? 'Save Changes'
+              : 'Submit for Approval'
+        }}
       </button>
     </div>
   </div>
