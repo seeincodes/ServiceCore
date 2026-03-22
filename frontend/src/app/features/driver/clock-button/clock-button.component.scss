@@ -706,32 +706,26 @@
   color: $neutral-700;
 }
 
-.pin-dots {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  margin: $spacing-sm 0;
-}
-
-.pin-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid $neutral-300;
-  background: $white;
-  transition: all 0.15s;
-
-  &.filled {
-    background: $primary;
+.pin-input {
+  width: 160px;
+  padding: 16px;
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 12px;
+  border: 2px solid $neutral-200;
+  border-radius: 12px;
+  background: $neutral-50;
+  color: $neutral-900;
+  &:focus {
+    outline: none;
     border-color: $primary;
+    background: $white;
   }
-}
-
-.pin-hidden-input {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
+  &::placeholder {
+    color: $neutral-300;
+    letter-spacing: 8px;
+  }
 }
 
 .pin-actions {
