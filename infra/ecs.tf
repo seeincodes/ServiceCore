@@ -40,7 +40,7 @@ resource "aws_ecs_task_definition" "api" {
       environment = [
         { name = "NODE_ENV", value = "production" },
         { name = "PORT", value = "3000" },
-        { name = "CORS_ORIGIN", value = "http://timekeeper-frontend-prod.s3-website-us-east-1.amazonaws.com" },
+        { name = "CORS_ORIGIN", value = "https://${aws_cloudfront_distribution.frontend.domain_name}" },
       ]
       secrets = [
         { name = "DATABASE_URL", valueFrom = "${aws_ssm_parameter.db_url.arn}" },
@@ -154,8 +154,25 @@ resource "aws_lb_listener" "https" {
   }
 }
 
-# HTTP listener — forwards to app
+# HTTP listener — redirects to HTTPS when cert is present, otherwise forwards directly
+resource "aws_lb_listener" "http_redirect" {
+  count             = var.certificate_arn != "" ? 1 : 0
+  load_balancer_arn = aws_lb.main.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
 resource "aws_lb_listener" "http" {
+  count             = var.certificate_arn != "" ? 0 : 1
   load_balancer_arn = aws_lb.main.arn
   port              = "80"
   protocol          = "HTTP"

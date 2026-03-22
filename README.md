@@ -6,7 +6,7 @@ Waste services employee time tracking platform. White-label SaaS with offline-fi
 
 | Service  | URL |
 |----------|-----|
-| Frontend | http://timekeeper-frontend-prod.s3-website-us-east-1.amazonaws.com |
+| Frontend | https://d3clmhpkov5orm.cloudfront.net |
 | API      | http://timekeeper-alb-487875782.us-east-1.elb.amazonaws.com |
 | Health   | http://timekeeper-alb-487875782.us-east-1.elb.amazonaws.com/health |
 
@@ -38,7 +38,7 @@ Open http://localhost:4200/login and use a demo account.
 |-------------|----------|------|-----------|-----------|
 | **Development** | `timekeeper_dev` | PG 5433, Redis 6380 | `.env.development` | 3 orgs, 17 users, 110 clock entries, timesheets in all states |
 | **Test** | `timekeeper_test` | PG 5433, Redis 6380 | `.env.test` | Same seed as dev (ephemeral, reset per test run) |
-| **Production** | AWS RDS | AWS managed | `.env.production` | 5 orgs with admin-only accounts (no test data) |
+| **Production** | AWS RDS | AWS managed | `.env.production` | 5 orgs with full demo data (users, clock entries, timesheets) |
 
 ### Switching Environments
 
@@ -80,35 +80,31 @@ All environments use password `password123` (dev/test) or `ChangeMe!2026` (produ
 | Driver | driver1@metrodisposal.com | Metro Disposal Co |
 | Admin | owner@sunrise.com | Sunrise Sanitation |
 
-### Production (initial seed)
+### Production
 
-| Email | Org | Notes |
-|-------|-----|-------|
-| admin@greenwaste.com | GreenWaste Solutions | Federal OT, SMS + QB |
-| admin@metrodisposal.com | Metro Disposal Co | California OT, SMS + QB |
-| owner@sunrise.com | Sunrise Sanitation | Free tier, no SMS |
-| admin@pacificwaste.com | Pacific Waste Management | Enterprise, all features + dispatcher |
-| admin@ecohaul.com | EcoHaul Services | Federal OT, SMS only |
+| Role | Email | Org |
+|------|-------|-----|
+| Admin | admin@greenwaste.com | GreenWaste Solutions |
+| Manager | manager@greenwaste.com | GreenWaste Solutions |
+| Payroll | payroll@greenwaste.com | GreenWaste Solutions |
+| Driver | driver1@greenwaste.com | GreenWaste Solutions |
+| Admin | admin@metrodisposal.com | Metro Disposal Co |
+| Manager | manager@metrodisposal.com | Metro Disposal Co |
+| Admin | owner@sunrise.com | Sunrise Sanitation |
+| Admin | admin@pacificwaste.com | Pacific Waste Management |
+| Admin | admin@ecohaul.com | EcoHaul Services |
 
 ## Seed Data Details
 
-### Development (rich data for testing)
+Both development and production seeds create similar data:
 
-- **3 orgs** with different configurations (federal vs California OT, SMS enabled/disabled)
-- **17 users** across all roles (admin, manager, payroll, employee)
-- **110 clock entries** spanning 2 weeks of realistic work patterns:
-  - GreenWaste: 6 drivers, 7.5-10h days, varied routes
-  - Metro Disposal: 3 drivers, 8-12h days (California OT territory)
-  - Sunrise: 2 drivers, 6-8h days
-- **9 timesheets** in mixed states (draft, submitted, approved)
-- **Approval records** for approved timesheets
-- **Audit log entries** for admin actions
-
-### Production (admin-only bootstrap)
-
-- **5 orgs** representing different tiers and configurations
-- **1 admin per org** — add employees via the admin UI
-- No fake drivers, clock entries, or timesheets
+- **5 orgs** (production) / **3 orgs** (development) with different configurations (federal vs California OT, SMS enabled/disabled)
+- **Full user hierarchies** across all roles (admin, manager, payroll, employee)
+- **6 weeks of clock entries** with realistic work patterns (split shifts, absences, varied routes)
+- **4 weeks of timesheets** in mixed states (draft, submitted, approved)
+- **Approval records**, **audit log alerts**, **time-off requests/balances**
+- **Shift templates + schedules** (2 weeks current + next)
+- **Live demo data** — drivers currently clocked in
 - Skips seed if data already exists (safe to re-run)
 
 ## Architecture
