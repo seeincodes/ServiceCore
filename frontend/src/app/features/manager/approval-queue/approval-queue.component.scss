@@ -522,3 +522,71 @@
   color: $neutral-500;
   margin-left: 4px;
 }
+
+// Time Edit Request cards
+.edit-request-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 10px;
+  padding: $spacing-md;
+  margin-bottom: $spacing-sm;
+}
+
+.edit-request-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+}
+
+.edit-request-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.edit-request-type {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+
+  &.type-add {
+    background: rgba($success, 0.12);
+    color: darken($success, 10%);
+  }
+  &.type-edit {
+    background: rgba($primary, 0.12);
+    color: $primary;
+  }
+}
+
+.edit-request-times {
+  font-size: 13px;
+  color: $neutral-700;
+  margin-bottom: 4px;
+}
+
+.edit-request-reason {
+  font-size: 13px;
+  color: $neutral-700;
+  margin-bottom: $spacing-sm;
+
+  strong {
+    color: $neutral-700;
+  }
+}
+
+.edit-request-actions {
+  display: flex;
+  gap: $spacing-xs;
+  align-items: center;
+
+  .review-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid $neutral-200;
+    border-radius: 6px;
+    font-size: 13px;
+  }
+}

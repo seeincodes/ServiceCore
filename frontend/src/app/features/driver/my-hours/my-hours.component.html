@@ -40,6 +40,22 @@
       </div>
     </div>
 
+    <!-- Add Missing Entry button -->
+    <button class="add-entry-btn" (click)="openAddEntry()">+ Add Missing Entry</button>
+
+    <!-- Pending edit requests -->
+    <div class="pending-requests" *ngIf="pendingRequests.length > 0">
+      <h3>Pending Requests</h3>
+      <div *ngFor="let req of pendingRequests" class="request-card pending">
+        <div class="request-type">{{ req.type === 'add' ? 'Add Entry' : 'Edit Entry' }}</div>
+        <div class="request-times">
+          {{ formatTime(req.proposedClockIn) }} - {{ formatTime(req.proposedClockOut) }}
+        </div>
+        <div class="request-reason">{{ req.reason }}</div>
+        <div class="request-status">Awaiting manager approval</div>
+      </div>
+    </div>
+
     <!-- Daily breakdown -->
     <div class="days">
       <div *ngFor="let day of week.days" class="day-card">
@@ -60,11 +76,67 @@
               >{{ 'hours.route' | translate }} {{ entry.routeId }}</span
             >
             <span class="entry-source">{{ entry.source }}</span>
+            <button
+              class="edit-entry-btn"
+              (click)="openEditEntry(entry)"
+              *ngIf="entry.clockOut"
+              title="Request edit"
+            >
+              Edit
+            </button>
           </div>
         </div>
+        <button class="add-day-entry-btn" (click)="openAddEntry(day.date)">
+          + Add entry for {{ day.dayName }}
+        </button>
       </div>
     </div>
 
     <div class="empty" *ngIf="week.days.length === 0">{{ 'hours.noEntries' | translate }}</div>
+  </div>
+</div>
+
+<!-- Edit/Add Request Modal -->
+<div class="modal-overlay" *ngIf="showEditForm" (click)="cancelEdit()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <h2>{{ editFormType === 'add' ? 'Add Missing Entry' : 'Request Time Edit' }}</h2>
+
+    <div class="form-group">
+      <label>Clock In</label>
+      <input type="datetime-local" [(ngModel)]="editClockIn" />
+    </div>
+
+    <div class="form-group">
+      <label>Clock Out</label>
+      <input type="datetime-local" [(ngModel)]="editClockOut" />
+    </div>
+
+    <div class="form-group" *ngIf="projects.length > 0">
+      <label>Project (optional)</label>
+      <select [(ngModel)]="editProjectId">
+        <option value="">— None —</option>
+        <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Reason (required)</label>
+      <textarea
+        [(ngModel)]="editReason"
+        rows="3"
+        placeholder="e.g. Forgot to clock in, was on the schedule for Residential Pickup route"
+      ></textarea>
+    </div>
+
+    <div class="form-message error" *ngIf="editMessage && editMessage.type === 'error'">
+      {{ editMessage!.text }}
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+      <button class="btn-submit" (click)="submitEditRequest()" [disabled]="editSubmitting">
+        {{ editSubmitting ? 'Submitting...' : 'Submit for Approval' }}
+      </button>
+    </div>
   </div>
 </div>

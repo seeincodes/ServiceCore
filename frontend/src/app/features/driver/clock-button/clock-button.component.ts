@@ -59,6 +59,8 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   pinError = '';
   pinRequired = false;
   private pendingAction: 'clock_in' | 'break' | 'end_of_day' | 'end_of_day_confirmed' | null = null;
+  private pinVerifiedAt = 0; // timestamp of last successful PIN verification
+  private readonly PIN_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
 
   get use24Hour(): boolean {
     return this.prefs.use24Hour;
@@ -99,6 +101,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.pinVerifiedAt = Number(localStorage.getItem('pinVerifiedAt') || '0');
     this.loadStatus();
     this.loadProjects();
     this.loadAvailableRoutes();
@@ -110,16 +113,17 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.http.get<any>(`${environment.apiUrl}/auth/pin/status`).subscribe({
       next: (res) => {
         this.pinRequired = res.data?.pinSet || false;
-        if (!this.pinRequired) {
-          this.showPinSetup = true; // Prompt first-time setup
-        }
       },
     });
   }
 
   requestPin(action: 'clock_in' | 'break' | 'end_of_day' | 'end_of_day_confirmed'): void {
     if (!this.pinRequired) {
-      // No PIN set — proceed directly
+      this.executeAction(action);
+      return;
+    }
+    // Skip PIN if verified within the last 5 minutes
+    if (Date.now() - this.pinVerifiedAt < this.PIN_TIMEOUT_MS) {
       this.executeAction(action);
       return;
     }
@@ -135,6 +139,8 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.http.post<any>(`${environment.apiUrl}/auth/pin/verify`, { pin: this.pinInput }).subscribe({
       next: (res) => {
         if (res.data?.verified) {
+          this.pinVerifiedAt = Date.now();
+          localStorage.setItem('pinVerifiedAt', String(this.pinVerifiedAt));
           this.showPinInput = false;
           this.executeAction(this.pendingAction!);
           this.pendingAction = null;

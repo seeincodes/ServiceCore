@@ -18,6 +18,10 @@
       Time Off
       <span class="badge" *ngIf="pendingTimeOffCount > 0">{{ pendingTimeOffCount }}</span>
     </button>
+    <button class="main-tab" [class.active]="mainTab === 'edits'" (click)="switchMainTab('edits')">
+      Time Edits
+      <span class="badge" *ngIf="pendingEditCount > 0">{{ pendingEditCount }}</span>
+    </button>
   </div>
 
   <div
@@ -329,6 +333,41 @@
       <div class="empty" *ngIf="employeeBalanceList.length === 0">
         {{ 'managerTimeOff.noEmployees' | translate }}
       </div>
+    </div>
+  </ng-container>
+
+  <!-- ============ TIME EDITS TAB ============ -->
+  <ng-container *ngIf="mainTab === 'edits'">
+    <div class="loading" *ngIf="editRequestsLoading">Loading edit requests...</div>
+
+    <div *ngIf="!editRequestsLoading">
+      <div *ngFor="let req of editRequests" class="edit-request-card">
+        <div class="edit-request-header">
+          <span class="edit-request-name">{{ req.employeeName }}</span>
+          <span
+            class="edit-request-type"
+            [class.type-add]="req.type === 'add'"
+            [class.type-edit]="req.type === 'edit'"
+          >
+            {{ req.type === 'add' ? 'Add Entry' : 'Edit Entry' }}
+          </span>
+        </div>
+        <div class="edit-request-times">
+          {{ formatEditTime(req.proposedClockIn) }} — {{ formatEditTime(req.proposedClockOut) }}
+        </div>
+        <div class="edit-request-reason"><strong>Reason:</strong> {{ req.reason }}</div>
+        <div class="edit-request-actions">
+          <input
+            class="review-input"
+            [(ngModel)]="editReviewNotes[req.id]"
+            placeholder="Optional notes..."
+          />
+          <button class="approve-btn" (click)="approveEditRequest(req.id)">Approve</button>
+          <button class="deny-btn" (click)="rejectEditRequest(req.id)">Reject</button>
+        </div>
+      </div>
+
+      <div class="empty" *ngIf="editRequests.length === 0">No pending time edit requests</div>
     </div>
   </ng-container>
 </div>

@@ -233,4 +233,221 @@ router.get(
   },
 );
 
+// ============================================================
+// TIME EDIT REQUESTS (driver self-service)
+// ============================================================
+
+const editRequestSchema = z.object({
+  type: z.enum(['add', 'edit']),
+  clockEntryId: z.string().uuid().optional(),
+  proposedClockIn: z.string(),
+  proposedClockOut: z.string(),
+  projectId: z.string().optional(),
+  reason: z.string().min(1, 'A reason is required'),
+});
+
+// POST /timesheets/edit-requests — driver submits an add/edit request
+router.post('/edit-requests', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const data = editRequestSchema.parse(req.body);
+
+    // Validate clock_entry belongs to user if editing
+    if (data.type === 'edit' && data.clockEntryId) {
+      const entry = await db('clock_entries')
+        .where({ id: data.clockEntryId, org_id: user.orgId, user_id: user.id })
+        .first();
+      if (!entry) {
+        return sendError(res, 'Clock entry not found', 404);
+      }
+    }
+
+    // Validate proposed times
+    const clockIn = new Date(data.proposedClockIn);
+    const clockOut = new Date(data.proposedClockOut);
+    if (clockOut <= clockIn) {
+      return sendError(res, 'Clock out must be after clock in', 400);
+    }
+    const hours = (clockOut.getTime() - clockIn.getTime()) / (1000 * 60 * 60);
+    if (hours > 16) {
+      return sendError(res, 'Entry cannot exceed 16 hours', 400);
+    }
+
+    const [request] = await db('time_edit_requests')
+      .insert({
+        org_id: user.orgId,
+        user_id: user.id,
+        type: data.type,
+        clock_entry_id: data.clockEntryId || null,
+        proposed_clock_in: data.proposedClockIn,
+        proposed_clock_out: data.proposedClockOut,
+        project_id: data.projectId || null,
+        reason: data.reason,
+        status: 'pending',
+      })
+      .returning('*');
+
+    sendSuccess(res, { request }, 201);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to submit edit request';
+    sendError(res, message, 400);
+  }
+});
+
+// GET /timesheets/edit-requests — driver views their own requests
+router.get('/edit-requests', authenticate, async (req: Request, res: Response) => {
+  try {
+    const user = (req as AuthenticatedRequest).user;
+    const requests = await db('time_edit_requests')
+      .where({ user_id: user.id, org_id: user.orgId })
+      .orderBy('created_at', 'desc')
+      .limit(20);
+
+    sendSuccess(res, {
+      requests: requests.map((r: any) => ({
+        id: r.id,
+        type: r.type,
+        clockEntryId: r.clock_entry_id,
+        proposedClockIn: r.proposed_clock_in,
+        proposedClockOut: r.proposed_clock_out,
+        projectId: r.project_id,
+        reason: r.reason,
+        status: r.status,
+        reviewNotes: r.review_notes,
+        reviewedAt: r.reviewed_at,
+        createdAt: r.created_at,
+      })),
+    });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Failed to get edit requests';
+    sendError(res, message);
+  }
+});
+
+// GET /manager/approvals/edit-requests — manager views pending edit requests
+router.get(
+  '/approvals/edit-requests',
+  authenticate,
+  authorize('manager', 'org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      const requests = await db('time_edit_requests')
+        .join('users', 'time_edit_requests.user_id', 'users.id')
+        .where({ 'time_edit_requests.org_id': user.orgId, 'time_edit_requests.status': 'pending' })
+        .select('time_edit_requests.*', 'users.first_name', 'users.last_name', 'users.email')
+        .orderBy('time_edit_requests.created_at', 'asc');
+
+      sendSuccess(res, {
+        requests: requests.map((r: any) => ({
+          id: r.id,
+          userId: r.user_id,
+          employeeName: `${r.first_name} ${r.last_name}`,
+          employeeEmail: r.email,
+          type: r.type,
+          clockEntryId: r.clock_entry_id,
+          proposedClockIn: r.proposed_clock_in,
+          proposedClockOut: r.proposed_clock_out,
+          projectId: r.project_id,
+          reason: r.reason,
+          status: r.status,
+          createdAt: r.created_at,
+        })),
+      });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to get edit requests';
+      sendError(res, message);
+    }
+  },
+);
+
+// POST /manager/approvals/edit-requests/:id/review — manager approves/rejects
+const editReviewSchema = z.object({
+  action: z.enum(['approved', 'rejected']),
+  notes: z.string().optional(),
+});
+
+router.post(
+  '/approvals/edit-requests/:id/review',
+  authenticate,
+  authorize('manager', 'org_admin'),
+  async (req: Request, res: Response) => {
+    try {
+      const user = (req as AuthenticatedRequest).user;
+      const requestId = req.params.id;
+      const data = editReviewSchema.parse(req.body);
+
+      const editRequest = await db('time_edit_requests')
+        .where({ id: requestId, org_id: user.orgId, status: 'pending' })
+        .first();
+
+      if (!editRequest) {
+        return sendError(res, 'Edit request not found or already reviewed', 404);
+      }
+
+      // Update request status
+      await db('time_edit_requests')
+        .where({ id: requestId })
+        .update({
+          status: data.action,
+          reviewed_by: user.id,
+          review_notes: data.notes || null,
+          reviewed_at: new Date(),
+        });
+
+      // If approved, apply the change
+      if (data.action === 'approved') {
+        if (editRequest.type === 'add') {
+          // Create new clock entry
+          await db('clock_entries').insert({
+            org_id: editRequest.org_id,
+            user_id: editRequest.user_id,
+            clock_in: editRequest.proposed_clock_in,
+            clock_out: editRequest.proposed_clock_out,
+            project_id: editRequest.project_id,
+            source: 'app',
+          });
+        } else if (editRequest.type === 'edit' && editRequest.clock_entry_id) {
+          // Log old values for audit
+          const oldEntry = await db('clock_entries')
+            .where({ id: editRequest.clock_entry_id })
+            .first();
+
+          await db('clock_entries')
+            .where({ id: editRequest.clock_entry_id })
+            .update({
+              clock_in: editRequest.proposed_clock_in,
+              clock_out: editRequest.proposed_clock_out,
+              project_id: editRequest.project_id || oldEntry?.project_id,
+            });
+
+          // Audit log
+          await db('audit_log').insert({
+            org_id: editRequest.org_id,
+            user_id: user.id,
+            action: 'clock_entry_edited',
+            entity_type: 'clock_entry',
+            entity_id: editRequest.clock_entry_id,
+            details: JSON.stringify({
+              edit_request_id: requestId,
+              requested_by: editRequest.user_id,
+              approved_by: user.id,
+              old_values: { clock_in: oldEntry?.clock_in, clock_out: oldEntry?.clock_out },
+              new_values: {
+                clock_in: editRequest.proposed_clock_in,
+                clock_out: editRequest.proposed_clock_out,
+              },
+            }),
+          });
+        }
+      }
+
+      sendSuccess(res, { status: data.action });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Review failed';
+      sendError(res, message, 400);
+    }
+  },
+);
+
 export default router;

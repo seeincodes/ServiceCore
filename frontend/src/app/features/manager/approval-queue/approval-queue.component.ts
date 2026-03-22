@@ -36,7 +36,7 @@ interface BalanceInfo {
 })
 export class ApprovalQueueComponent implements OnInit {
   // Main tab
-  mainTab: 'timesheets' | 'timeoff' = 'timesheets';
+  mainTab: 'timesheets' | 'timeoff' | 'edits' = 'timesheets';
 
   timesheets: TimesheetSummary[] = [];
   loading = true;
@@ -71,6 +71,13 @@ export class ApprovalQueueComponent implements OnInit {
 
   private timeOffLoaded = false;
 
+  // Time edit requests
+  editRequests: any[] = [];
+  editRequestsLoading = false;
+  pendingEditCount = 0;
+  editReviewNotes: Record<string, string> = {};
+  private editsLoaded = false;
+
   private typeKeys: Record<string, string> = {
     pto: 'timeOff.pto',
     sick: 'timeOff.sick',
@@ -93,13 +100,23 @@ export class ApprovalQueueComponent implements OnInit {
         this.pendingTimeOffCount = (res.data?.requests || []).length;
       },
     });
+    // Pre-load pending count for edit requests badge
+    this.http.get<any>(`${environment.apiUrl}/manager/approvals/edit-requests`).subscribe({
+      next: (res) => {
+        this.pendingEditCount = (res.data?.requests || []).length;
+      },
+    });
   }
 
-  switchMainTab(tab: 'timesheets' | 'timeoff'): void {
+  switchMainTab(tab: 'timesheets' | 'timeoff' | 'edits'): void {
     this.mainTab = tab;
     if (tab === 'timeoff' && !this.timeOffLoaded) {
       this.timeOffLoaded = true;
       this.loadTimeOffRequests();
+    }
+    if (tab === 'edits' && !this.editsLoaded) {
+      this.editsLoaded = true;
+      this.loadEditRequests();
     }
   }
 
@@ -439,6 +456,68 @@ export class ApprovalQueueComponent implements OnInit {
           },
         });
     }
+  }
+
+  // ---- Time Edit Request methods ----
+
+  loadEditRequests(): void {
+    this.editRequestsLoading = true;
+    this.http.get<any>(`${environment.apiUrl}/manager/approvals/edit-requests`).subscribe({
+      next: (res) => {
+        this.editRequests = res.data.requests || [];
+        this.pendingEditCount = this.editRequests.length;
+        this.editRequestsLoading = false;
+      },
+      error: () => {
+        this.editRequestsLoading = false;
+      },
+    });
+  }
+
+  approveEditRequest(id: string): void {
+    this.http
+      .post(`${environment.apiUrl}/manager/approvals/edit-requests/${id}/review`, {
+        action: 'approved',
+        notes: this.editReviewNotes[id] || '',
+      })
+      .subscribe({
+        next: () => {
+          this.editRequests = this.editRequests.filter((r: any) => r.id !== id);
+          this.pendingEditCount = this.editRequests.length;
+          this.message = { text: 'Edit request approved — entry updated', type: 'success' };
+        },
+        error: (err) => {
+          this.message = { text: err.error?.error || 'Approve failed', type: 'error' };
+        },
+      });
+  }
+
+  rejectEditRequest(id: string): void {
+    this.http
+      .post(`${environment.apiUrl}/manager/approvals/edit-requests/${id}/review`, {
+        action: 'rejected',
+        notes: this.editReviewNotes[id] || '',
+      })
+      .subscribe({
+        next: () => {
+          this.editRequests = this.editRequests.filter((r: any) => r.id !== id);
+          this.pendingEditCount = this.editRequests.length;
+          this.message = { text: 'Edit request rejected', type: 'success' };
+        },
+        error: (err) => {
+          this.message = { text: err.error?.error || 'Reject failed', type: 'error' };
+        },
+      });
+  }
+
+  formatEditTime(iso: string): string {
+    return new Date(iso).toLocaleString([], {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   }
 
   private toDatetimeLocal(iso: string): string {

@@ -222,3 +222,212 @@
   font-size: 11px;
   text-transform: uppercase;
 }
+
+// Add/Edit entry buttons
+.add-entry-btn {
+  display: block;
+  width: 100%;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-md;
+  background: $white;
+  border: 2px dashed $primary;
+  border-radius: 10px;
+  color: $primary;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  &:hover {
+    background: rgba($primary, 0.05);
+  }
+}
+
+.add-day-entry-btn {
+  display: block;
+  width: 100%;
+  padding: 6px;
+  background: none;
+  border: none;
+  border-top: 1px solid $neutral-100;
+  color: $neutral-500;
+  font-size: 12px;
+  cursor: pointer;
+  &:hover {
+    color: $primary;
+    background: rgba($primary, 0.03);
+  }
+}
+
+.edit-entry-btn {
+  padding: 2px 10px;
+  border: 1px solid $neutral-300;
+  border-radius: 4px;
+  background: $white;
+  color: $neutral-700;
+  font-size: 11px;
+  cursor: pointer;
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+  }
+}
+
+// Pending requests section
+.pending-requests {
+  margin-bottom: $spacing-md;
+
+  h3 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 $spacing-xs;
+    color: $neutral-700;
+  }
+}
+
+.request-card {
+  padding: $spacing-sm;
+  border-radius: 8px;
+  margin-bottom: $spacing-xs;
+
+  &.pending {
+    background: rgba(#fbbc04, 0.08);
+    border: 1px solid rgba(#fbbc04, 0.3);
+  }
+}
+
+.request-type {
+  font-weight: 600;
+  font-size: 13px;
+  color: $neutral-900;
+}
+
+.request-times {
+  font-size: 13px;
+  color: $neutral-700;
+}
+
+.request-reason {
+  font-size: 12px;
+  color: $neutral-500;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+.request-status {
+  font-size: 11px;
+  color: #f57c00;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+// Modal
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $spacing-sm;
+}
+
+.modal-content {
+  background: $white;
+  border-radius: 16px;
+  padding: $spacing-lg;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.form-group {
+  margin-bottom: $spacing-sm;
+
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: $neutral-700;
+    margin-bottom: 4px;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid $neutral-300;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    box-sizing: border-box;
+    &:focus {
+      outline: none;
+      border-color: $primary;
+      box-shadow: 0 0 0 3px rgba($primary, 0.1);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+  }
+}
+
+.form-message {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: 6px;
+  font-size: 13px;
+  margin-bottom: $spacing-sm;
+
+  &.error {
+    background: rgba($danger, 0.1);
+    color: darken($danger, 10%);
+  }
+}
+
+.modal-actions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.btn-cancel {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid $neutral-300;
+  border-radius: 10px;
+  background: $white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  &:hover {
+    background: $neutral-50;
+  }
+}
+
+.btn-submit {
+  flex: 2;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: $primary;
+  color: $white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
