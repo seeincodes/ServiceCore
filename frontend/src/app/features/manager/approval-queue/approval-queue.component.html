@@ -254,11 +254,11 @@
           *ngIf="req.status === 'pending' && employeeBalanceMap[req.user_id]"
         >
           {{ 'managerTimeOff.balance' | translate }}:
-          {{ employeeBalanceMap[req.user_id][req.type]?.available || 0 }}h
+          {{ $any(employeeBalanceMap[req.user_id][req.type])?.available || 0 }}h
           {{ 'managerTimeOff.available' | translate }} ({{
-            employeeBalanceMap[req.user_id][req.type]?.used || 0
+            $any(employeeBalanceMap[req.user_id][req.type])?.used || 0
           }}h {{ 'managerTimeOff.used' | translate }} {{ 'managerTimeOff.of' | translate }}
-          {{ employeeBalanceMap[req.user_id][req.type]?.total || 0 }}h)
+          {{ $any(employeeBalanceMap[req.user_id][req.type])?.total || 0 }}h)
         </div>
         <div class="card-notes" *ngIf="req.notes">{{ req.notes }}</div>
 
