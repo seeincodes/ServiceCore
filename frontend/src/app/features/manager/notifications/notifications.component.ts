@@ -3,25 +3,17 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
-interface Notification {
+interface InboxItem {
   id: string;
-  type: string;
+  source: 'notification' | 'alert';
   title: string;
   message: string;
-  read: boolean;
-  createdAt: string;
-}
-
-interface Alert {
-  id: string;
   type: string;
-  priority: string;
-  title: string;
-  message: string;
-  employeeName: string | null;
-  userId: string | null;
+  priority?: string;
+  employeeName?: string;
   timestamp: string;
-  resolved: boolean;
+  read?: boolean;
+  resolved?: boolean;
 }
 
 @Component({
@@ -32,19 +24,12 @@ interface Alert {
   styleUrls: ['./notifications.component.scss'],
 })
 export class NotificationsComponent implements OnInit {
-  // Main tab
-  mainTab: 'notifications' | 'alerts' = 'notifications';
-
-  notifications: Notification[] = [];
+  items: InboxItem[] = [];
   loading = true;
-
-  // Alerts data
-  alerts: Alert[] = [];
-  alertsLoading = false;
-  activeFilter: string = 'all';
+  alertsLoading = true;
+  activeFilter = 'all';
 
   private apiUrl = environment.apiUrl;
-  private alertsLoaded = false;
 
   constructor(private http: HttpClient) {}
 
@@ -53,63 +38,99 @@ export class NotificationsComponent implements OnInit {
     this.loadAlerts();
   }
 
-  // ---- Notifications ----
-
+  // Counts
+  get allCount(): number {
+    return this.items.length;
+  }
   get unreadCount(): number {
-    return this.notifications.filter((n) => !n.read).length;
+    return this.items.filter((i) => i.source === 'notification' && !i.read).length;
+  }
+  get criticalCount(): number {
+    return this.items.filter((i) => i.priority === 'critical' && !i.resolved).length;
+  }
+  get warningCount(): number {
+    return this.items.filter((i) => i.priority === 'warning' && !i.resolved).length;
+  }
+  get infoCount(): number {
+    return this.items.filter((i) => i.priority === 'info' && !i.resolved).length;
   }
 
-  markAsRead(notification: Notification): void {
-    if (notification.read) return;
-    this.http
-      .post<any>(`${this.apiUrl}/manager/notifications/${notification.id}/read`, {})
-      .subscribe({
-        next: () => {
-          notification.read = true;
-        },
-      });
+  get filteredItems(): InboxItem[] {
+    switch (this.activeFilter) {
+      case 'notifications':
+        return this.items.filter((i) => i.source === 'notification');
+      case 'critical':
+        return this.items.filter((i) => i.priority === 'critical' && !i.resolved);
+      case 'warning':
+        return this.items.filter((i) => i.priority === 'warning' && !i.resolved);
+      case 'info':
+        return this.items.filter((i) => i.priority === 'info' && !i.resolved);
+      default:
+        return this.items;
+    }
+  }
+
+  // Actions
+  markAsRead(item: InboxItem): void {
+    if (item.read) return;
+    this.http.post<any>(`${this.apiUrl}/manager/notifications/${item.id}/read`, {}).subscribe({
+      next: () => {
+        item.read = true;
+      },
+    });
   }
 
   markAllRead(): void {
     this.http.post<any>(`${this.apiUrl}/manager/notifications/read-all`, {}).subscribe({
       next: () => {
-        this.notifications.forEach((n) => (n.read = true));
+        this.items.filter((i) => i.source === 'notification').forEach((i) => (i.read = true));
       },
     });
   }
 
-  typeIcon(type: string): string {
-    switch (type) {
-      case 'approval':
-        return '\u2713';
-      case 'alert':
-        return '!';
-      case 'timeoff':
-        return '\u2709';
-      case 'schedule':
-        return '\u{1F4C5}';
-      default:
-        return '\u2139';
-    }
+  resolveAlert(item: InboxItem): void {
+    this.http.post<any>(`${this.apiUrl}/manager/alerts/${item.id}/resolve`, {}).subscribe({
+      next: () => {
+        item.resolved = true;
+      },
+    });
   }
 
-  typeClass(type: string): string {
-    switch (type) {
-      case 'approval':
-        return 'icon-success';
-      case 'alert':
-        return 'icon-danger';
-      case 'timeoff':
-        return 'icon-warning';
-      case 'schedule':
-        return 'icon-primary';
-      default:
-        return 'icon-default';
-    }
+  // Display helpers
+  itemClass(item: InboxItem): string {
+    if (item.source === 'alert' && item.resolved) return 'resolved';
+    if (item.source === 'notification' && item.read) return 'read';
+    return 'unread';
   }
 
-  formatTimestamp(iso: string): string {
-    const d = new Date(iso);
+  indicatorClass(item: InboxItem): string {
+    if (item.source === 'alert') {
+      if (item.resolved) return 'dot-resolved';
+      return item.priority === 'critical'
+        ? 'dot-critical'
+        : item.priority === 'warning'
+          ? 'dot-warning'
+          : 'dot-info';
+    }
+    return item.read ? 'dot-read' : 'dot-unread';
+  }
+
+  itemLabel(item: InboxItem): string {
+    if (item.source === 'alert') {
+      return item.priority || 'alert';
+    }
+    return item.type?.replace(/_/g, ' ') || 'notification';
+  }
+
+  labelClass(item: InboxItem): string {
+    if (item.source === 'alert') {
+      return `label-${item.priority || 'info'}`;
+    }
+    return 'label-notification';
+  }
+
+  itemTime(item: InboxItem): string {
+    const d = new Date(item.timestamp);
     const now = new Date();
     const diff = now.getTime() - d.getTime();
     const minutes = Math.floor(diff / 60000);
@@ -122,79 +143,23 @@ export class NotificationsComponent implements OnInit {
     return d.toLocaleDateString();
   }
 
-  // ---- Alerts ----
-
-  switchMainTab(tab: 'notifications' | 'alerts'): void {
-    this.mainTab = tab;
-    if (tab === 'alerts' && !this.alertsLoaded) {
-      this.alertsLoaded = true;
-      this.loadAlerts();
-    }
-  }
-
-  get filteredAlerts(): Alert[] {
-    if (this.activeFilter === 'all') {
-      return this.alerts;
-    }
-    return this.alerts.filter((a) => a.priority === this.activeFilter && !a.resolved);
-  }
-
-  get criticalCount(): number {
-    return this.alerts.filter((a) => a.priority === 'critical' && !a.resolved).length;
-  }
-
-  get warningCount(): number {
-    return this.alerts.filter((a) => a.priority === 'warning' && !a.resolved).length;
-  }
-
-  get infoCount(): number {
-    return this.alerts.filter((a) => a.priority === 'info' && !a.resolved).length;
-  }
-
-  get allAlertCount(): number {
-    return this.alerts.length;
-  }
-
-  resolveAlert(alert: Alert): void {
-    this.http.post(`${this.apiUrl}/manager/alerts/${alert.id}/resolve`, {}).subscribe({
-      next: () => {
-        alert.resolved = true;
-      },
-    });
-  }
-
-  priorityClass(priority: string): string {
-    return priority === 'critical' ? 'critical' : priority === 'warning' ? 'warning' : 'info';
-  }
-
-  alertTypeIcon(type: string): string {
-    switch (type) {
-      case 'midnight_auto_close':
-        return 'Forgot to clock out';
-      case 'missing_clock_in':
-        return 'No clock-in';
-      case 'timesheet_flagged':
-        return 'Anomaly detected';
-      default:
-        return type;
-    }
-  }
-
-  formatAlertTime(iso: string): string {
-    return new Date(iso).toLocaleString([], {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  }
-
-  // ---- Private ----
-
+  // Data loading
   private loadNotifications(): void {
-    this.http.get<{ data: Notification[] }>(`${this.apiUrl}/manager/notifications`).subscribe({
+    this.http.get<any>(`${this.apiUrl}/manager/notifications`).subscribe({
       next: (res) => {
-        this.notifications = res.data || [];
+        const notifs = res.data?.notifications || res.data || [];
+        const mapped: InboxItem[] = notifs.map((n: any) => ({
+          id: n.id,
+          source: 'notification' as const,
+          title: n.title,
+          message: n.message,
+          type: n.type,
+          timestamp: n.createdAt,
+          read: !!n.readAt || !!n.read,
+        }));
+        this.items = [...this.items, ...mapped].sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        );
         this.loading = false;
       },
       error: () => {
@@ -204,13 +169,23 @@ export class NotificationsComponent implements OnInit {
   }
 
   private loadAlerts(): void {
-    this.alertsLoading = true;
     this.http.get<any>(`${this.apiUrl}/manager/alerts`).subscribe({
       next: (res) => {
-        this.alerts = (res.data?.alerts || []).map((a: any) => ({
-          ...a,
+        const alerts = res.data?.alerts || [];
+        const mapped: InboxItem[] = alerts.map((a: any) => ({
+          id: a.id,
+          source: 'alert' as const,
+          title: a.title,
+          message: a.message,
+          type: a.type,
+          priority: a.priority,
+          employeeName: a.employeeName,
+          timestamp: a.timestamp,
           resolved: false,
         }));
+        this.items = [...this.items, ...mapped].sort(
+          (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        );
         this.alertsLoading = false;
       },
       error: () => {
