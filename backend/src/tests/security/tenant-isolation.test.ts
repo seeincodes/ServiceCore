@@ -13,7 +13,7 @@ describe('Multi-Tenant Isolation (requires DB)', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password: 'password123' }),
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
     return data.data?.token;
   };
 
@@ -33,7 +33,7 @@ describe('Multi-Tenant Isolation (requires DB)', () => {
     const res = await fetch(`${API_URL}/manager/dashboard`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
 
     expect(data.success).toBe(true);
     const names = data.data.drivers.map((d: any) => d.name);
@@ -48,7 +48,7 @@ describe('Multi-Tenant Isolation (requires DB)', () => {
     const res = await fetch(`${API_URL}/manager/dashboard`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const data = await res.json();
+    const data = (await res.json()) as any;
 
     expect(data.success).toBe(true);
     const names = data.data.drivers.map((d: any) => d.name);

@@ -77,11 +77,38 @@
       </div>
     </div>
 
-    <!-- Clock in / Back from break button -->
-    <button class="clock-btn" [class.back-from-break]="onBreak" (click)="onClockAction()">
+    <!-- Clock in button (triggers PIN if set) -->
+    <button
+      class="clock-btn"
+      [class.back-from-break]="onBreak"
+      (click)="requestPin('clock_in')"
+      *ngIf="!showPinInput"
+    >
       {{ (onBreak ? 'clock.backFromBreak' : 'clock.clockIn') | translate }}
       <span class="btn-hint" *ngIf="onBreak">{{ 'clock.backFromBreakHint' | translate }}</span>
     </button>
+
+    <!-- PIN input -->
+    <div class="pin-prompt" *ngIf="showPinInput">
+      <span class="pin-prompt-label">{{ 'clock.enterPin' | translate }}</span>
+      <input
+        type="password"
+        maxlength="4"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        [(ngModel)]="pinInput"
+        (keyup.enter)="verifyAndAct()"
+        class="pin-field"
+        autofocus
+      />
+      <div class="pin-actions">
+        <button class="pin-cancel" (click)="cancelPin()">{{ 'common.cancel' | translate }}</button>
+        <button class="pin-confirm" (click)="verifyAndAct()" [disabled]="pinInput.length !== 4">
+          {{ 'clock.confirm' | translate }}
+        </button>
+      </div>
+      <span class="pin-error" *ngIf="pinError">{{ pinError }}</span>
+    </div>
   </ng-container>
 
   <!-- ========== CLOCKED IN STATE (Shift Dashboard) ========== -->
@@ -206,23 +233,49 @@
       </div>
     </div>
 
-    <!-- Clock out options -->
-    <div class="clock-out-options">
-      <button class="clock-btn clock-out-break" (click)="onClockOut('break')">
+    <!-- Clock out options (triggers PIN if set) -->
+    <div class="clock-out-options" *ngIf="!showPinInput">
+      <button class="clock-btn clock-out-break" (click)="requestPin('break')">
         {{ 'clock.breakOut' | translate }}
         <span class="btn-hint">{{ 'clock.breakHint' | translate }}</span>
       </button>
-      <button class="clock-btn clock-out-day" (click)="confirmEndDay()" *ngIf="!showEndDayConfirm">
+      <button
+        class="clock-btn clock-out-day"
+        (click)="requestPin('end_of_day')"
+        *ngIf="!showEndDayConfirm"
+      >
         {{ 'clock.endDay' | translate }}
         <span class="btn-hint">{{ 'clock.endDayHint' | translate }}</span>
       </button>
       <button
         class="clock-btn clock-out-day confirm-pulse"
-        (click)="onClockOut('end_of_day')"
+        (click)="requestPin('end_of_day_confirmed')"
         *ngIf="showEndDayConfirm"
       >
         {{ 'clock.confirmEndDay' | translate }}
       </button>
+    </div>
+
+    <!-- PIN input (for clock-out) -->
+    <div class="pin-prompt" *ngIf="showPinInput">
+      <span class="pin-prompt-label">{{ 'clock.enterPin' | translate }}</span>
+      <input
+        type="password"
+        maxlength="4"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        [(ngModel)]="pinInput"
+        (keyup.enter)="verifyAndAct()"
+        class="pin-field"
+        autofocus
+      />
+      <div class="pin-actions">
+        <button class="pin-cancel" (click)="cancelPin()">{{ 'common.cancel' | translate }}</button>
+        <button class="pin-confirm" (click)="verifyAndAct()" [disabled]="pinInput.length !== 4">
+          {{ 'clock.confirm' | translate }}
+        </button>
+      </div>
+      <span class="pin-error" *ngIf="pinError">{{ pinError }}</span>
     </div>
   </ng-container>
 </div>

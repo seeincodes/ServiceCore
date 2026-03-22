@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule } from '@ngx-translate/core';
 import { ClockService, ClockStatus } from '../../../core/services/clock.service';
@@ -34,7 +35,7 @@ interface RouteStop {
 @Component({
   selector: 'app-clock-button',
   standalone: true,
-  imports: [CommonModule, TranslateModule, HoursDisplayPipe],
+  imports: [CommonModule, FormsModule, TranslateModule, HoursDisplayPipe],
   templateUrl: './clock-button.component.html',
   styleUrls: ['./clock-button.component.scss'],
 })
@@ -48,6 +49,13 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   onBreak = false;
   showEndDayConfirm = false;
   showRouteSwitch = false;
+
+  // PIN
+  showPinInput = false;
+  pinInput = '';
+  pinError = '';
+  pinRequired = false;
+  private pendingAction: 'clock_in' | 'break' | 'end_of_day' | 'end_of_day_confirmed' | null = null;
 
   get use24Hour(): boolean {
     return this.prefs.use24Hour;
@@ -92,6 +100,70 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
     this.loadProjects();
     this.loadAvailableRoutes();
     this.startSilentTracking();
+    this.checkPinRequired();
+  }
+
+  private checkPinRequired(): void {
+    this.http.get<any>(`${environment.apiUrl}/auth/pin/status`).subscribe({
+      next: (res) => {
+        this.pinRequired = res.data?.pinSet || false;
+      },
+    });
+  }
+
+  requestPin(action: 'clock_in' | 'break' | 'end_of_day' | 'end_of_day_confirmed'): void {
+    if (!this.pinRequired) {
+      // No PIN set — proceed directly
+      this.executeAction(action);
+      return;
+    }
+    this.pendingAction = action;
+    this.showPinInput = true;
+    this.pinInput = '';
+    this.pinError = '';
+  }
+
+  verifyAndAct(): void {
+    if (this.pinInput.length !== 4 || !this.pendingAction) return;
+
+    this.http.post<any>(`${environment.apiUrl}/auth/pin/verify`, { pin: this.pinInput }).subscribe({
+      next: (res) => {
+        if (res.data?.verified) {
+          this.showPinInput = false;
+          this.executeAction(this.pendingAction!);
+          this.pendingAction = null;
+          this.pinInput = '';
+        }
+      },
+      error: () => {
+        this.pinError = 'Incorrect PIN';
+        this.pinInput = '';
+      },
+    });
+  }
+
+  cancelPin(): void {
+    this.showPinInput = false;
+    this.pendingAction = null;
+    this.pinInput = '';
+    this.pinError = '';
+  }
+
+  private executeAction(action: string): void {
+    switch (action) {
+      case 'clock_in':
+        this.onClockAction();
+        break;
+      case 'break':
+        this.onClockOut('break');
+        break;
+      case 'end_of_day':
+        this.confirmEndDay();
+        break;
+      case 'end_of_day_confirmed':
+        this.onClockOut('end_of_day');
+        break;
+    }
   }
 
   ngOnDestroy(): void {

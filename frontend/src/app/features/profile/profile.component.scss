@@ -184,3 +184,30 @@
     border-left: 1px solid $neutral-200;
   }
 }
+
+// PIN setup
+.pin-setup {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.pin-input-row {
+  display: flex;
+  justify-content: center;
+}
+
+.pin-input {
+  width: 120px;
+  padding: 14px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 8px;
+  border: 2px solid $neutral-200;
+  border-radius: 12px;
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}

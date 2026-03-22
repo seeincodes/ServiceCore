@@ -308,6 +308,71 @@ router.post('/logout', (_req: Request, res: Response) => {
   sendSuccess(res, { message: 'Logged out' });
 });
 
+// POST /auth/pin/set — set or update 4-digit PIN
+router.post('/pin/set', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = (req as AuthenticatedRequest).user;
+    const { pin } = req.body;
+
+    if (!pin || !/^\d{4}$/.test(pin)) {
+      sendError(res, 'PIN must be exactly 4 digits', 400);
+      return;
+    }
+
+    const bcrypt = await import('bcrypt');
+    const pinHash = await bcrypt.hash(pin, 10);
+    await db('users').where({ id }).update({ pin_hash: pinHash });
+
+    sendSuccess(res, { status: 'pin_set' });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message);
+  }
+});
+
+// POST /auth/pin/verify — verify PIN for clock actions
+router.post('/pin/verify', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = (req as AuthenticatedRequest).user;
+    const { pin } = req.body;
+
+    if (!pin) {
+      sendError(res, 'PIN is required', 400);
+      return;
+    }
+
+    const user = await db('users').where({ id }).select('pin_hash').first();
+
+    if (!user?.pin_hash) {
+      // No PIN set — allow (first-time setup prompt will handle this)
+      sendSuccess(res, { verified: true, pinSet: false });
+      return;
+    }
+
+    const bcrypt = await import('bcrypt');
+    const valid = await bcrypt.compare(pin, user.pin_hash);
+
+    if (!valid) {
+      sendError(res, 'Incorrect PIN', 401);
+      return;
+    }
+
+    sendSuccess(res, { verified: true, pinSet: true });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message);
+  }
+});
+
+// GET /auth/pin/status — check if user has PIN set
+router.get('/pin/status', authenticate, async (req: Request, res: Response) => {
+  try {
+    const { id } = (req as AuthenticatedRequest).user;
+    const user = await db('users').where({ id }).select('pin_hash').first();
+    sendSuccess(res, { pinSet: !!user?.pin_hash });
+  } catch (err: unknown) {
+    sendError(res, (err as Error).message);
+  }
+});
+
 // GET /auth/preferences
 router.get('/preferences', authenticate, async (req: Request, res: Response) => {
   try {

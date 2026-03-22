@@ -109,6 +109,37 @@
     <p class="hint" *ngIf="!changingPassword">Last changed: unknown</p>
   </div>
 
+  <!-- Clock PIN -->
+  <div class="card">
+    <div class="card-header">
+      <h2>{{ 'profile.clockPin' | translate }}</h2>
+      <button class="edit-btn" (click)="showPinSetup = !showPinSetup">
+        {{ pinSet ? ('profile.changePin' | translate) : ('profile.setPin' | translate) }}
+      </button>
+    </div>
+
+    <p class="hint" *ngIf="!showPinSetup">
+      {{ pinSet ? ('profile.pinIsSet' | translate) : ('profile.pinNotSet' | translate) }}
+    </p>
+
+    <div class="pin-setup" *ngIf="showPinSetup">
+      <div class="pin-input-row">
+        <input
+          type="password"
+          maxlength="4"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          [(ngModel)]="newPin"
+          [placeholder]="'profile.enterPin' | translate"
+          class="pin-input"
+        />
+      </div>
+      <button class="save-btn" (click)="savePin()" [disabled]="newPin.length !== 4 || savingPin">
+        {{ savingPin ? ('profile.saving' | translate) : ('profile.save' | translate) }}
+      </button>
+    </div>
+  </div>
+
   <!-- Preferences -->
   <div class="card">
     <div class="card-header">

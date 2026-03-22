@@ -22,6 +22,10 @@ export class ProfileComponent implements OnInit {
   savingProfile = false;
   changingPassword = false;
   savingPassword = false;
+  showPinSetup = false;
+  savingPin = false;
+  pinSet = false;
+  newPin = '';
   message: { text: string; type: 'success' | 'error' } | null = null;
 
   private apiUrl = `${environment.apiUrl}/auth`;
@@ -35,6 +39,7 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProfile();
+    this.checkPinStatus();
   }
 
   toggleEditProfile(): void {
@@ -117,6 +122,33 @@ export class ProfileComponent implements OnInit {
           role: u.role,
           orgName: u.org_name || '',
         };
+      },
+    });
+  }
+
+  private checkPinStatus(): void {
+    this.http.get<any>(`${this.apiUrl}/pin/status`).subscribe({
+      next: (res) => {
+        this.pinSet = res.data?.pinSet || false;
+      },
+    });
+  }
+
+  savePin(): void {
+    if (this.newPin.length !== 4) return;
+    this.savingPin = true;
+    this.http.post<any>(`${this.apiUrl}/pin/set`, { pin: this.newPin }).subscribe({
+      next: () => {
+        this.savingPin = false;
+        this.showPinSetup = false;
+        this.pinSet = true;
+        this.newPin = '';
+        this.message = { text: 'PIN set successfully', type: 'success' };
+        setTimeout(() => (this.message = null), 3000);
+      },
+      error: (err) => {
+        this.savingPin = false;
+        this.message = { text: err.error?.error || 'Failed to set PIN', type: 'error' };
       },
     });
   }
