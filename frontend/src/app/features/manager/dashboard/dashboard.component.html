@@ -113,9 +113,10 @@
               <option *ngFor="let p of projects" [value]="p.id">{{ p.code }} — {{ p.name }}</option>
             </select>
           </div>
-          <!-- Project assigned: show route info -->
+          <!-- Project assigned: show route prominently -->
           <div class="driver-assigned" *ngIf="driver.projectId">
             <span class="assigned-route" *ngIf="driver.route">{{ driver.route }}</span>
+            <span class="assigned-route no-route" *ngIf="!driver.route">No route</span>
           </div>
         </div>
       </div>

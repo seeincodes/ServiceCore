@@ -330,10 +330,12 @@
 }
 
 .driver-route {
-  background: $neutral-100;
-  padding: 1px 6px;
+  background: rgba($primary, 0.1);
+  color: $primary;
+  padding: 2px 8px;
   border-radius: 4px;
-  font-weight: 500;
+  font-weight: 700;
+  font-size: 12px;
 }
 
 .driver-project {
@@ -379,12 +381,19 @@
 }
 
 .assigned-route {
-  font-size: 13px;
-  font-weight: 600;
-  color: $neutral-700;
-  background: $neutral-100;
-  padding: 4px 10px;
-  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: $primary;
+  background: rgba($primary, 0.08);
+  padding: 6px 14px;
+  border-radius: 8px;
+
+  &.no-route {
+    color: $neutral-500;
+    background: $neutral-100;
+    font-weight: 500;
+    font-size: 12px;
+  }
 }
 
 // Off section
