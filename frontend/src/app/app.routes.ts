@@ -96,6 +96,14 @@ export const routes: Routes = [
     canActivate: [authGuard, roleGuard('org_admin')],
   },
   {
+    path: 'admin/projects',
+    loadComponent: () =>
+      import('./features/admin/projects/admin-projects.component').then(
+        (m) => m.AdminProjectsComponent,
+      ),
+    canActivate: [authGuard, roleGuard('org_admin')],
+  },
+  {
     path: 'admin/settings',
     loadComponent: () =>
       import('./features/admin/settings/admin-settings.component').then(
@@ -136,6 +144,20 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/manager/reports/reports.component').then((m) => m.ReportsComponent),
     canActivate: [authGuard, roleGuard('manager', 'payroll_admin', 'org_admin')],
+  },
+  {
+    path: 'manager/notifications',
+    loadComponent: () =>
+      import('./features/manager/notifications/notifications.component').then(
+        (m) => m.NotificationsComponent,
+      ),
+    canActivate: [authGuard, roleGuard('manager', 'org_admin')],
+  },
+  {
+    path: 'manager/schedule',
+    loadComponent: () =>
+      import('./features/manager/schedule/schedule.component').then((m) => m.ScheduleComponent),
+    canActivate: [authGuard, roleGuard('manager', 'org_admin')],
   },
   {
     path: 'manager/driver/:userId',

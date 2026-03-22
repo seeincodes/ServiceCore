@@ -1,0 +1,87 @@
+<div class="notifications-page">
+  <div class="page-header">
+    <h2>Notifications</h2>
+    <div class="header-actions">
+      <span class="unread-badge" *ngIf="unreadCount > 0">{{ unreadCount }} unread</span>
+      <button class="mark-all-btn" (click)="markAllRead()" *ngIf="unreadCount > 0">
+        Mark all read
+      </button>
+    </div>
+  </div>
+
+  <!-- Filter bar — single row, no nested tabs -->
+  <div class="filter-bar">
+    <button
+      class="filter-btn"
+      [class.active]="activeFilter === 'all'"
+      (click)="activeFilter = 'all'"
+    >
+      All <span class="filter-count">{{ allCount }}</span>
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="activeFilter === 'notifications'"
+      (click)="activeFilter = 'notifications'"
+    >
+      Messages <span class="filter-count" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+    </button>
+    <button
+      class="filter-btn critical"
+      [class.active]="activeFilter === 'critical'"
+      (click)="activeFilter = 'critical'"
+    >
+      Critical <span class="filter-count" *ngIf="criticalCount > 0">{{ criticalCount }}</span>
+    </button>
+    <button
+      class="filter-btn warning"
+      [class.active]="activeFilter === 'warning'"
+      (click)="activeFilter = 'warning'"
+    >
+      Warning <span class="filter-count" *ngIf="warningCount > 0">{{ warningCount }}</span>
+    </button>
+    <button
+      class="filter-btn"
+      [class.active]="activeFilter === 'info'"
+      (click)="activeFilter = 'info'"
+    >
+      Info <span class="filter-count" *ngIf="infoCount > 0">{{ infoCount }}</span>
+    </button>
+  </div>
+
+  <div class="loading" *ngIf="loading || alertsLoading">Loading...</div>
+
+  <!-- Unified list -->
+  <div class="inbox-list" *ngIf="!loading && !alertsLoading">
+    <div *ngFor="let item of filteredItems" class="inbox-item" [ngClass]="itemClass(item)">
+      <div class="item-indicator" [ngClass]="indicatorClass(item)"></div>
+      <div class="item-body">
+        <div class="item-top">
+          <span class="item-label" [ngClass]="labelClass(item)">{{ itemLabel(item) }}</span>
+          <span class="item-time">{{ itemTime(item) }}</span>
+        </div>
+        <div class="item-title">{{ item.title }}</div>
+        <div class="item-message">{{ item.message }}</div>
+        <div class="item-employee" *ngIf="item.employeeName">{{ item.employeeName }}</div>
+      </div>
+      <div class="item-actions">
+        <button
+          class="action-btn read-btn"
+          *ngIf="item.source === 'notification' && !item.read"
+          (click)="markAsRead(item)"
+        >
+          Mark read
+        </button>
+        <button
+          class="action-btn resolve-btn"
+          *ngIf="item.source === 'alert' && !item.resolved"
+          (click)="resolveAlert(item)"
+        >
+          Resolve
+        </button>
+        <span class="resolved-tag" *ngIf="item.source === 'alert' && item.resolved">Resolved</span>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="filteredItems.length === 0">Nothing here — all clear.</div>
+  </div>
+</div>

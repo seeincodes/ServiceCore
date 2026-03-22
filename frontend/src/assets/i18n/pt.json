@@ -18,7 +18,10 @@
     "timeOff": "Folga",
     "map": "Mapa",
     "zones": "Zonas",
-    "review": "Fila de Revisão"
+    "review": "Fila de Revisão",
+    "projects": "Projetos",
+    "schedule": "Agenda",
+    "notifications": "Notificações"
   },
   "login": {
     "title": "TimeKeeper",
@@ -348,6 +351,7 @@
     "pinIsSet": "Seu PIN de 4 dígitos está configurado. Necessário para entrada e saída.",
     "pinNotSet": "Crie um PIN de 4 dígitos para proteger seus registros.",
     "enterPin": "Digite PIN de 4 dígitos",
+    "language": "Idioma",
     "timeFormat": "Formato de Hora",
     "distanceUnit": "Unidade de Distância",
     "miles": "Milhas",

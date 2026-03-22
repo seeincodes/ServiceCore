@@ -1,14 +1,55 @@
 <div class="review-queue">
   <h1>{{ 'nav.review' | translate }}</h1>
 
+  <div class="filter-tabs" *ngIf="!loading">
+    <button
+      class="filter-tab"
+      [class.active]="activeFilter === 'all'"
+      (click)="activeFilter = 'all'"
+    >
+      All
+      <span class="tab-badge">{{ allCount }}</span>
+    </button>
+    <button
+      class="filter-tab critical"
+      [class.active]="activeFilter === 'critical'"
+      (click)="activeFilter = 'critical'"
+    >
+      Critical
+      <span class="tab-badge">{{ criticalCount }}</span>
+    </button>
+    <button
+      class="filter-tab warning"
+      [class.active]="activeFilter === 'warning'"
+      (click)="activeFilter = 'warning'"
+    >
+      Warning
+      <span class="tab-badge">{{ warningCount }}</span>
+    </button>
+    <button
+      class="filter-tab info"
+      [class.active]="activeFilter === 'info'"
+      (click)="activeFilter = 'info'"
+    >
+      Info
+      <span class="tab-badge">{{ infoCount }}</span>
+    </button>
+  </div>
+
   <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
 
   <div class="alert-list" *ngIf="!loading">
-    <div *ngFor="let alert of alerts" class="alert-card" [ngClass]="priorityClass(alert.priority)">
+    <div
+      *ngFor="let alert of filteredAlerts"
+      class="alert-card"
+      [ngClass]="priorityClass(alert.priority)"
+      [class.resolved]="alert.resolved"
+    >
       <div class="alert-header">
         <span class="alert-priority" [ngClass]="priorityClass(alert.priority)">
           {{ alert.priority }}
         </span>
+        <span class="resolved-badge" *ngIf="alert.resolved">Resolved</span>
         <span class="alert-time">{{ formatTime(alert.timestamp) }}</span>
       </div>
       <div class="alert-title">{{ alert.title }}</div>
@@ -16,8 +57,11 @@
         {{ alert.employeeName }}
       </div>
       <div class="alert-message">{{ alert.message }}</div>
+      <div class="alert-actions" *ngIf="!alert.resolved">
+        <button class="resolve-btn" (click)="resolveAlert(alert)">Resolve</button>
+      </div>
     </div>
 
-    <div class="empty" *ngIf="alerts.length === 0">No alerts — everything looks good.</div>
+    <div class="empty" *ngIf="filteredAlerts.length === 0">No alerts — everything looks good.</div>
   </div>
 </div>

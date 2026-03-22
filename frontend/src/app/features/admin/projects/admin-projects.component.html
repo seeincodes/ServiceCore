@@ -1,0 +1,219 @@
+<div class="admin-projects">
+  <div class="page-header">
+    <h1>Projects</h1>
+    <button class="add-btn" (click)="toggleAddForm()">
+      {{ showAddForm ? 'Cancel' : 'Add Project' }}
+    </button>
+  </div>
+
+  <div
+    class="message"
+    *ngIf="message"
+    [class.success]="message.type === 'success'"
+    [class.error]="message.type === 'error'"
+    (click)="message = null"
+  >
+    {{ message.text }}
+  </div>
+
+  <div class="error-box" *ngIf="error">{{ error }}</div>
+
+  <!-- Add project form -->
+  <div class="form-card" *ngIf="showAddForm">
+    <h2>New Project</h2>
+    <form (ngSubmit)="addProject()" class="project-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>Code</label>
+          <input [(ngModel)]="newProject.code" name="code" required placeholder="e.g. RES-PICKUP" />
+        </div>
+        <div class="form-field">
+          <label>Name</label>
+          <input
+            [(ngModel)]="newProject.name"
+            name="name"
+            required
+            placeholder="Residential Pickup"
+          />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Color</label>
+          <div class="color-input">
+            <input type="color" [(ngModel)]="newProject.color" name="color" />
+            <span class="color-value">{{ newProject.color }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Description</label>
+        <textarea
+          [(ngModel)]="newProject.description"
+          name="description"
+          placeholder="Optional description"
+          rows="2"
+        ></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label>Budgeted Hours (weekly)</label>
+          <input
+            type="number"
+            [(ngModel)]="newProject.budgetedHours"
+            name="budgetedHours"
+            placeholder="e.g. 120"
+            min="0"
+          />
+        </div>
+        <div class="form-field">
+          <label>Budget Amount ($)</label>
+          <input
+            type="number"
+            [(ngModel)]="newProject.budgetAmount"
+            name="budgetAmount"
+            placeholder="e.g. 3000"
+            min="0"
+          />
+        </div>
+      </div>
+      <button
+        type="submit"
+        class="save-btn"
+        [disabled]="saving || !newProject.code || !newProject.name"
+      >
+        {{ saving ? 'Creating...' : 'Create Project' }}
+      </button>
+    </form>
+  </div>
+
+  <div class="loading" *ngIf="loading">Loading...</div>
+
+  <!-- Project cards -->
+  <div class="project-list" *ngIf="!loading && projects.length > 0">
+    <div *ngFor="let project of projects" class="project-card" [class.inactive]="!project.isActive">
+      <!-- Display mode -->
+      <ng-container *ngIf="editingProjectId !== project.id">
+        <div class="card-color" [style.background]="project.color || '#ccc'"></div>
+        <div class="card-body">
+          <div class="card-top">
+            <span class="card-code">{{ project.code }}</span>
+            <span
+              class="card-status"
+              [class.active]="project.isActive"
+              [class.disabled]="!project.isActive"
+            >
+              {{ project.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <div class="card-name">{{ project.name }}</div>
+          <div class="card-desc" *ngIf="project.description">{{ project.description }}</div>
+        </div>
+        <div class="card-stats">
+          <div class="stat" *ngIf="project.budgetedHours">
+            <span
+              class="stat-val"
+              [class.over]="project.hours && project.hours > project.budgetedHours"
+            >
+              {{ project.hours || 0 }} / {{ project.budgetedHours }}h
+            </span>
+            <span class="stat-lbl">Hours</span>
+          </div>
+          <div class="stat" *ngIf="!project.budgetedHours && project.hours">
+            <span class="stat-val">{{ project.hours }}h</span>
+            <span class="stat-lbl">This Week</span>
+          </div>
+          <div class="stat" *ngIf="project.budgetAmount">
+            <span
+              class="stat-val cost"
+              [class.over]="project.cost && project.cost > project.budgetAmount"
+            >
+              ${{ project.cost || 0 | number: '1.0-0' }} / ${{
+                project.budgetAmount | number: '1.0-0'
+              }}
+            </span>
+            <span class="stat-lbl">Budget</span>
+          </div>
+          <div class="stat" *ngIf="!project.budgetAmount && project.cost">
+            <span class="stat-val cost">${{ project.cost | number: '1.0-0' }}</span>
+            <span class="stat-lbl">Cost</span>
+          </div>
+          <div class="stat" *ngIf="project.driverCount">
+            <span class="stat-val">{{ project.driverCount }}</span>
+            <span class="stat-lbl">Drivers</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="act-btn act-edit" (click)="startEdit(project)">Edit</button>
+          <button class="act-btn act-toggle" (click)="toggleActive(project)">
+            {{ project.isActive ? 'Deactivate' : 'Activate' }}
+          </button>
+          <button class="act-btn act-delete" (click)="deleteProject(project)">Delete</button>
+        </div>
+      </ng-container>
+
+      <!-- Edit mode -->
+      <div class="card-edit" *ngIf="editingProjectId === project.id">
+        <form (ngSubmit)="saveEdit(project.id)" class="inline-edit-form">
+          <div class="form-row">
+            <div class="form-field">
+              <label>Code</label>
+              <input [(ngModel)]="editProject.code" name="editCode" required />
+            </div>
+            <div class="form-field">
+              <label>Name</label>
+              <input [(ngModel)]="editProject.name" name="editName" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Color</label>
+              <div class="color-input">
+                <input type="color" [(ngModel)]="editProject.color" name="editColor" />
+              </div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Description</label>
+            <textarea
+              [(ngModel)]="editProject.description"
+              name="editDescription"
+              placeholder="Optional"
+              rows="2"
+            ></textarea>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Budgeted Hours (weekly)</label>
+              <input
+                type="number"
+                [(ngModel)]="editProject.budgetedHours"
+                name="editBudgetedHours"
+                min="0"
+              />
+            </div>
+            <div class="form-field">
+              <label>Budget ($)</label>
+              <input
+                type="number"
+                [(ngModel)]="editProject.budgetAmount"
+                name="editBudgetAmount"
+                min="0"
+              />
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="save-btn" [disabled]="saving">
+              {{ saving ? 'Saving...' : 'Save' }}
+            </button>
+            <button type="button" class="cancel-btn" (click)="cancelEdit()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty" *ngIf="!loading && !error && projects.length === 0">
+    No projects yet. Click "Add Project" to create one.
+  </div>
+</div>

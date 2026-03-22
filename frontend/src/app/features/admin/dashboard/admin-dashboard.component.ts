@@ -4,39 +4,32 @@ import { RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 
+interface DailyActiveEntry {
+  label: string;
+  count: number;
+  pct: number;
+}
+
+interface WeeklyHoursEntry {
+  label: string;
+  hours: number;
+  pct: number;
+}
+
+interface ProjectAllocation {
+  project: string;
+  hours: number;
+  percentage: number;
+  driverCount: number;
+  color: string | null;
+  cost: number;
+}
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [CommonModule, RouterModule],
-  template: `
-    <div class="admin-dash">
-      <h1>Admin Dashboard</h1>
-      <div class="stats" *ngIf="stats">
-        <div class="stat-card">
-          <span class="stat-value">{{ stats.totalUsers }}</span>
-          <span class="stat-label">Total Users</span>
-        </div>
-        <div class="stat-card">
-          <span class="stat-value">{{ stats.employeeCount }}</span>
-          <span class="stat-label">Employees</span>
-        </div>
-        <div class="stat-card highlight">
-          <span class="stat-value">{{ stats.activeToday }}</span>
-          <span class="stat-label">Active Now</span>
-        </div>
-        <div class="stat-card" [class.alert]="stats.pendingApprovals > 0">
-          <span class="stat-value">{{ stats.pendingApprovals }}</span>
-          <span class="stat-label">Pending Approvals</span>
-        </div>
-      </div>
-      <div class="quick-links">
-        <a routerLink="/admin/users" class="quick-link">Manage Users</a>
-        <a routerLink="/admin/settings" class="quick-link">Org Settings</a>
-        <a routerLink="/manager" class="quick-link">Driver Dashboard</a>
-        <a routerLink="/manager/approvals" class="quick-link">Review Timesheets</a>
-      </div>
-    </div>
-  `,
+  templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss'],
 })
 export class AdminDashboardComponent implements OnInit {
@@ -47,11 +40,55 @@ export class AdminDashboardComponent implements OnInit {
     pendingApprovals: number;
   } | null = null;
 
+  dailyActiveData: DailyActiveEntry[] = [];
+  weeklyHoursData: WeeklyHoursEntry[] = [];
+  projectAllocation: ProjectAllocation[] = [];
+  totalCost = 0;
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.http.get<any>(`${environment.apiUrl}/admin/stats`).subscribe({
       next: (res) => (this.stats = res.data),
     });
+
+    this.http.get<any>(`${environment.apiUrl}/manager/project-allocation`).subscribe({
+      next: (res) => {
+        this.projectAllocation = res.data?.allocation || [];
+        this.totalCost = this.projectAllocation.reduce((sum, p) => sum + (p.cost || 0), 0);
+      },
+    });
+
+    this.http.get<any>(`${environment.apiUrl}/admin/stats/trends`).subscribe({
+      next: (res) => {
+        this.processDailyActive(res.data?.dailyActive || []);
+        this.processWeeklyHours(res.data?.weeklyHours || []);
+      },
+    });
+  }
+
+  private processDailyActive(days: Array<{ date: string; count: number }>): void {
+    const recent = days.slice(-14);
+    const max = Math.max(...recent.map((d) => d.count), 1);
+    this.dailyActiveData = recent.map((d) => ({
+      label: new Date(d.date).toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+      }),
+      count: d.count,
+      pct: (d.count / max) * 100,
+    }));
+  }
+
+  private processWeeklyHours(weeks: Array<{ weekEnding: string; hours: number }>): void {
+    const max = Math.max(...weeks.map((w) => w.hours), 1);
+    this.weeklyHoursData = weeks.map((w) => ({
+      label: new Date(w.weekEnding).toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+      }),
+      hours: Math.round(w.hours * 10) / 10,
+      pct: (w.hours / max) * 100,
+    }));
   }
 }

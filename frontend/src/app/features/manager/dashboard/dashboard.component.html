@@ -1,24 +1,18 @@
 <div class="dashboard">
-  <header class="dashboard-header">
+  <!-- Header -->
+  <header class="dash-header">
     <h1>{{ 'dashboard.title' | translate }}</h1>
-    <div class="header-meta">
-      <span class="active-count">{{ activeCount }} {{ 'dashboard.active' | translate }}</span>
-      <span class="refresh-time" *ngIf="lastRefresh"
-        >{{ 'dashboard.updated' | translate }} {{ lastRefresh }}</span
-      >
-    </div>
+    <span class="refresh-time" *ngIf="lastRefresh">Updated {{ lastRefresh }}</span>
   </header>
 
-  <div class="error-banner" *ngIf="error">{{ error }}</div>
+  <div class="error-banner" *ngIf="error" (click)="error = null">{{ error }}</div>
 
-  <!-- OT Alerts -->
-  <div class="alerts" *ngIf="alerts.length > 0">
+  <!-- OT Alerts (WebSocket) -->
+  <div class="alert-banners" *ngIf="alerts.length > 0">
     <div
       *ngFor="let alert of alerts; let i = index"
-      class="alert-item"
-      [class.alert-approaching]="alert.type === 'approaching'"
-      [class.alert-threshold]="alert.type === 'threshold'"
-      [class.alert-exceeded]="alert.type === 'exceeded'"
+      class="alert-banner"
+      [ngClass]="'alert-' + alert.type"
     >
       <span>{{ alert.message }}</span>
       <button class="dismiss" (click)="dismissAlert(i)">&times;</button>
@@ -27,106 +21,225 @@
 
   <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
 
-  <!-- Mobile: Card layout -->
-  <div class="driver-cards" *ngIf="!loading && drivers.length > 0">
-    <div
-      *ngFor="let driver of drivers"
-      class="driver-card"
-      [class.active]="driver.status === 'clocked_in'"
-      (click)="onDriverClick(driver)"
-    >
-      <div class="card-header">
-        <span class="card-name">{{ driver.name }}</span>
-        <span
-          class="status-badge"
-          [class.status-in]="driver.status === 'clocked_in'"
-          [class.status-out]="driver.status === 'clocked_out'"
+  <ng-container *ngIf="!loading">
+    <!-- ===== STAT CARDS ===== -->
+    <div class="stat-row">
+      <div class="stat-card stat-active">
+        <span class="stat-value">{{ activeCount }}</span>
+        <span class="stat-label">Clocked In</span>
+      </div>
+      <div class="stat-card stat-off">
+        <span class="stat-value">{{ offCount }}</span>
+        <span class="stat-label">Off</span>
+      </div>
+      <div class="stat-card stat-hours">
+        <span class="stat-value">{{ totalHoursToday }}</span>
+        <span class="stat-label">Hours Today</span>
+      </div>
+      <div class="stat-card stat-cost" *ngIf="totalCostToday > 0">
+        <span class="stat-value">${{ totalCostToday | number: '1.0-0' }}</span>
+        <span class="stat-label">Labor Cost</span>
+      </div>
+    </div>
+
+    <!-- ===== ACTION ITEMS ===== -->
+    <div class="action-row" *ngIf="hasActionItems">
+      <a
+        class="action-item"
+        routerLink="/manager/approvals"
+        *ngIf="actionItems.pendingTimesheets > 0"
+      >
+        <span class="action-count">{{ actionItems.pendingTimesheets }}</span>
+        <span class="action-text">timesheets to review</span>
+      </a>
+      <a
+        class="action-item action-timeoff"
+        routerLink="/manager/approvals"
+        *ngIf="actionItems.pendingTimeOff > 0"
+      >
+        <span class="action-count">{{ actionItems.pendingTimeOff }}</span>
+        <span class="action-text">time-off requests</span>
+      </a>
+      <a
+        class="action-item action-alert"
+        routerLink="/manager/notifications"
+        *ngIf="actionItems.unresolvedAlerts > 0"
+      >
+        <span class="action-count">{{ actionItems.unresolvedAlerts }}</span>
+        <span class="action-text">alerts to review</span>
+      </a>
+    </div>
+
+    <!-- ===== CURRENTLY WORKING ===== -->
+    <section class="driver-section">
+      <div class="section-header">
+        <h2>
+          <span class="section-dot dot-active"></span>
+          Currently Working
+          <span class="section-count">{{ activeCount }}</span>
+        </h2>
+      </div>
+
+      <div class="driver-list" *ngIf="activeDrivers.length > 0">
+        <div
+          *ngFor="let driver of activeDrivers"
+          class="driver-row active"
+          (click)="onDriverClick(driver)"
         >
-          {{
-            driver.status === 'clocked_in'
-              ? ('dashboard.in' | translate)
-              : ('dashboard.out' | translate)
-          }}
+          <div class="driver-main">
+            <span class="driver-name">{{ driver.name }}</span>
+            <div class="driver-meta">
+              <span class="driver-hours">{{ formatHours(driver.hours) }}</span>
+              <span class="driver-route" *ngIf="driver.route">{{ driver.route }}</span>
+              <span class="driver-project" *ngIf="driver.projectName">{{
+                driver.projectName
+              }}</span>
+              <span class="driver-time">since {{ formatTime(driver.lastUpdate) }}</span>
+            </div>
+          </div>
+          <!-- No project yet: show project picker -->
+          <div
+            class="driver-assign"
+            *ngIf="!driver.projectId && projects.length > 0"
+            (click)="$event.stopPropagation()"
+          >
+            <select
+              [ngModel]="''"
+              (ngModelChange)="assignProject(driver, $event)"
+              [disabled]="assigningDriverId === driver.id"
+              class="assign-select"
+            >
+              <option value="">Assign project...</option>
+              <option *ngFor="let p of projects" [value]="p.id">{{ p.code }} — {{ p.name }}</option>
+            </select>
+          </div>
+          <!-- Project assigned: show route prominently -->
+          <div class="driver-assigned" *ngIf="driver.projectId">
+            <span class="assigned-route" *ngIf="driver.route">{{ driver.route }}</span>
+            <span class="assigned-route no-route" *ngIf="!driver.route">No route</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-section" *ngIf="activeDrivers.length === 0">
+        No drivers currently clocked in.
+      </div>
+    </section>
+
+    <!-- ===== NOT CLOCKED IN ===== -->
+    <section class="driver-section off-section">
+      <div class="section-header clickable" (click)="showOffDrivers = !showOffDrivers">
+        <h2>
+          <span class="section-dot dot-off"></span>
+          Not Clocked In
+          <span class="section-count">{{ offCount }}</span>
+        </h2>
+        <span class="toggle-icon">{{ showOffDrivers ? '▲' : '▼' }}</span>
+      </div>
+
+      <div class="driver-list off-list" *ngIf="showOffDrivers && offDrivers.length > 0">
+        <div
+          *ngFor="let driver of offDrivers"
+          class="driver-row off"
+          (click)="onDriverClick(driver)"
+        >
+          <div class="driver-main">
+            <span class="driver-name">{{ driver.name }}</span>
+            <div class="driver-meta">
+              <span class="driver-hours" *ngIf="driver.hours > 0"
+                >{{ formatHours(driver.hours) }} today</span
+              >
+              <span class="driver-time" *ngIf="driver.lastUpdate"
+                >last seen {{ formatTime(driver.lastUpdate) }}</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Compact summary when collapsed -->
+      <div class="off-summary" *ngIf="!showOffDrivers && offDrivers.length > 0">
+        <span *ngFor="let driver of offDrivers; let last = last">
+          {{ driver.name }}{{ last ? '' : ', ' }}
         </span>
       </div>
-      <div class="card-details">
-        <span>{{ driver.hours }}h</span>
-        <span *ngIf="driver.route">{{ 'dashboard.route' | translate }} {{ driver.route }}</span>
-        <span>{{ formatTime(driver.lastUpdate) }}</span>
+    </section>
+
+    <!-- ===== PROJECT ALLOCATION ===== -->
+    <section class="project-section" *ngIf="projectAllocation.length > 0">
+      <div class="section-header">
+        <h2>Project Allocation (This Week)</h2>
       </div>
-    </div>
-  </div>
+      <div class="project-grid">
+        <div *ngFor="let item of projectAllocation" class="project-card">
+          <div class="proj-color" [style.background]="item.color || '#1a73e8'"></div>
+          <div class="proj-info">
+            <span class="proj-name">{{ item.project }}</span>
+            <div class="proj-bar">
+              <div
+                class="proj-fill"
+                [style.width.%]="
+                  item.budgetedHours ? (item.hours / item.budgetedHours) * 100 : item.percentage
+                "
+                [style.background]="
+                  item.budgetedHours && item.hours > item.budgetedHours
+                    ? '#ea4335'
+                    : item.color || '#1a73e8'
+                "
+              ></div>
+            </div>
+          </div>
 
-  <!-- Tablet/Desktop: Table layout -->
-  <table class="driver-table" *ngIf="!loading && drivers.length > 0">
-    <thead>
-      <tr>
-        <th>{{ 'dashboard.name' | translate }}</th>
-        <th>{{ 'dashboard.status' | translate }}</th>
-        <th>{{ 'dashboard.hours' | translate }}</th>
-        <th>{{ 'dashboard.route' | translate }}</th>
-        <th>{{ 'dashboard.lastUpdate' | translate }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr
-        *ngFor="let driver of drivers"
-        [class.active]="driver.status === 'clocked_in'"
-        (click)="onDriverClick(driver)"
-      >
-        <td class="driver-name">{{ driver.name }}</td>
-        <td>
-          <span
-            class="status-badge"
-            [class.status-in]="driver.status === 'clocked_in'"
-            [class.status-out]="driver.status === 'clocked_out'"
-          >
-            {{
-              driver.status === 'clocked_in'
-                ? ('dashboard.in' | translate)
-                : ('dashboard.out' | translate)
-            }}
-          </span>
-        </td>
-        <td>{{ driver.hours }}h</td>
-        <td>{{ driver.route || '-' }}</td>
-        <td>{{ formatTime(driver.lastUpdate) }}</td>
-      </tr>
-    </tbody>
-  </table>
+          <!-- View mode -->
+          <div class="proj-stats" *ngIf="!item.editingBudget">
+            <span
+              class="proj-hours"
+              [class.over-budget]="item.budgetedHours && item.hours > item.budgetedHours"
+            >
+              {{ item.hours }}h
+              <span class="budget-of" *ngIf="item.budgetedHours">/ {{ item.budgetedHours }}h</span>
+            </span>
+            <span
+              class="proj-cost"
+              [class.over-budget]="item.budgetAmount && item.cost > item.budgetAmount"
+              *ngIf="item.cost > 0"
+            >
+              ${{ item.cost | number: '1.0-0' }}
+              <span class="budget-of" *ngIf="item.budgetAmount"
+                >/ ${{ item.budgetAmount | number: '1.0-0' }}</span
+              >
+            </span>
+            <span class="proj-drivers"
+              >{{ item.driverCount }} {{ item.driverCount === 1 ? 'driver' : 'drivers' }}</span
+            >
+            <button
+              class="budget-edit-btn"
+              *ngIf="item.projectId"
+              (click)="startEditBudget(item); $event.stopPropagation()"
+            >
+              Set Budget
+            </button>
+          </div>
 
-  <div class="empty" *ngIf="!loading && drivers.length === 0">
-    {{ 'dashboard.noDrivers' | translate }}
-  </div>
-
-  <!-- Project Time Allocation -->
-  <div class="allocation-section" *ngIf="!loading && projectAllocation.length > 0">
-    <h2>{{ 'dashboard.projectAllocation' | translate }}</h2>
-    <div class="allocation-list">
-      <div *ngFor="let item of projectAllocation" class="allocation-item">
-        <div class="alloc-header">
-          <span class="alloc-name">{{ item.project }}</span>
-          <span class="alloc-hours">{{ item.hours }}h</span>
-        </div>
-        <div class="alloc-bar">
+          <!-- Budget edit mode -->
           <div
-            class="alloc-fill"
-            [style.width.%]="item.percentage"
-            [style.background]="item.color || '#1a73e8'"
-          ></div>
-        </div>
-        <div class="alloc-meta">
-          <span>{{ item.percentage }}%</span>
-          <span
-            >{{ item.driverCount }}
-            {{
-              item.driverCount !== 1
-                ? ('dashboard.drivers' | translate)
-                : ('dashboard.driver' | translate)
-            }}</span
+            class="proj-budget-edit"
+            *ngIf="item.editingBudget"
+            (click)="$event.stopPropagation()"
           >
+            <div class="budget-field">
+              <label>Hours/wk</label>
+              <input type="number" [(ngModel)]="item.editBudgetedHours" min="0" />
+            </div>
+            <div class="budget-field">
+              <label>Budget $</label>
+              <input type="number" [(ngModel)]="item.editBudgetAmount" min="0" />
+            </div>
+            <button class="budget-save" (click)="saveBudget(item)">Save</button>
+            <button class="budget-cancel" (click)="cancelEditBudget(item)">Cancel</button>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </ng-container>
 </div>

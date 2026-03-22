@@ -107,28 +107,28 @@
   font-weight: 600;
 }
 
-.lang-switcher,
-.mobile-lang {
-  display: flex;
-  gap: 2px;
-}
-
-.lang-btn {
-  padding: 2px 8px;
+.lang-select {
+  padding: 4px 8px;
   border: 1px solid $neutral-200;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: $neutral-700;
   background: $white;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: $neutral-500;
   cursor: pointer;
-  &.active {
-    background: $primary;
-    color: $white;
+  font-family: inherit;
+  &:focus {
+    outline: none;
     border-color: $primary;
   }
-  &:hover:not(.active) {
-    background: $neutral-100;
+}
+
+.mobile-lang {
+  padding: $spacing-xs $spacing-md;
+  .lang-select {
+    width: 100%;
+    padding: $spacing-sm;
+    font-size: $font-size-sm;
   }
 }
 

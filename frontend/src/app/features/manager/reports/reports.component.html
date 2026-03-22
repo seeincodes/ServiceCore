@@ -1,80 +1,247 @@
 <div class="reports-page">
   <h1>{{ 'reports.title' | translate }}</h1>
 
-  <div class="error-banner" *ngIf="error">{{ error }}</div>
+  <div class="error-banner" *ngIf="error" (click)="error = null">{{ error }}</div>
 
+  <!-- Report Type Selector -->
   <div class="report-config">
-    <!-- Period -->
     <div class="config-section">
-      <h2>{{ 'reports.payPeriod' | translate }}</h2>
+      <h2>Report Type</h2>
       <div class="option-group">
         <label
           class="option"
-          *ngFor="
-            let opt of [
-              { value: 'weekly', labelKey: 'reports.weekly', descKey: 'reports.last7' },
-              { value: 'biweekly', labelKey: 'reports.biweekly', descKey: 'reports.last14' },
-              { value: 'semimonthly', labelKey: 'reports.semimonthly', descKey: 'reports.last15' },
-              { value: 'monthly', labelKey: 'reports.monthly', descKey: 'reports.last30' },
-            ]
-          "
+          *ngFor="let opt of reportTypes"
+          [class.selected]="activeTab === opt.value"
         >
-          <input type="radio" [(ngModel)]="period" [value]="opt.value" name="period" />
+          <input
+            type="radio"
+            [(ngModel)]="activeTab"
+            [value]="opt.value"
+            name="reportType"
+            (change)="onReportTypeChange()"
+          />
           <div class="option-text">
-            <span class="option-label">{{ opt.labelKey | translate }}</span>
-            <span class="option-desc">{{ opt.descKey | translate }}</span>
+            <span class="option-label">{{ opt.label }}</span>
+            <span class="option-desc">{{ opt.desc }}</span>
           </div>
         </label>
       </div>
     </div>
 
-    <!-- Format -->
+    <!-- Date Range (shared by all report types) -->
     <div class="config-section">
+      <h2>Date Range</h2>
+      <div class="date-range-row">
+        <div class="date-field">
+          <label>Start</label>
+          <input type="date" [(ngModel)]="rangeStart" class="date-input" />
+        </div>
+        <div class="date-field">
+          <label>End</label>
+          <input type="date" [(ngModel)]="rangeEnd" class="date-input" />
+        </div>
+      </div>
+      <div class="quick-ranges">
+        <button class="range-btn" (click)="setRange(7)" [class.active]="rangeLabel === '7d'">
+          7 days
+        </button>
+        <button class="range-btn" (click)="setRange(14)" [class.active]="rangeLabel === '14d'">
+          14 days
+        </button>
+        <button class="range-btn" (click)="setRange(30)" [class.active]="rangeLabel === '30d'">
+          30 days
+        </button>
+        <button class="range-btn" (click)="setRange(90)" [class.active]="rangeLabel === '90d'">
+          90 days
+        </button>
+      </div>
+    </div>
+
+    <!-- Payroll-specific: format picker -->
+    <div class="config-section" *ngIf="activeTab === 'payroll'">
       <h2>{{ 'reports.format' | translate }}</h2>
       <div class="format-group">
         <button
           *ngFor="
             let fmt of [
-              { value: 'csv', label: 'CSV', icon: '📊' },
-              { value: 'pdf', label: 'PDF', icon: '📄' },
-              { value: 'xlsx', label: 'Excel', icon: '📗' },
+              { value: 'csv', label: 'CSV' },
+              { value: 'pdf', label: 'PDF' },
+              { value: 'xlsx', label: 'Excel' },
             ]
           "
           class="format-btn"
           [class.selected]="format === fmt.value"
           (click)="format = fmt.value"
         >
-          <span class="format-icon">{{ fmt.icon }}</span>
           {{ fmt.label }}
         </button>
       </div>
     </div>
 
-    <!-- End Date -->
-    <div class="config-section">
-      <h2>
-        {{ 'reports.endDate' | translate }}
-        <span class="optional">({{ 'reports.optional' | translate }})</span>
-      </h2>
-      <input type="date" [(ngModel)]="endDate" class="date-input" />
-      <p class="hint" *ngIf="!endDate">{{ 'reports.defaultsToday' | translate }}</p>
+    <!-- Generate / Load button -->
+    <div class="btn-row">
+      <button class="generate-btn" (click)="runReport()" [disabled]="isLoading">
+        {{
+          isLoading
+            ? 'Generating...'
+            : activeTab === 'payroll'
+              ? 'Export Payroll'
+              : 'Generate Report'
+        }}
+      </button>
+      <button
+        class="export-csv-btn"
+        *ngIf="activeTab !== 'payroll'"
+        (click)="exportCsv()"
+        [disabled]="exportingCsv"
+      >
+        {{ exportingCsv ? 'Exporting...' : 'Export CSV' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== PAYROLL RESULTS ==================== -->
+  <ng-container *ngIf="activeTab === 'payroll'">
+    <div class="download-link" *ngIf="downloadUrl">
+      <p>{{ 'reports.reportReady' | translate }}</p>
+      <a [href]="downloadUrl" target="_blank">{{ 'reports.download' | translate }}</a>
     </div>
 
-    <!-- Generate -->
-    <button class="generate-btn" (click)="generate()" [disabled]="generating">
-      {{ generating ? ('reports.generating' | translate) : ('reports.generate' | translate) }}
-    </button>
+    <div class="preview" *ngIf="previewData">
+      <h2>{{ 'reports.preview' | translate }}</h2>
+      <pre>{{ previewData }}</pre>
+    </div>
+  </ng-container>
+
+  <!-- ==================== ATTENDANCE RESULTS ==================== -->
+  <div
+    class="report-card"
+    *ngIf="activeTab === 'attendance' && !attendanceLoading && attendanceData.length > 0"
+  >
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Present</th>
+            <th>Absent</th>
+            <th>Avg Hours</th>
+            <th>Ratio</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of attendanceData">
+            <td>{{ row.date }}</td>
+            <td>{{ row.present }}</td>
+            <td [class.ot-highlight]="row.absent > 0">{{ row.absent }}</td>
+            <td>{{ row.avgHours | number: '1.1-1' }}h</td>
+            <td class="bar-cell">
+              <div class="bar-track">
+                <div
+                  class="bar-fill bar-fill--success"
+                  [style.width.%]="attendancePercent(row)"
+                ></div>
+              </div>
+              <span class="bar-label">{{ attendancePercent(row) }}%</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Download link (S3) -->
-  <div class="download-link" *ngIf="downloadUrl">
-    <p>{{ 'reports.reportReady' | translate }}</p>
-    <a [href]="downloadUrl" target="_blank">{{ 'reports.download' | translate }}</a>
+  <!-- ==================== OVERTIME RESULTS ==================== -->
+  <div
+    class="report-card"
+    *ngIf="activeTab === 'overtime' && !overtimeLoading && overtimeData.length > 0"
+  >
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Week Ending</th>
+            <th>OT Hours</th>
+            <th>Drivers w/ OT</th>
+            <th>Avg OT/Driver</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of overtimeData" [class.warning-row]="row.totalOtHours > 20">
+            <td>{{ row.weekEnding }}</td>
+            <td>{{ row.totalOtHours | number: '1.1-1' }}h</td>
+            <td>{{ row.driversWithOt }}</td>
+            <td>{{ row.avgOtPerDriver | number: '1.1-1' }}h</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- CSV Preview -->
-  <div class="preview" *ngIf="previewData">
-    <h2>{{ 'reports.preview' | translate }}</h2>
-    <pre>{{ previewData }}</pre>
+  <!-- ==================== BY DRIVER RESULTS ==================== -->
+  <div
+    class="report-card"
+    *ngIf="activeTab === 'driver' && !driverLoading && driverData.length > 0"
+  >
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Driver</th>
+            <th>Total Hours</th>
+            <th>OT Hours</th>
+            <th>Days Worked</th>
+            <th>Avg Daily</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of driverData">
+            <td>{{ row.driverName }}</td>
+            <td>{{ row.totalHours | number: '1.1-1' }}h</td>
+            <td [class.ot-highlight]="row.otHours > 0">{{ row.otHours | number: '1.1-1' }}h</td>
+            <td>{{ row.daysWorked }}</td>
+            <td>{{ row.avgDaily | number: '1.1-1' }}h</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ==================== BY PROJECT RESULTS ==================== -->
+  <div
+    class="report-card"
+    *ngIf="activeTab === 'project' && !projectLoading && projectData.length > 0"
+  >
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Hours</th>
+            <th>Drivers</th>
+            <th>Distribution</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of projectData">
+            <td>{{ row.projectName }}</td>
+            <td>{{ row.totalHours | number: '1.1-1' }}h</td>
+            <td>{{ row.driverCount }}</td>
+            <td class="bar-cell">
+              <div class="bar-track">
+                <div
+                  class="bar-fill bar-fill--primary"
+                  [style.width.%]="projectBarWidth(row.totalHours)"
+                ></div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="showEmpty">
+    No data for this date range. Adjust dates and generate again.
   </div>
 </div>

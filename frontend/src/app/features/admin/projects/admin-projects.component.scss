@@ -1,0 +1,343 @@
+@use '../../../../styles/variables' as *;
+
+.admin-projects {
+  padding: $spacing-md;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-lg;
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0;
+  }
+}
+
+.add-btn {
+  padding: $spacing-sm $spacing-lg;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  cursor: pointer;
+  &:hover {
+    background: $primary-dark;
+  }
+}
+
+.message {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+  cursor: pointer;
+  &.success {
+    background: rgba($success, 0.1);
+    color: darken($success, 10%);
+  }
+  &.error {
+    background: rgba($danger, 0.1);
+    color: $danger;
+  }
+}
+
+.error-box {
+  padding: $spacing-sm $spacing-md;
+  border-radius: 8px;
+  margin-bottom: $spacing-md;
+  font-size: $font-size-sm;
+  background: rgba($danger, 0.1);
+  color: $danger;
+}
+
+// Add/Edit form
+.form-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+  h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 $spacing-md;
+  }
+}
+
+.project-form,
+.inline-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $neutral-700;
+    text-transform: uppercase;
+  }
+  input,
+  textarea {
+    padding: 10px $spacing-md;
+    border: 1px solid $neutral-300;
+    border-radius: 8px;
+    font-size: $font-size-base;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    &:focus {
+      outline: none;
+      border-color: $primary;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+  }
+}
+
+.color-input {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  input[type='color'] {
+    width: 44px;
+    height: 44px;
+    padding: 2px;
+    border: 1px solid $neutral-300;
+    border-radius: 8px;
+    cursor: pointer;
+    background: none;
+  }
+  .color-value {
+    font-size: $font-size-sm;
+    color: $neutral-500;
+  }
+}
+
+.save-btn {
+  padding: 12px;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.cancel-btn {
+  padding: 12px;
+  background: $neutral-200;
+  color: $neutral-700;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.loading,
+.empty {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+// Project card list
+.project-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.project-card {
+  display: flex;
+  align-items: center;
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.15s;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  &.inactive {
+    .card-body {
+      opacity: 0.5;
+    }
+    .card-color {
+      opacity: 0.4;
+    }
+  }
+}
+
+.card-color {
+  width: 6px;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+
+.card-body {
+  flex: 1;
+  padding: $spacing-md;
+  min-width: 0;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: 2px;
+}
+
+.card-code {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: monospace;
+  color: $neutral-700;
+  background: $neutral-100;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.card-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+
+  &.active {
+    background: rgba($success, 0.1);
+    color: $success;
+  }
+
+  &.disabled {
+    background: rgba($danger, 0.08);
+    color: $neutral-500;
+  }
+}
+
+.card-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: $neutral-900;
+}
+
+.card-desc {
+  font-size: 13px;
+  color: $neutral-500;
+  margin-top: 2px;
+}
+
+// Stats
+.card-stats {
+  display: flex;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  flex-shrink: 0;
+  border-left: 1px solid $neutral-100;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 50px;
+}
+
+.stat-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: $neutral-900;
+  white-space: nowrap;
+
+  &.cost {
+    color: $success;
+  }
+
+  &.over {
+    color: $danger;
+  }
+}
+
+.stat-lbl {
+  font-size: 10px;
+  font-weight: 600;
+  color: $neutral-500;
+  text-transform: uppercase;
+}
+
+// Actions
+.card-actions {
+  display: flex;
+  gap: $spacing-xs;
+  padding: $spacing-md;
+  flex-shrink: 0;
+}
+
+.act-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.act-edit {
+  background: rgba($primary, 0.08);
+  color: $primary;
+  &:hover {
+    background: rgba($primary, 0.15);
+  }
+}
+
+.act-toggle {
+  background: rgba(#f57c00, 0.08);
+  color: #f57c00;
+  &:hover {
+    background: rgba(#f57c00, 0.15);
+  }
+}
+
+.act-delete {
+  background: rgba($danger, 0.08);
+  color: $danger;
+  &:hover {
+    background: rgba($danger, 0.15);
+  }
+}
+
+// Edit mode inside card
+.card-edit {
+  flex: 1;
+  padding: $spacing-md;
+}

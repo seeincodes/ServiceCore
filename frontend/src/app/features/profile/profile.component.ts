@@ -27,6 +27,14 @@ export class ProfileComponent implements OnInit {
   pinSet = false;
   newPin = '';
   message: { text: string; type: 'success' | 'error' } | null = null;
+  currentLang = 'en';
+
+  // Org settings (org_admin only)
+  orgSettings = {
+    branding: { logo: '', primaryColor: '#1a73e8', secondaryColor: '' },
+    config: { ot_rules: 'federal', approval_required: true, sms_enabled: false, qb_enabled: false },
+  };
+  savingOrgSettings = false;
 
   private apiUrl = `${environment.apiUrl}/auth`;
 
@@ -37,9 +45,20 @@ export class ProfileComponent implements OnInit {
     public prefsService: PreferencesService,
   ) {}
 
+  get isAdmin(): boolean {
+    return this.profile.role === 'org_admin';
+  }
+
   ngOnInit(): void {
+    this.currentLang = this.prefsService.language;
     this.loadProfile();
     this.checkPinStatus();
+  }
+
+  switchLanguage(lang: string): void {
+    this.currentLang = lang;
+    this.translate.use(lang);
+    this.prefsService.setLanguage(lang);
   }
 
   toggleEditProfile(): void {
@@ -110,6 +129,27 @@ export class ProfileComponent implements OnInit {
     return translated !== key ? translated : role;
   }
 
+  saveOrgSettings(): void {
+    this.savingOrgSettings = true;
+    this.message = null;
+
+    this.http
+      .put<any>(`${environment.apiUrl}/admin/settings`, {
+        branding: this.orgSettings.branding,
+        config: this.orgSettings.config,
+      })
+      .subscribe({
+        next: () => {
+          this.savingOrgSettings = false;
+          this.message = { text: 'Organization settings saved', type: 'success' };
+        },
+        error: (err) => {
+          this.savingOrgSettings = false;
+          this.message = { text: err.error?.error || 'Save failed', type: 'error' };
+        },
+      });
+  }
+
   private loadProfile(): void {
     this.http.get<any>(`${this.apiUrl}/me`).subscribe({
       next: (res) => {
@@ -122,6 +162,18 @@ export class ProfileComponent implements OnInit {
           role: u.role,
           orgName: u.org_name || '',
         };
+        if (u.role === 'org_admin') {
+          this.loadOrgSettings();
+        }
+      },
+    });
+  }
+
+  private loadOrgSettings(): void {
+    this.http.get<any>(`${environment.apiUrl}/admin/settings`).subscribe({
+      next: (res) => {
+        this.orgSettings.branding = { ...this.orgSettings.branding, ...res.data.branding };
+        this.orgSettings.config = { ...this.orgSettings.config, ...res.data.config };
       },
     });
   }

@@ -2,7 +2,7 @@
 
 .reports-page {
   padding: $spacing-md;
-  max-width: 650px;
+  max-width: 750px;
   margin: 0 auto;
   h1 {
     font-size: 24px;
@@ -19,6 +19,38 @@
   margin-bottom: $spacing-md;
   font-size: $font-size-sm;
 }
+
+// ===== Quick Range Buttons =====
+
+.quick-ranges {
+  display: flex;
+  gap: $spacing-xs;
+  margin-top: $spacing-sm;
+}
+
+.range-btn {
+  padding: $spacing-xs $spacing-sm;
+  border: 1px solid $neutral-200;
+  border-radius: 6px;
+  background: $white;
+  color: $neutral-700;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: $neutral-300;
+  }
+
+  &.active {
+    background: $primary;
+    color: $white;
+    border-color: $primary;
+  }
+}
+
+// ===== Report Config =====
 
 .report-config {
   background: $white;
@@ -121,6 +153,7 @@
   border-radius: 8px;
   font-size: $font-size-base;
   font-family: inherit;
+  box-sizing: border-box;
   &:focus {
     outline: none;
     border-color: $primary;
@@ -133,8 +166,14 @@
   margin: $spacing-xs 0 0;
 }
 
+.btn-row {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
 .generate-btn {
-  width: 100%;
+  flex: 1;
   padding: 14px;
   background: $primary;
   color: $white;
@@ -143,9 +182,27 @@
   font-size: $font-size-base;
   font-weight: 600;
   cursor: pointer;
-  margin-top: $spacing-sm;
   &:hover:not(:disabled) {
     background: $primary-dark;
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.export-csv-btn {
+  padding: 14px $spacing-lg;
+  background: $white;
+  color: $primary;
+  border: 1px solid $primary;
+  border-radius: 8px;
+  font-size: $font-size-base;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  &:hover:not(:disabled) {
+    background: rgba($primary, 0.05);
   }
   &:disabled {
     opacity: 0.6;
@@ -184,4 +241,169 @@
     max-height: 400px;
     overflow-y: auto;
   }
+}
+
+// ===== Report Card (shared for new tabs) =====
+
+.report-card {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-lg;
+  margin-top: $spacing-md;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: $neutral-900;
+  }
+}
+
+.refresh-btn {
+  padding: $spacing-xs $spacing-md;
+  border: 1px solid $neutral-200;
+  border-radius: 8px;
+  background: $white;
+  color: $neutral-700;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover:not(:disabled) {
+    border-color: $primary;
+    color: $primary;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+.empty-state {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+// ===== Date Range Row =====
+
+.date-range-row {
+  display: flex;
+  gap: $spacing-sm;
+  align-items: flex-end;
+  margin-bottom: $spacing-lg;
+}
+
+.date-field {
+  flex: 1;
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: $neutral-700;
+    text-transform: uppercase;
+    margin-bottom: $spacing-xs;
+  }
+}
+
+// ===== Data Table =====
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+
+  th {
+    text-align: left;
+    padding: $spacing-sm $spacing-md;
+    font-size: 12px;
+    font-weight: 600;
+    color: $neutral-500;
+    text-transform: uppercase;
+    border-bottom: 2px solid $neutral-200;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: $spacing-sm $spacing-md;
+    border-bottom: 1px solid $neutral-100;
+    color: $neutral-900;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+// ===== Bar Visualizations =====
+
+.bar-cell {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.bar-track {
+  flex: 1;
+  height: 8px;
+  background: $neutral-100;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 60px;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.bar-fill--success {
+  background: $success;
+}
+
+.bar-fill--primary {
+  background: $primary;
+}
+
+.bar-label {
+  font-size: 12px;
+  color: $neutral-500;
+  min-width: 36px;
+  text-align: right;
+}
+
+// ===== Highlights =====
+
+.warning-row {
+  background: rgba($warning, 0.1);
+}
+
+.ot-highlight {
+  color: #e65100;
+  font-weight: 600;
 }

@@ -36,16 +36,9 @@
         </svg>
         <span class="alert-badge">{{ alertCount }}</span>
       </a>
-      <div class="lang-switcher">
-        <button
-          *ngFor="let lang of languages"
-          class="lang-btn"
-          [class.active]="currentLang === lang.code"
-          (click)="switchLanguage(lang.code)"
-        >
-          {{ lang.label }}
-        </button>
-      </div>
+      <select class="lang-select" [ngModel]="currentLang" (ngModelChange)="switchLanguage($event)">
+        <option *ngFor="let lang of languages" [value]="lang.code">{{ lang.label }}</option>
+      </select>
       <a routerLink="/profile" class="user-info-link">{{ user?.firstName }} {{ user?.lastName }}</a>
       <button class="logout-btn" (click)="logout()">{{ 'nav.logout' | translate }}</button>
     </div>
@@ -98,14 +91,9 @@
       {{ 'nav.review' | translate }} ({{ alertCount }})
     </a>
     <div class="mobile-lang">
-      <button
-        *ngFor="let lang of languages"
-        class="lang-btn"
-        [class.active]="currentLang === lang.code"
-        (click)="switchLanguage(lang.code)"
-      >
-        {{ lang.label }}
-      </button>
+      <select class="lang-select" [ngModel]="currentLang" (ngModelChange)="switchLanguage($event)">
+        <option *ngFor="let lang of languages" [value]="lang.code">{{ lang.label }}</option>
+      </select>
     </div>
     <button class="mobile-link mobile-logout" (click)="logout()">
       {{ 'nav.logout' | translate }}

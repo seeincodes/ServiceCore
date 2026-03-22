@@ -1,74 +1,334 @@
 <div class="approval-queue">
-  <h2>{{ 'approvals.title' | translate }}</h2>
+  <h2>Approvals</h2>
+
+  <!-- Main tab bar -->
+  <div class="main-tabs">
+    <button
+      class="main-tab"
+      [class.active]="mainTab === 'timesheets'"
+      (click)="switchMainTab('timesheets')"
+    >
+      Timesheets
+    </button>
+    <button
+      class="main-tab"
+      [class.active]="mainTab === 'timeoff'"
+      (click)="switchMainTab('timeoff')"
+    >
+      Time Off
+      <span class="badge" *ngIf="pendingTimeOffCount > 0">{{ pendingTimeOffCount }}</span>
+    </button>
+  </div>
 
   <div
     class="message"
     *ngIf="message"
     [class.success]="message.type === 'success'"
     [class.error]="message.type === 'error'"
+    (click)="message = null"
   >
     {{ message.text }}
   </div>
 
-  <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
+  <!-- Timesheets tab -->
+  <ng-container *ngIf="mainTab === 'timesheets'">
+    <div class="loading" *ngIf="loading">{{ 'common.loading' | translate }}</div>
 
-  <div class="empty" *ngIf="!loading && timesheets.length === 0">
-    {{ 'approvals.noPending' | translate }}
-  </div>
+    <div class="empty" *ngIf="!loading && timesheets.length === 0">
+      {{ 'approvals.noPending' | translate }}
+    </div>
 
-  <div class="ts-list" *ngIf="!loading && timesheets.length > 0">
-    <div *ngFor="let ts of timesheets" class="ts-card">
-      <div class="ts-info">
-        <span class="ts-name">{{ ts.userName }}</span>
-        <span class="ts-week"
-          >{{ 'approvals.weekEnding' | translate }} {{ formatDate(ts.weekEnding) }}</span
-        >
-        <div class="ts-hours">
-          <span>{{ ts.hoursWorked }}h {{ 'approvals.total' | translate }}</span>
-          <span class="ot" *ngIf="ts.otHours > 0"
-            >{{ ts.otHours }}h {{ 'approvals.ot' | translate }}</span
-          >
+    <div class="ts-list" *ngIf="!loading && timesheets.length > 0">
+      <!-- Bulk action bar -->
+      <div class="bulk-bar" *ngIf="selectedIds.size > 0">
+        <span class="bulk-count">{{ selectedIds.size }} selected</span>
+        <button class="btn btn-approve" (click)="bulkApprove()" [disabled]="bulkInProgress">
+          Approve All
+        </button>
+        <button class="btn btn-reject" (click)="bulkReject()" [disabled]="bulkInProgress">
+          Reject All
+        </button>
+      </div>
+
+      <!-- Select All -->
+      <label class="select-all-row">
+        <input type="checkbox" [checked]="allSelected" (change)="toggleSelectAll()" />
+        <span>Select All</span>
+      </label>
+
+      <div
+        *ngFor="let ts of timesheets"
+        class="ts-card"
+        [class.revising]="reviseTimesheetId === ts.id"
+      >
+        <div class="ts-card-top">
+          <input
+            type="checkbox"
+            class="ts-checkbox"
+            [checked]="selectedIds.has(ts.id)"
+            (change)="toggleSelect(ts.id)"
+            (click)="$event.stopPropagation()"
+          />
+          <div class="ts-info">
+            <span class="ts-name">{{ ts.userName }}</span>
+            <span class="ts-week"
+              >{{ 'approvals.weekEnding' | translate }} {{ formatDate(ts.weekEnding) }}</span
+            >
+            <div class="ts-hours">
+              <span>{{ ts.hoursWorked }}h {{ 'approvals.total' | translate }}</span>
+              <span class="ot" *ngIf="ts.otHours > 0"
+                >{{ ts.otHours }}h {{ 'approvals.ot' | translate }}</span
+              >
+            </div>
+          </div>
         </div>
-      </div>
+        <!-- end ts-card-top -->
 
-      <div class="ts-actions" *ngIf="showNotesFor !== ts.id">
-        <button
-          class="btn btn-approve"
-          (click)="approve(ts)"
-          [disabled]="actionInProgress === ts.id"
-        >
-          {{ 'approvals.approve' | translate }}
-        </button>
-        <button
-          class="btn btn-revision"
-          (click)="requestRevision(ts)"
-          [disabled]="actionInProgress === ts.id"
-        >
-          {{ 'approvals.revise' | translate }}
-        </button>
-        <button class="btn btn-reject" (click)="reject(ts)" [disabled]="actionInProgress === ts.id">
-          {{ 'approvals.reject' | translate }}
-        </button>
-      </div>
-
-      <div class="notes-form" *ngIf="showNotesFor === ts.id">
-        <textarea
-          [(ngModel)]="rejectNotes[ts.id]"
-          [placeholder]="'approvals.notesPlaceholder' | translate"
-          rows="2"
-        ></textarea>
-        <div class="notes-actions">
-          <button class="btn btn-revision" (click)="submitRevisionRequest(ts.id)">
-            {{ 'approvals.sendRevision' | translate }}
+        <!-- Actions (when not showing notes or revise panel) -->
+        <div class="ts-actions" *ngIf="showNotesFor !== ts.id && reviseTimesheetId !== ts.id">
+          <button
+            class="btn btn-approve"
+            (click)="approve(ts)"
+            [disabled]="actionInProgress === ts.id"
+          >
+            {{ 'approvals.approve' | translate }}
           </button>
-          <button class="btn btn-reject" (click)="submitRejection(ts.id)">
+          <button
+            class="btn btn-revision"
+            (click)="openRevise(ts)"
+            [disabled]="actionInProgress === ts.id"
+          >
+            Revise
+          </button>
+          <button
+            class="btn btn-reject"
+            (click)="reject(ts)"
+            [disabled]="actionInProgress === ts.id"
+          >
             {{ 'approvals.reject' | translate }}
           </button>
-          <button class="btn btn-cancel" (click)="cancelNotes()">
-            {{ 'approvals.cancelAction' | translate }}
-          </button>
+        </div>
+
+        <!-- Reject notes -->
+        <div class="notes-form" *ngIf="showNotesFor === ts.id && reviseTimesheetId !== ts.id">
+          <textarea
+            [(ngModel)]="rejectNotes[ts.id]"
+            [placeholder]="'approvals.notesPlaceholder' | translate"
+            rows="2"
+          ></textarea>
+          <div class="notes-actions">
+            <button class="btn btn-reject" (click)="submitRejection(ts.id)">
+              {{ 'approvals.reject' | translate }}
+            </button>
+            <button class="btn btn-cancel" (click)="cancelNotes()">
+              {{ 'approvals.cancelAction' | translate }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Revise panel: show clock entries for the week -->
+        <div class="revise-panel" *ngIf="reviseTimesheetId === ts.id">
+          <div class="revise-header">
+            <h3>Clock Entries for {{ ts.userName }}</h3>
+            <span class="revise-total">{{ reviseTotalHours }}h total</span>
+          </div>
+
+          <div class="revise-loading" *ngIf="reviseLoading">Loading entries...</div>
+
+          <div class="revise-empty" *ngIf="!reviseLoading && reviseEntries.length === 0">
+            No clock entries found for this week.
+          </div>
+
+          <table class="entry-table" *ngIf="!reviseLoading && reviseEntries.length > 0">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Clock In</th>
+                <th>Clock Out</th>
+                <th>Hours</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let entry of reviseEntries" [class.editing-row]="entry.editing">
+                <td>{{ formatDay(entry.clockIn) }}</td>
+
+                <!-- View mode -->
+                <ng-container *ngIf="!entry.editing">
+                  <td>{{ formatTime(entry.clockIn) }}</td>
+                  <td>{{ formatTime(entry.clockOut) }}</td>
+                  <td>{{ entry.hours !== null ? entry.hours + 'h' : 'active' }}</td>
+                  <td>
+                    <button class="edit-entry-btn" (click)="startEdit(entry)">Edit</button>
+                  </td>
+                </ng-container>
+
+                <!-- Edit mode -->
+                <ng-container *ngIf="entry.editing">
+                  <td>
+                    <input
+                      type="datetime-local"
+                      [(ngModel)]="entry.editClockIn"
+                      class="edit-time"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="datetime-local"
+                      [(ngModel)]="entry.editClockOut"
+                      class="edit-time"
+                    />
+                  </td>
+                  <td colspan="2" class="edit-actions">
+                    <button
+                      class="btn btn-approve btn-sm"
+                      (click)="saveEdit(entry)"
+                      [disabled]="entry.saving"
+                    >
+                      {{ entry.saving ? '...' : 'Save' }}
+                    </button>
+                    <button class="btn btn-cancel btn-sm" (click)="cancelEdit(entry)">
+                      Cancel
+                    </button>
+                  </td>
+                </ng-container>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="revise-actions">
+            <button
+              class="btn btn-approve"
+              (click)="approveAfterRevise()"
+              [disabled]="actionInProgress === ts.id"
+            >
+              Approve (with changes)
+            </button>
+            <button class="btn btn-cancel" (click)="reviseTimesheetId = null; reviseEntries = []">
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </ng-container>
+
+  <!-- Time Off tab -->
+  <ng-container *ngIf="mainTab === 'timeoff'">
+    <div class="tabs">
+      <button
+        [class.active]="timeOffTab === 'pending'"
+        (click)="timeOffTab = 'pending'; loadTimeOffRequests()"
+      >
+        {{ 'managerTimeOff.pending' | translate }} ({{ pendingTimeOffCount }})
+      </button>
+      <button
+        [class.active]="timeOffTab === 'all'"
+        (click)="timeOffTab = 'all'; loadTimeOffRequests()"
+      >
+        {{ 'managerTimeOff.all' | translate }}
+      </button>
+      <button
+        [class.active]="timeOffTab === 'balances'"
+        (click)="timeOffTab = 'balances'; loadEmployeeBalances()"
+      >
+        {{ 'managerTimeOff.balances' | translate }}
+      </button>
+    </div>
+
+    <div class="loading" *ngIf="timeOffLoading">{{ 'common.loading' | translate }}</div>
+
+    <!-- Requests view -->
+    <div class="request-list" *ngIf="!timeOffLoading && timeOffTab !== 'balances'">
+      <div *ngFor="let req of timeOffRequests" class="request-card">
+        <div class="card-header">
+          <span class="employee-name">{{ req.userName }}</span>
+          <span class="request-status" [ngClass]="req.status">{{ req.status }}</span>
+        </div>
+        <div class="card-type">{{ timeOffTypeLabel(req.type) }}</div>
+        <div class="card-dates">
+          {{ req.start_date }} — {{ req.end_date }} ({{ req.hours_requested }}h)
+        </div>
+        <div
+          class="card-balance"
+          *ngIf="req.status === 'pending' && employeeBalanceMap[req.user_id]"
+        >
+          {{ 'managerTimeOff.balance' | translate }}:
+          {{ employeeBalanceMap[req.user_id][req.type]?.available || 0 }}h
+          {{ 'managerTimeOff.available' | translate }} ({{
+            employeeBalanceMap[req.user_id][req.type]?.used || 0
+          }}h {{ 'managerTimeOff.used' | translate }} {{ 'managerTimeOff.of' | translate }}
+          {{ employeeBalanceMap[req.user_id][req.type]?.total || 0 }}h)
+        </div>
+        <div class="card-notes" *ngIf="req.notes">{{ req.notes }}</div>
+
+        <div class="card-actions" *ngIf="req.status === 'pending'">
+          <input
+            class="review-input"
+            [(ngModel)]="timeOffReviewNotes[req.id]"
+            [placeholder]="'managerTimeOff.notesPlaceholder' | translate"
+          />
+          <button class="approve-btn" (click)="approveTimeOff(req.id)">
+            {{ 'managerTimeOff.approve' | translate }}
+          </button>
+          <button class="deny-btn" (click)="denyTimeOff(req.id)">
+            {{ 'managerTimeOff.deny' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <div class="empty" *ngIf="timeOffRequests.length === 0">
+        {{
+          timeOffTab === 'pending'
+            ? ('managerTimeOff.noPending' | translate)
+            : ('managerTimeOff.noRequests' | translate)
+        }}
+      </div>
+    </div>
+
+    <!-- Balances view -->
+    <div class="balances-view" *ngIf="!timeOffLoading && timeOffTab === 'balances'">
+      <div class="table-scroll">
+        <table class="balances-table">
+          <thead>
+            <tr>
+              <th>{{ 'managerTimeOff.employee' | translate }}</th>
+              <th>{{ 'timeOff.pto' | translate }}</th>
+              <th>{{ 'timeOff.sick' | translate }}</th>
+              <th>{{ 'timeOff.personal' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let emp of employeeBalanceList">
+              <td class="emp-name">{{ emp.name }}</td>
+              <td>
+                <span class="bal-available">{{ emp.pto.available }}h</span>
+                <span class="bal-detail"
+                  >/ {{ emp.pto.total }}h ({{ emp.pto.used }}h
+                  {{ 'managerTimeOff.used' | translate }})</span
+                >
+              </td>
+              <td>
+                <span class="bal-available">{{ emp.sick.available }}h</span>
+                <span class="bal-detail"
+                  >/ {{ emp.sick.total }}h ({{ emp.sick.used }}h
+                  {{ 'managerTimeOff.used' | translate }})</span
+                >
+              </td>
+              <td>
+                <span class="bal-available">{{ emp.personal.available }}h</span>
+                <span class="bal-detail"
+                  >/ {{ emp.personal.total }}h ({{ emp.personal.used }}h
+                  {{ 'managerTimeOff.used' | translate }})</span
+                >
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty" *ngIf="employeeBalanceList.length === 0">
+        {{ 'managerTimeOff.noEmployees' | translate }}
+      </div>
+    </div>
+  </ng-container>
 </div>

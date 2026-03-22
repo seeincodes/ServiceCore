@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subject, takeUntil, interval } from 'rxjs';
@@ -18,7 +19,7 @@ interface NavLink {
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [CommonModule, RouterModule, TranslateModule],
+  imports: [CommonModule, RouterModule, FormsModule, TranslateModule],
   templateUrl: './nav-bar.component.html',
   styleUrls: ['./nav-bar.component.scss'],
 })
@@ -34,9 +35,9 @@ export class NavBarComponent implements OnInit, OnDestroy {
 
   currentLang = 'en';
   languages = [
-    { code: 'en', label: 'EN' },
-    { code: 'es', label: 'ES' },
-    { code: 'pt', label: 'PT' },
+    { code: 'en', label: 'English' },
+    { code: 'es', label: 'Espa\u00f1ol' },
+    { code: 'pt', label: 'Portugu\u00eas' },
   ];
 
   private destroy$ = new Subject<void>();
@@ -142,6 +143,12 @@ export class NavBarComponent implements OnInit, OnDestroy {
       reports: s(
         '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>',
       ),
+      schedule: s(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="8" y2="18"/><line x1="12" y1="14" x2="12" y2="18"/><line x1="16" y1="14" x2="16" y2="18"/></svg>',
+      ),
+      notifications: s(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+      ),
       building: s(
         '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></svg>',
       ),
@@ -163,12 +170,13 @@ export class NavBarComponent implements OnInit, OnDestroy {
 
     const managerLinks: NavLink[] = [
       { path: '/manager', label: 'nav.dashboard', icon: icons.dashboard },
+      { path: '/manager/schedule', label: 'nav.schedule', icon: icons.hours },
       ...(environment.features.managerMap
         ? [{ path: '/manager/map', label: 'nav.map', icon: icons.map }]
         : []),
       { path: '/manager/approvals', label: 'nav.approvals', icon: icons.approvals },
-      { path: '/manager/time-off', label: 'nav.timeOff', icon: icons.timeOff },
       { path: '/manager/reports', label: 'nav.reports', icon: icons.reports },
+      { path: '/manager/notifications', label: 'nav.notifications', icon: icons.timesheet },
     ];
 
     switch (role) {
@@ -184,13 +192,11 @@ export class NavBarComponent implements OnInit, OnDestroy {
       case 'org_admin':
         return [
           { path: '/admin', label: 'nav.dashboard', icon: icons.building },
-          { path: '/admin/users', label: 'nav.users', icon: icons.users },
-          { path: '/admin/zones', label: 'nav.zones', icon: icons.map },
-          { path: '/admin/settings', label: 'nav.settings', icon: icons.settings },
           { path: '/manager', label: 'nav.drivers', icon: icons.dashboard },
           { path: '/manager/approvals', label: 'nav.approvals', icon: icons.approvals },
-          { path: '/manager/time-off', label: 'nav.timeOff', icon: icons.timeOff },
           { path: '/manager/reports', label: 'nav.reports', icon: icons.reports },
+          { path: '/admin/users', label: 'nav.users', icon: icons.users },
+          { path: '/admin/projects', label: 'nav.projects', icon: icons.hours },
         ];
       default:
         return driverLinks;

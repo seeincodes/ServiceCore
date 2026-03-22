@@ -6,6 +6,8 @@ export interface DriverStatus {
   status: 'clocked_in' | 'clocked_out';
   hours: number;
   route: string | null;
+  projectId: string | null;
+  projectName: string | null;
   lastUpdate: string;
 }
 
@@ -68,8 +70,22 @@ export async function getDashboard(orgId: string): Promise<DriverStatus[]> {
       status: openEntry ? 'clocked_in' : 'clocked_out',
       hours: Math.round(totalHours * 100) / 100,
       route: openEntry?.route_id || null,
+      projectId: openEntry?.project_id || null,
+      projectName: null,
       lastUpdate: lastUpdate || '',
     });
+  }
+
+  // Resolve project names
+  const projectIds = [...new Set(drivers.map((d) => d.projectId).filter(Boolean))] as string[];
+  if (projectIds.length > 0) {
+    const projects = await db('projects').whereIn('id', projectIds).select('id', 'name', 'code');
+    const projectMap = new Map(projects.map((p: any) => [p.id, `${p.code} — ${p.name}`]));
+    for (const driver of drivers) {
+      if (driver.projectId) {
+        driver.projectName = projectMap.get(driver.projectId) || null;
+      }
+    }
   }
 
   return drivers;
@@ -115,15 +131,17 @@ export interface ProjectAllocation {
   hours: number;
   percentage: number;
   driverCount: number;
+  cost: number;
 }
 
 /**
  * Get time allocation breakdown by project/route for the current week.
+ * Includes labor cost based on each driver's hourly rate.
  */
 export async function getProjectAllocation(orgId: string): Promise<ProjectAllocation[]> {
   const now = new Date();
   const weekStart = new Date(now);
-  weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
+  weekStart.setDate(now.getDate() - 7); // Last 7 days (always has data)
   weekStart.setHours(0, 0, 0, 0);
 
   const entries = await db('clock_entries')
@@ -132,20 +150,29 @@ export async function getProjectAllocation(orgId: string): Promise<ProjectAlloca
     .whereNotNull('clock_out')
     .select('route_id', 'project_id', 'user_id', 'clock_in', 'clock_out');
 
-  const projectMap = new Map<string, { hours: number; drivers: Set<string> }>();
+  // Load hourly rates for cost calculation
+  const userIds = [...new Set(entries.map((e: any) => e.user_id))];
+  const users =
+    userIds.length > 0 ? await db('users').whereIn('id', userIds).select('id', 'hourly_rate') : [];
+  const rateMap = new Map(users.map((u: any) => [u.id, Number(u.hourly_rate) || 0]));
+
+  const projectMap = new Map<string, { hours: number; cost: number; drivers: Set<string> }>();
   let totalHours = 0;
 
   for (const entry of entries) {
     const hours =
       (new Date(entry.clock_out).getTime() - new Date(entry.clock_in).getTime()) / (1000 * 60 * 60);
     const key = entry.project_id || entry.route_id || 'Unassigned';
+    const rate = rateMap.get(entry.user_id) || 0;
+    const cost = hours * rate;
 
     const existing = projectMap.get(key);
     if (existing) {
       existing.hours += hours;
+      existing.cost += cost;
       existing.drivers.add(entry.user_id);
     } else {
-      projectMap.set(key, { hours, drivers: new Set([entry.user_id]) });
+      projectMap.set(key, { hours, cost, drivers: new Set([entry.user_id]) });
     }
     totalHours += hours;
   }
@@ -154,7 +181,9 @@ export async function getProjectAllocation(orgId: string): Promise<ProjectAlloca
   const projectIds = [...projectMap.keys()].filter((k) => k !== 'Unassigned');
   const projectRecords =
     projectIds.length > 0
-      ? await db('projects').whereIn('id', projectIds).select('id', 'name', 'code', 'color')
+      ? await db('projects')
+          .whereIn('id', projectIds)
+          .select('id', 'name', 'code', 'color', 'budgeted_hours', 'budget_amount')
       : [];
   const projectNameMap = new Map(projectRecords.map((p) => [p.id, p]));
 
@@ -162,12 +191,16 @@ export async function getProjectAllocation(orgId: string): Promise<ProjectAlloca
     .map(([projectId, data]) => {
       const proj = projectNameMap.get(projectId);
       return {
+        projectId: projectId !== 'Unassigned' ? projectId : null,
         project: proj ? `${proj.code} — ${proj.name}` : projectId,
         projectCode: proj?.code || null,
         color: proj?.color || null,
         hours: Math.round(data.hours * 10) / 10,
         percentage: totalHours > 0 ? Math.round((data.hours / totalHours) * 100) : 0,
         driverCount: data.drivers.size,
+        cost: Math.round(data.cost * 100) / 100,
+        budgetedHours: proj?.budgeted_hours ? Number(proj.budgeted_hours) : null,
+        budgetAmount: proj?.budget_amount ? Number(proj.budget_amount) : null,
       };
     })
     .sort((a, b) => b.hours - a.hours);

@@ -1,0 +1,473 @@
+@use '../../../../styles/variables' as *;
+
+.schedule-page {
+  padding: $spacing-lg;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  flex-wrap: wrap;
+
+  h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.nav-btn {
+  padding: $spacing-sm $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-300;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+  }
+}
+
+.week-label {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $neutral-700;
+  min-width: 140px;
+  text-align: center;
+}
+
+.template-toggle {
+  margin-left: auto;
+  padding: $spacing-sm $spacing-md;
+  background: $white;
+  border: 1px solid $neutral-300;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  color: $neutral-700;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $primary;
+    color: $primary;
+  }
+}
+
+// Templates
+.templates-section {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-md;
+  margin-bottom: $spacing-lg;
+}
+
+.templates-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.add-template-btn {
+  padding: $spacing-sm $spacing-md;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.template-form {
+  background: $neutral-50;
+  border: 1px solid $neutral-200;
+  border-radius: 8px;
+  padding: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.form-row {
+  display: flex;
+  gap: $spacing-sm;
+  flex-wrap: wrap;
+  align-items: flex-end;
+
+  &.inline {
+    align-items: center;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+  flex: 1;
+  min-width: 100px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: $neutral-700;
+    text-transform: uppercase;
+  }
+
+  input,
+  select {
+    padding: $spacing-sm;
+    border: 1px solid $neutral-300;
+    border-radius: 6px;
+    font-size: $font-size-sm;
+    font-family: inherit;
+
+    &:focus {
+      outline: none;
+      border-color: $primary;
+    }
+  }
+
+  input[type='color'] {
+    padding: 2px;
+    height: 34px;
+    cursor: pointer;
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: $spacing-sm;
+  margin-top: $spacing-sm;
+}
+
+.btn-save {
+  padding: $spacing-sm $spacing-md;
+  background: $primary;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+
+  &.sm {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}
+
+.btn-cancel {
+  padding: $spacing-sm $spacing-md;
+  background: $neutral-200;
+  color: $neutral-700;
+  border: none;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+
+  &.sm {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}
+
+.btn-delete {
+  padding: $spacing-sm $spacing-md;
+  background: $danger;
+  color: $white;
+  border: none;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+
+  &.sm {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xs;
+}
+
+.template-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $neutral-100;
+  border-radius: 8px;
+
+  &:hover {
+    background: $neutral-50;
+  }
+}
+
+.tpl-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.tpl-name {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  min-width: 100px;
+}
+
+.tpl-times {
+  font-size: $font-size-sm;
+  color: $neutral-500;
+}
+
+.tpl-project {
+  font-size: $font-size-sm;
+  color: $neutral-700;
+  margin-left: auto;
+}
+
+.tpl-actions {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.tpl-edit {
+  padding: 2px 8px;
+  background: rgba($primary, 0.08);
+  color: $primary;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.tpl-delete {
+  padding: 2px 8px;
+  background: rgba($danger, 0.08);
+  color: $danger;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.sm-input {
+  padding: 4px 6px;
+  border: 1px solid $neutral-300;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 80px;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+.empty-templates {
+  text-align: center;
+  padding: $spacing-md;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+// Schedule Grid
+.loading {
+  text-align: center;
+  padding: $spacing-xl;
+  color: $neutral-500;
+}
+
+.schedule-grid {
+  overflow-x: auto;
+  overflow-y: visible;
+  position: relative;
+}
+
+.grid-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  overflow: hidden;
+  min-width: 800px;
+
+  th {
+    padding: $spacing-sm $spacing-md;
+    font-size: 12px;
+    font-weight: 600;
+    color: $neutral-500;
+    text-transform: uppercase;
+    border-bottom: 2px solid $neutral-200;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  td {
+    border-bottom: 1px solid $neutral-100;
+    border-right: 1px solid $neutral-100;
+  }
+}
+
+.driver-col {
+  text-align: left !important;
+  min-width: 140px;
+  position: sticky;
+  left: 0;
+  background: $neutral-50;
+  z-index: 1;
+}
+
+.day-col {
+  min-width: 110px;
+}
+
+.driver-cell {
+  padding: $spacing-sm $spacing-md;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $neutral-900;
+  background: $neutral-50;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.schedule-cell {
+  padding: $spacing-xs;
+  cursor: pointer;
+  min-height: 50px;
+  vertical-align: top;
+  transition: background 0.15s;
+  position: relative;
+
+  &:hover {
+    background: rgba($primary, 0.04) !important;
+  }
+}
+
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: $spacing-xs;
+}
+
+.cell-project {
+  font-size: 12px;
+  font-weight: 700;
+  color: $neutral-900;
+}
+
+.cell-times {
+  font-size: 11px;
+  font-weight: 500;
+  color: $neutral-700;
+}
+
+.cell-route {
+  font-size: 10px;
+  font-weight: 600;
+  color: $neutral-500;
+  background: $neutral-100;
+  padding: 1px 4px;
+  border-radius: 3px;
+  align-self: flex-start;
+}
+
+.cell-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  color: $neutral-300;
+  font-size: 20px;
+  font-weight: 300;
+  transition: color 0.15s;
+
+  &:hover {
+    color: $primary;
+  }
+}
+
+.popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+// Cell edit form
+.cell-edit {
+  position: fixed;
+  z-index: 100;
+  min-width: 240px;
+}
+
+.edit-mini-form {
+  background: $white;
+  border: 2px solid $primary;
+  border-radius: 10px;
+  padding: $spacing-md;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.mini-select,
+.mini-input {
+  padding: 6px 8px;
+  border: 1px solid $neutral-300;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+.time-row {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.mini-actions {
+  display: flex;
+  gap: $spacing-xs;
+  margin-top: $spacing-xs;
+}

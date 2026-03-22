@@ -95,6 +95,7 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-xs;
+  margin-bottom: $spacing-sm;
 
   label {
     font-size: $font-size-sm;
@@ -102,7 +103,8 @@
     color: $neutral-700;
   }
 
-  input {
+  input,
+  select {
     padding: 10px $spacing-md;
     border: 1px solid $neutral-300;
     border-radius: 8px;
@@ -210,4 +212,27 @@
     outline: none;
     border-color: $primary;
   }
+}
+
+.lang-select {
+  padding: 8px $spacing-md;
+  border: 1px solid $neutral-300;
+  border-radius: 8px;
+  font-size: $font-size-sm;
+  font-family: inherit;
+  background: $white;
+  cursor: pointer;
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+.color-input {
+  width: 60px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid $neutral-300;
+  border-radius: 6px;
+  cursor: pointer;
 }

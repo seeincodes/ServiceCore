@@ -11,6 +11,56 @@
   }
 }
 
+// Main tab bar
+.main-tabs {
+  display: flex;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-lg;
+}
+
+.main-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: $spacing-sm $spacing-md;
+  border: 1px solid $neutral-200;
+  border-radius: 8px;
+  background: $white;
+  font-size: $font-size-base;
+  font-weight: 500;
+  color: $neutral-700;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    background: $neutral-50;
+  }
+
+  &.active {
+    background: $primary;
+    color: $white;
+    border-color: $primary;
+  }
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba($white, 0.25);
+  color: $white;
+  padding: 1px 7px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+
+  .main-tab:not(.active) & {
+    background: $danger;
+    color: $white;
+  }
+}
+
 .message {
   padding: $spacing-sm $spacing-md;
   border-radius: 8px;
@@ -48,8 +98,57 @@
   padding: $spacing-md;
 }
 
+// Bulk actions
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-sm $spacing-md;
+  background: rgba($primary, 0.06);
+  border: 1px solid rgba($primary, 0.2);
+  border-radius: 8px;
+}
+
+.bulk-count {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $primary;
+  margin-right: auto;
+}
+
+.select-all-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  padding: $spacing-xs 0;
+  font-size: $font-size-sm;
+  color: $neutral-700;
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: $primary;
+  }
+}
+
+.ts-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.ts-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: $primary;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
 .ts-info {
   margin-bottom: $spacing-md;
+  flex: 1;
 }
 
 .ts-name {
@@ -131,4 +230,295 @@
 .notes-actions {
   display: flex;
   gap: $spacing-sm;
+}
+
+// Revise panel
+.ts-card.revising {
+  border-color: #f57c00;
+  background: rgba(#f57c00, 0.02);
+}
+
+.revise-panel {
+  margin-top: $spacing-md;
+  padding-top: $spacing-md;
+  border-top: 1px solid $neutral-200;
+}
+
+.revise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-md;
+
+  h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.revise-total {
+  font-size: 14px;
+  font-weight: 700;
+  color: $primary;
+}
+
+.revise-loading,
+.revise-empty {
+  text-align: center;
+  padding: $spacing-md;
+  color: $neutral-500;
+  font-size: $font-size-sm;
+}
+
+.entry-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+  margin-bottom: $spacing-md;
+
+  th {
+    text-align: left;
+    padding: $spacing-xs $spacing-sm;
+    font-size: 11px;
+    font-weight: 600;
+    color: $neutral-500;
+    text-transform: uppercase;
+    border-bottom: 1px solid $neutral-200;
+  }
+
+  td {
+    padding: $spacing-xs $spacing-sm;
+    border-bottom: 1px solid $neutral-100;
+  }
+}
+
+.editing-row {
+  background: rgba($primary, 0.03);
+}
+
+.edit-entry-btn {
+  padding: 4px 10px;
+  background: rgba($primary, 0.08);
+  color: $primary;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  &:hover {
+    background: rgba($primary, 0.15);
+  }
+}
+
+.edit-time {
+  padding: 4px 6px;
+  border: 1px solid $neutral-300;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+  &:focus {
+    outline: none;
+    border-color: $primary;
+  }
+}
+
+.edit-actions {
+  display: flex;
+  gap: $spacing-xs;
+}
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.revise-actions {
+  display: flex;
+  gap: $spacing-sm;
+  padding-top: $spacing-sm;
+}
+
+// ---- Time Off styles (merged from manager-time-off) ----
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+
+  button {
+    padding: 8px 16px;
+    border: 1px solid $neutral-200;
+    border-radius: 8px;
+    background: $white;
+    font-weight: 500;
+    cursor: pointer;
+
+    &.active {
+      background: $primary;
+      color: $white;
+      border-color: $primary;
+    }
+  }
+}
+
+.request-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.request-card {
+  background: $white;
+  border: 1px solid $neutral-100;
+  border-radius: 12px;
+  padding: 12px 16px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.employee-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.request-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+
+  &.pending {
+    background: #fff3e0;
+    color: #f57c00;
+  }
+
+  &.approved {
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+
+  &.denied {
+    background: #fce4ec;
+    color: #c62828;
+  }
+}
+
+.card-type {
+  font-size: 13px;
+  color: $neutral-500;
+  margin-top: 4px;
+}
+
+.card-dates {
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.card-notes {
+  font-size: 12px;
+  color: $neutral-500;
+  font-style: italic;
+  margin-top: 4px;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.review-input {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid $neutral-200;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.approve-btn {
+  padding: 6px 16px;
+  background: $success;
+  color: $white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.deny-btn {
+  padding: 6px 16px;
+  background: #fce4ec;
+  color: #c62828;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.card-balance {
+  font-size: 12px;
+  color: $primary;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+}
+
+.balances-table {
+  min-width: 500px;
+  width: 100%;
+  border-collapse: collapse;
+  background: $white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid $neutral-100;
+
+  th,
+  td {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 13px;
+  }
+
+  th {
+    background: $neutral-50;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: $neutral-500;
+  }
+
+  td {
+    border-top: 1px solid $neutral-100;
+  }
+}
+
+.emp-name {
+  font-weight: 600;
+}
+
+.bal-available {
+  font-weight: 700;
+  color: $success;
+}
+
+.bal-detail {
+  font-size: 11px;
+  color: $neutral-500;
+  margin-left: 4px;
 }

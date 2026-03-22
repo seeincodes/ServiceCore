@@ -47,6 +47,156 @@
   margin-top: 4px;
 }
 
+.trends-section {
+  margin-bottom: $spacing-xl;
+
+  h2 {
+    font-size: 16px;
+    font-weight: 600;
+    color: $neutral-900;
+    margin: 0 0 $spacing-sm;
+  }
+}
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-md;
+}
+
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.bar-label {
+  font-size: 12px;
+  color: $neutral-500;
+  min-width: 56px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.bar-track {
+  flex: 1;
+  height: 18px;
+  background: $neutral-50;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  min-width: 2px;
+  transition: width 0.3s ease;
+
+  &.active-bar {
+    background: $primary;
+  }
+
+  &.hours-bar {
+    background: $success;
+  }
+}
+
+.bar-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: $neutral-700;
+  min-width: 36px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+// Project allocation
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: $spacing-sm;
+}
+
+.total-cost {
+  font-size: 14px;
+  font-weight: 600;
+  color: $success;
+}
+
+.project-list {
+  background: $white;
+  border: 1px solid $neutral-200;
+  border-radius: 12px;
+  padding: $spacing-md;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.project-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+}
+
+.project-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  min-width: 160px;
+  flex-shrink: 0;
+}
+
+.project-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.project-name {
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-bar {
+  flex: 1;
+  .bar-track {
+    height: 12px;
+  }
+}
+
+.project-stats {
+  display: flex;
+  gap: $spacing-sm;
+  flex-shrink: 0;
+  font-size: 12px;
+  min-width: 140px;
+  justify-content: flex-end;
+}
+
+.project-hours {
+  font-weight: 600;
+  color: $neutral-900;
+}
+
+.project-cost {
+  font-weight: 600;
+  color: $success;
+}
+
+.project-drivers {
+  color: $neutral-500;
+}
+
 .quick-links {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

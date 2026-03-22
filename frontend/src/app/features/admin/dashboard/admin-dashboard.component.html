@@ -1,0 +1,86 @@
+<div class="admin-dash">
+  <h1>Admin Dashboard</h1>
+  <div class="stats" *ngIf="stats">
+    <div class="stat-card">
+      <span class="stat-value">{{ stats.totalUsers }}</span>
+      <span class="stat-label">Total Users</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value">{{ stats.employeeCount }}</span>
+      <span class="stat-label">Employees</span>
+    </div>
+    <div class="stat-card highlight">
+      <span class="stat-value">{{ stats.activeToday }}</span>
+      <span class="stat-label">Active Now</span>
+    </div>
+    <div class="stat-card" [class.alert]="stats.pendingApprovals > 0">
+      <span class="stat-value">{{ stats.pendingApprovals }}</span>
+      <span class="stat-label">Pending Approvals</span>
+    </div>
+  </div>
+
+  <div class="trends-section" *ngIf="dailyActiveData.length > 0">
+    <h2>Daily Active Users (Last 14 Days)</h2>
+    <div class="bar-chart">
+      <div class="bar-row" *ngFor="let day of dailyActiveData">
+        <span class="bar-label">{{ day.label }}</span>
+        <div class="bar-track">
+          <div class="bar-fill active-bar" [style.width.%]="day.pct"></div>
+        </div>
+        <span class="bar-value">{{ day.count }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="trends-section" *ngIf="weeklyHoursData.length > 0">
+    <h2>Weekly Total Hours</h2>
+    <div class="bar-chart">
+      <div class="bar-row" *ngFor="let week of weeklyHoursData">
+        <span class="bar-label">{{ week.label }}</span>
+        <div class="bar-track">
+          <div class="bar-fill hours-bar" [style.width.%]="week.pct"></div>
+        </div>
+        <span class="bar-value">{{ week.hours }}h</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Allocation with Cost -->
+  <div class="trends-section" *ngIf="projectAllocation.length > 0">
+    <div class="section-header">
+      <h2>Project Hours &amp; Cost (This Week)</h2>
+      <span class="total-cost" *ngIf="totalCost > 0">${{ totalCost | number: '1.0-0' }} total</span>
+    </div>
+    <div class="project-list">
+      <div *ngFor="let item of projectAllocation" class="project-row">
+        <div class="project-info">
+          <span class="project-dot" [style.background]="item.color || '#1a73e8'"></span>
+          <span class="project-name">{{ item.project }}</span>
+        </div>
+        <div class="project-bar">
+          <div class="bar-track">
+            <div
+              class="bar-fill"
+              [style.width.%]="item.percentage"
+              [style.background]="item.color || '#1a73e8'"
+            ></div>
+          </div>
+        </div>
+        <div class="project-stats">
+          <span class="project-hours">{{ item.hours }}h</span>
+          <span class="project-cost" *ngIf="item.cost > 0">${{ item.cost | number: '1.0-0' }}</span>
+          <span class="project-drivers"
+            >{{ item.driverCount }} {{ item.driverCount === 1 ? 'driver' : 'drivers' }}</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quick-links">
+    <a routerLink="/admin/users" class="quick-link">Manage Users</a>
+    <a routerLink="/admin/settings" class="quick-link">Org Settings</a>
+    <a routerLink="/manager" class="quick-link">Driver Dashboard</a>
+    <a routerLink="/manager/approvals" class="quick-link">Review Timesheets</a>
+  </div>
+</div>
