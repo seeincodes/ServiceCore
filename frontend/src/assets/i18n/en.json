@@ -72,6 +72,8 @@
     "setupPinDesc": "Create a 4-digit PIN to verify your identity when clocking in and out. This prevents unauthorized clock actions.",
     "setPin": "Set PIN",
     "skipForNow": "Skip for now",
+    "otApproaching": "Approaching 40h — overtime starts soon",
+    "otExceeded": "Over 40h — overtime in effect",
     "allStopsDone": "All stops complete! Great work.",
     "showStops": "Show all stops",
     "hideStops": "Hide stops",

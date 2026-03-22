@@ -18,8 +18,8 @@ function getClient(): twilio.Twilio {
 }
 
 export async function sendSms(to: string, body: string): Promise<void> {
-  if (!fromNumber) {
-    logger.warn('TWILIO_PHONE_NUMBER not set, skipping SMS', { to });
+  if (!fromNumber || !accountSid) {
+    logger.info('SMS (dev mode — no Twilio key)', { to, body: body.substring(0, 200) });
     return;
   }
 

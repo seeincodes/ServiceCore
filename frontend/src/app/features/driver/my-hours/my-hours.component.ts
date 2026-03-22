@@ -66,9 +66,12 @@ export class MyHoursComponent implements OnInit {
 
   get otWarning(): string | null {
     if (!this.week) return null;
-    if (this.week.weekTotal >= 45) return `${this.week.otHours}h overtime — exceeded threshold`;
-    if (this.week.weekTotal >= 40) return `${this.week.otHours}h overtime — at threshold`;
-    if (this.week.weekTotal >= 38) return `Approaching overtime: ${this.week.weekTotal}h of 40h`;
+    const pipe = new HoursDisplayPipe();
+    const total = pipe.transform(this.week.weekTotal);
+    const ot = pipe.transform(this.week.otHours);
+    if (this.week.weekTotal >= 45) return `${ot} overtime — exceeded threshold`;
+    if (this.week.weekTotal >= 40) return `${ot} overtime — at threshold`;
+    if (this.week.weekTotal >= 38) return `Approaching overtime: ${total} of 40h`;
     return null;
   }
 

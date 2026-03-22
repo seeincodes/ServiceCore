@@ -72,6 +72,8 @@
     "setupPinDesc": "Crie um PIN de 4 dígitos para verificar sua identidade ao registrar entrada e saída.",
     "setPin": "Criar PIN",
     "skipForNow": "Pular por enquanto",
+    "otApproaching": "Perto de 40h — horas extras em breve",
+    "otExceeded": "Mais de 40h — horas extras em vigor",
     "allStopsDone": "Todas as paradas concluídas. Ótimo trabalho!",
     "showStops": "Ver todas as paradas",
     "hideStops": "Ocultar paradas",

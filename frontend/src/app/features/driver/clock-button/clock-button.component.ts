@@ -46,6 +46,7 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
   elapsedDisplay = '';
   todayHoursNum = 0;
   todayHoursBase = 0; // completed sessions from backend
+  weekHoursTotal = 0;
   onBreak = false;
   showEndDayConfirm = false;
   showRouteSwitch = false;
@@ -382,6 +383,13 @@ export class ClockButtonComponent implements OnInit, OnDestroy {
           }
         },
       });
+
+    // Load weekly hours for OT warning
+    this.http.get<any>(`${environment.apiUrl}/timesheets/my-entries`).subscribe({
+      next: (res) => {
+        this.weekHoursTotal = res.data?.weekTotal || 0;
+      },
+    });
   }
 
   private loadProjects(): void {

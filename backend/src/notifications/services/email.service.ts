@@ -17,9 +17,10 @@ export interface EmailParams {
 
 export async function sendEmail(params: EmailParams): Promise<void> {
   if (!SENDGRID_API_KEY) {
-    logger.warn('SENDGRID_API_KEY not set, skipping email', {
+    logger.info('EMAIL (dev mode — no SendGrid key)', {
       to: params.to,
       subject: params.subject,
+      body: params.text.substring(0, 200),
     });
     return;
   }
