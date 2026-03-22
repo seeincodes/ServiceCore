@@ -9,7 +9,8 @@ import { sendSuccess, sendError } from '../../shared/utils/response';
 const router = Router();
 
 const generateSchema = z.object({
-  period: z.enum(['weekly', 'biweekly', 'semimonthly', 'monthly']),
+  period: z.enum(['weekly', 'biweekly', 'semimonthly', 'monthly', 'custom']),
+  startDate: z.string().optional(),
   endDate: z.string().optional(),
   format: z.enum(['csv', 'pdf', 'xlsx']).optional().default('csv'),
 });
@@ -27,6 +28,7 @@ router.post(
       const result = await reportService.generateReport({
         orgId: user.orgId,
         period: data.period,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
         endDate: data.endDate ? new Date(data.endDate) : undefined,
       });
 

@@ -163,6 +163,7 @@
             <th>OT Hours</th>
             <th>Drivers w/ OT</th>
             <th>Avg OT/Driver</th>
+            <th>Driver Breakdown</th>
           </tr>
         </thead>
         <tbody>
@@ -171,6 +172,14 @@
             <td>{{ row.totalOtHours | number: '1.1-1' }}h</td>
             <td>{{ row.driversWithOt }}</td>
             <td>{{ row.avgOtPerDriver | number: '1.1-1' }}h</td>
+            <td>
+              <div class="ot-drivers" *ngIf="row.drivers && row.drivers.length > 0">
+                <span class="ot-driver" *ngFor="let d of row.drivers">
+                  {{ d.name }} ({{ d.otHours | number: '1.1-1' }}h OT)
+                </span>
+              </div>
+              <span *ngIf="!row.drivers || row.drivers.length === 0" class="no-ot">None</span>
+            </td>
           </tr>
         </tbody>
       </table>

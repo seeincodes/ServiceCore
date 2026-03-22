@@ -13,11 +13,18 @@ interface AttendanceRow {
   avgHours: number;
 }
 
+interface OtDriver {
+  name: string;
+  totalHours: number;
+  otHours: number;
+}
+
 interface OvertimeRow {
   weekEnding: string;
   totalOtHours: number;
   driversWithOt: number;
   avgOtPerDriver: number;
+  drivers: OtDriver[];
 }
 
 interface DriverRow {

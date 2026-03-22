@@ -407,3 +407,24 @@
   color: #e65100;
   font-weight: 600;
 }
+
+.ot-drivers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ot-driver {
+  display: inline-block;
+  font-size: 12px;
+  background: rgba(#e65100, 0.1);
+  color: #e65100;
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.no-ot {
+  color: $neutral-500;
+  font-size: 12px;
+}

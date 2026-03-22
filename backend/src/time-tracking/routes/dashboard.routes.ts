@@ -258,26 +258,38 @@ router.get(
 
         // Get total hours per employee for this week
         const employeeHours = await db('clock_entries')
-          .where({ org_id: user.orgId })
+          .join('users', 'clock_entries.user_id', 'users.id')
+          .where({ 'clock_entries.org_id': user.orgId })
           .where('clock_in', '>=', weekStart.toISOString())
           .where('clock_in', '<=', weekEnd.toISOString())
           .whereNotNull('clock_out')
-          .groupBy('user_id')
+          .groupBy('clock_entries.user_id', 'users.first_name', 'users.last_name')
           .select(
-            'user_id',
+            'clock_entries.user_id',
+            'users.first_name',
+            'users.last_name',
             db.raw('SUM(EXTRACT(EPOCH FROM (clock_out - clock_in)) / 3600) as total_hours'),
           );
 
         let totalOtHours = 0;
         let driversWithOt = 0;
+        const otDrivers: { name: string; totalHours: number; otHours: number }[] = [];
 
         for (const emp of employeeHours) {
           const hours = Number(emp.total_hours);
           if (hours > 40) {
-            totalOtHours += hours - 40;
+            const otHours = hours - 40;
+            totalOtHours += otHours;
             driversWithOt++;
+            otDrivers.push({
+              name: `${emp.first_name || ''} ${emp.last_name || ''}`.trim(),
+              totalHours: Math.round(hours * 100) / 100,
+              otHours: Math.round(otHours * 100) / 100,
+            });
           }
         }
+
+        otDrivers.sort((a, b) => b.otHours - a.otHours);
 
         results.push({
           weekEnding: weekEndingStr,
@@ -285,6 +297,7 @@ router.get(
           driversWithOt,
           avgOtPerDriver:
             driversWithOt > 0 ? Math.round((totalOtHours / driversWithOt) * 100) / 100 : 0,
+          drivers: otDrivers,
         });
       }
 
@@ -605,7 +618,7 @@ router.post(
 
           csvContent += `${weekEnd.toISOString().split('T')[0]},${Math.round(totalOtHours * 100) / 100},${driversWithOt},${driversWithOt > 0 ? Math.round((totalOtHours / driversWithOt) * 100) / 100 : 0}\n`;
         }
-      } else if (type === 'per-driver') {
+      } else if (type === 'per-driver' || type === 'driver') {
         csvContent = 'User ID,Name,Total Hours,OT Hours,Days Worked,Avg Daily Hours\n';
         const rows = await db('clock_entries')
           .join('users', 'clock_entries.user_id', 'users.id')
@@ -630,7 +643,7 @@ router.post(
           const name = `${r.first_name} ${r.last_name}`.replace(/,/g, ' ');
           csvContent += `${r.user_id},${name},${totalHours},${otHours},${daysWorked},${avgDaily}\n`;
         }
-      } else if (type === 'per-project') {
+      } else if (type === 'per-project' || type === 'project') {
         csvContent = 'Project ID,Project Name,Project Code,Total Hours,Driver Count\n';
         const rows = await db('clock_entries')
           .join('projects', 'clock_entries.project_id', 'projects.id')

@@ -5,11 +5,12 @@ import logger from '../../shared/utils/logger';
 const s3 = new AWS.S3({ region: process.env.AWS_REGION || 'us-east-1' });
 const S3_BUCKET = process.env.S3_EXPORTS_BUCKET;
 
-export type PayPeriod = 'weekly' | 'biweekly' | 'semimonthly' | 'monthly';
+export type PayPeriod = 'weekly' | 'biweekly' | 'semimonthly' | 'monthly' | 'custom';
 
 export interface ReportParams {
   orgId: string;
   period: PayPeriod;
+  startDate?: Date;
   endDate?: Date;
   format?: 'csv';
 }
@@ -37,8 +38,8 @@ interface PayrollRow {
 }
 
 export async function generateReport(params: ReportParams): Promise<ReportResult> {
-  const { orgId, period, endDate } = params;
-  const { startDate, periodEnd } = getDateRange(period, endDate);
+  const { orgId, period, endDate, startDate: startDateParam } = params;
+  const { startDate, periodEnd } = getDateRange(period, endDate, startDateParam);
 
   // Get all completed clock entries in range for org, including hourly rate
   const entries = await db('clock_entries')
@@ -165,7 +166,19 @@ async function uploadToS3(key: string, csv: string): Promise<string> {
   }
 }
 
-function getDateRange(period: PayPeriod, endDate?: Date): { startDate: Date; periodEnd: Date } {
+function getDateRange(
+  period: PayPeriod,
+  endDate?: Date,
+  startDateOverride?: Date,
+): { startDate: Date; periodEnd: Date } {
+  if (period === 'custom' && startDateOverride) {
+    const start = new Date(startDateOverride);
+    start.setHours(0, 0, 0, 0);
+    const end = endDate ? new Date(endDate) : new Date();
+    end.setHours(23, 59, 59, 999);
+    return { startDate: start, periodEnd: end };
+  }
+
   const end = endDate ? new Date(endDate) : new Date();
   end.setHours(23, 59, 59, 999);
 
@@ -183,6 +196,9 @@ function getDateRange(period: PayPeriod, endDate?: Date): { startDate: Date; per
       break;
     case 'monthly':
       start.setMonth(start.getMonth() - 1);
+      break;
+    case 'custom':
+      start.setDate(start.getDate() - 7); // fallback if no startDate
       break;
   }
 
