@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { Subject, takeUntil } from 'rxjs';
 import { TranslateModule } from '@ngx-translate/core';
@@ -26,10 +26,16 @@ interface Project {
   is_active: boolean;
 }
 
+interface ActionItems {
+  pendingTimesheets: number;
+  pendingTimeOff: number;
+  unresolvedAlerts: number;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule],
+  imports: [CommonModule, FormsModule, RouterModule, TranslateModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
@@ -42,6 +48,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   lastRefresh = '';
   alerts: { message: string; type: string }[] = [];
   assigningDriverId: string | null = null;
+  showOffDrivers = false;
+
+  // Action items
+  actionItems: ActionItems = { pendingTimesheets: 0, pendingTimeOff: 0, unresolvedAlerts: 0 };
 
   private destroy$ = new Subject<void>();
 
@@ -53,28 +63,23 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // Load projects list
     this.http.get<any>(`${environment.apiUrl}/admin/projects`).subscribe({
       next: (res) => {
         this.projects = (res.data?.projects || []).filter((p: any) => p.is_active);
       },
     });
 
-    // Initial load
     this.loadDashboard();
+    this.loadActionItems();
 
-    // Connect WebSocket and listen for events
     this.wsService.connect();
-
     this.wsService
       .getEvents()
       .pipe(takeUntil(this.destroy$))
       .subscribe((event) => {
         if (event.type === 'clock_in' || event.type === 'clock_out') {
-          // Refresh dashboard on any clock event
           this.loadDashboard();
         }
-
         if (event.type === 'ot_alert') {
           const driver = this.drivers.find((d) => d.id === event.data.userId);
           const name = driver?.name || 'A driver';
@@ -82,7 +87,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
             message: `OT Alert: ${name} has ${event.data.hours}h (${event.data.alertType})`,
             type: event.data.alertType,
           });
-          // Keep max 5 alerts
           if (this.alerts.length > 5) this.alerts.pop();
         }
       });
@@ -94,16 +98,46 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.wsService.disconnect();
   }
 
+  // Computed
+  get activeDrivers(): DriverStatus[] {
+    return this.drivers.filter((d) => d.status === 'clocked_in');
+  }
+
+  get offDrivers(): DriverStatus[] {
+    return this.drivers.filter((d) => d.status === 'clocked_out');
+  }
+
+  get activeCount(): number {
+    return this.activeDrivers.length;
+  }
+
+  get offCount(): number {
+    return this.offDrivers.length;
+  }
+
+  get totalHoursToday(): number {
+    return Math.round(this.drivers.reduce((sum, d) => sum + d.hours, 0) * 10) / 10;
+  }
+
+  get totalCostToday(): number {
+    return Math.round(this.projectAllocation.reduce((sum, p) => sum + p.cost, 0));
+  }
+
+  get hasActionItems(): boolean {
+    return (
+      this.actionItems.pendingTimesheets > 0 ||
+      this.actionItems.pendingTimeOff > 0 ||
+      this.actionItems.unresolvedAlerts > 0
+    );
+  }
+
+  // Actions
   onDriverClick(driver: DriverStatus): void {
     this.router.navigate(['/manager/driver', driver.id]);
   }
 
   dismissAlert(index: number): void {
     this.alerts.splice(index, 1);
-  }
-
-  get activeCount(): number {
-    return this.drivers.filter((d) => d.status === 'clocked_in').length;
   }
 
   assignProject(driver: DriverStatus, projectId: string): void {
@@ -132,6 +166,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  formatHours(h: number): string {
+    const hrs = Math.floor(h);
+    const mins = Math.round((h - hrs) * 60);
+    return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
+  }
+
   private loadDashboard(): void {
     this.dashboardService.getDashboard().subscribe({
       next: (res) => {
@@ -149,6 +189,27 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.http.get<any>(`${environment.apiUrl}/manager/project-allocation`).subscribe({
       next: (res) => {
         this.projectAllocation = res.data.allocation;
+      },
+    });
+  }
+
+  private loadActionItems(): void {
+    // Pending timesheets
+    this.http.get<any>(`${environment.apiUrl}/manager/approvals/pending`).subscribe({
+      next: (res) => {
+        this.actionItems.pendingTimesheets = res.data?.timesheets?.length || 0;
+      },
+    });
+    // Pending time-off
+    this.http.get<any>(`${environment.apiUrl}/time-off/requests?status=pending`).subscribe({
+      next: (res) => {
+        this.actionItems.pendingTimeOff = res.data?.requests?.length || 0;
+      },
+    });
+    // Unresolved alerts
+    this.http.get<any>(`${environment.apiUrl}/manager/alerts`).subscribe({
+      next: (res) => {
+        this.actionItems.unresolvedAlerts = res.data?.unreadCount || 0;
       },
     });
   }
