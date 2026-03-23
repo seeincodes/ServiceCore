@@ -2,6 +2,24 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.17.
 
+## Tech Stack
+
+| Category | Technology | Version |
+|----------|-----------|---------|
+| **Framework** | Angular | 17.3.0 |
+| **Language** | TypeScript | 5.4.2 |
+| **State Management** | NgRx (Store, Effects, Entity) | 17.2.0 |
+| **Reactive Programming** | RxJS | 7.8.0 |
+| **Real-time** | Socket.io Client | 4.8.3 |
+| **PWA / Offline** | Angular Service Worker + IndexedDB | 17.3.0 |
+| **Maps** | Leaflet | 1.9.4 |
+| **i18n** | ngx-translate | 17.0.0 |
+| **Styling** | SCSS | - |
+| **Unit Testing** | Jasmine + Karma | 5.1.0 / 6.4.0 |
+| **E2E Testing** | Cypress | 13.17.0 |
+| **Build** | Angular CLI | 17.3.17 |
+| **Containerization** | Docker (multi-stage, Nginx Alpine) | - |
+
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
