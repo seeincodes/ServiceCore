@@ -96,16 +96,59 @@ All environments use password `password123` (dev/test) or `ChangeMe!2026` (produ
 
 ## Seed Data Details
 
-Both development and production seeds create similar data:
+### Development / Test (3 orgs, 17 users)
 
-- **5 orgs** (production) / **3 orgs** (development) with different configurations (federal vs California OT, SMS enabled/disabled)
-- **Full user hierarchies** across all roles (admin, manager, payroll, employee)
-- **6 weeks of clock entries** with realistic work patterns (split shifts, absences, varied routes)
-- **4 weeks of timesheets** in mixed states (draft, submitted, approved)
-- **Approval records**, **audit log alerts**, **time-off requests/balances**
-- **Shift templates + schedules** (2 weeks current + next)
-- **Live demo data** — drivers currently clocked in
-- Skips seed if data already exists (safe to re-run)
+Seed file: `backend/src/shared/database/seeds/development/001_seed_data.ts`
+
+| Org | OT Rules | Tier | Integrations | Users |
+|-----|----------|------|-------------|-------|
+| **GreenWaste Solutions** | Federal (40h/week) | Professional | SMS | 1 admin, 1 manager, 1 payroll, 3 drivers |
+| **Metro Disposal Co** | California (8h/day + 12h DT) | Professional | SMS, QuickBooks | 1 admin, 1 manager, 2 drivers |
+| **Sunrise Sanitation** | Federal | Free | None | 1 admin, 2 drivers |
+
+**Data generated:**
+- 6 weeks of clock entries with realistic patterns (split shifts, GPS coordinates, varied routes)
+- 4 weeks of timesheets in mixed states (draft, submitted, approved)
+- 5 projects per org: Residential Pickup, Commercial Pickup, Recycling Collection, Bulk Waste Removal, Yard Maintenance
+- 7 routes: RES-01, RES-02, COM-01, COM-02, RCY-01, BLK-01, YRD-01
+- 5 shift templates with project-route mappings and default shift times
+- 2 weeks of schedules (current + next) including weekend shifts
+- Work zones with GPS (depots, transfer stations, landfills)
+- Time-off requests (PTO, sick, personal, jury duty) in pending/approved states
+- Time-off balances (PTO 80h, sick 40-48h, personal 24h per driver)
+- Audit log alerts (midnight auto-close, missing clock-in)
+- Drivers currently clocked in for live dashboard demo
+- **Always re-seeds** (drops and recreates data on each run)
+
+### Production (5 orgs, 24 users)
+
+Seed file: `backend/src/shared/database/seeds/production/001_seed_data.ts`
+
+| Org | OT Rules | Tier | Integrations | Users |
+|-----|----------|------|-------------|-------|
+| **GreenWaste Solutions** | Federal | Professional | SMS, QB, custom domain | 1 admin, 1 manager, 1 payroll, 6 drivers |
+| **Metro Disposal Co** | California | Professional | SMS, QB | 1 admin, 1 manager, 3 drivers |
+| **Sunrise Sanitation** | Federal | Free | None | 1 admin, 2 drivers |
+| **Pacific Waste Management** | California | Enterprise | SMS, IVR, QB, dispatcher API | 1 admin |
+| **EcoHaul Services** | Federal | Medium | SMS | 1 admin |
+
+**Same generated data as dev**, plus:
+- OT workflow enabled on GreenWaste and Pacific Waste
+- Custom domain: `time.greenwaste.com` on GreenWaste
+- IVR enabled on Pacific Waste
+- Dispatcher API URL on Pacific Waste
+- Hazardous Waste project on Metro Disposal
+- **Safe to re-run** (skips if orgs already exist)
+
+### Running Seeds
+
+```bash
+# Development (default)
+cd backend && npx knex seed:run --knexfile src/shared/database/knexfile.ts
+
+# Production (first deploy only — skips if data exists)
+NODE_ENV=production npx knex seed:run --knexfile src/shared/database/knexfile.ts
+```
 
 ## Architecture
 
