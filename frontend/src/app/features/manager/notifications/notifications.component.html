@@ -54,7 +54,7 @@
   <div class="inbox-list" *ngIf="!loading && !alertsLoading">
     <div *ngFor="let item of filteredItems" class="inbox-item" [ngClass]="itemClass(item)">
       <div class="item-indicator" [ngClass]="indicatorClass(item)"></div>
-      <div class="item-body">
+      <div class="item-body" (click)="goToAction(item)" class="item-body clickable">
         <div class="item-top">
           <span class="item-label" [ngClass]="labelClass(item)">{{ itemLabel(item) }}</span>
           <span class="item-time">{{ itemTime(item) }}</span>
@@ -64,17 +64,20 @@
         <div class="item-employee" *ngIf="item.employeeName">{{ item.employeeName }}</div>
       </div>
       <div class="item-actions">
+        <button class="action-btn go-btn" (click)="goToAction(item)">
+          {{ getActionLabel(item) }}
+        </button>
         <button
           class="action-btn read-btn"
           *ngIf="item.source === 'notification' && !item.read"
-          (click)="markAsRead(item)"
+          (click)="markAsRead(item); $event.stopPropagation()"
         >
           Mark read
         </button>
         <button
           class="action-btn resolve-btn"
           *ngIf="item.source === 'alert' && !item.resolved"
-          (click)="resolveAlert(item)"
+          (click)="resolveAlert(item); $event.stopPropagation()"
         >
           Resolve
         </button>

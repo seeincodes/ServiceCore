@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { Router, RouterModule } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 
 interface InboxItem {
@@ -11,6 +12,8 @@ interface InboxItem {
   type: string;
   priority?: string;
   employeeName?: string;
+  userId?: string;
+  data?: Record<string, any>;
   timestamp: string;
   read?: boolean;
   resolved?: boolean;
@@ -19,7 +22,7 @@ interface InboxItem {
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './notifications.component.html',
   styleUrls: ['./notifications.component.scss'],
 })
@@ -31,7 +34,10 @@ export class NotificationsComponent implements OnInit {
 
   private apiUrl = environment.apiUrl;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.loadNotifications();
@@ -96,6 +102,66 @@ export class NotificationsComponent implements OnInit {
     });
   }
 
+  goToAction(item: InboxItem): void {
+    this.markAsRead(item);
+    const route = this.getActionRoute(item);
+    if (route) {
+      this.router.navigateByUrl(route);
+    }
+  }
+
+  getActionRoute(item: InboxItem): string | null {
+    const driverId = item.userId || item.data?.['userId'];
+
+    switch (item.type) {
+      case 'timesheet_submitted':
+        return '/manager/approvals';
+      case 'time_edit':
+        return '/manager/approvals';
+      case 'timesheet_flagged':
+        return '/manager/approvals';
+      case 'time_off_request':
+        return '/manager/time-off';
+      case 'ot_alert':
+      case 'overtime_exceeded':
+        return '/manager/reports';
+      case 'missing_clock_in':
+        return driverId ? `/manager/driver/${driverId}` : '/manager';
+      case 'midnight_auto_close':
+        return driverId ? `/manager/driver/${driverId}` : '/manager/approvals';
+      case 'late_arrival':
+        return driverId ? `/manager/driver/${driverId}` : '/manager';
+      case 'schedule_conflict':
+        return '/manager/schedule';
+      default:
+        return '/manager';
+    }
+  }
+
+  getActionLabel(item: InboxItem): string {
+    switch (item.type) {
+      case 'timesheet_submitted':
+      case 'timesheet_flagged':
+        return 'Review';
+      case 'time_edit':
+        return 'View Edit';
+      case 'time_off_request':
+        return 'Review Request';
+      case 'ot_alert':
+      case 'overtime_exceeded':
+        return 'View Report';
+      case 'missing_clock_in':
+      case 'late_arrival':
+        return 'View Driver';
+      case 'midnight_auto_close':
+        return 'Review Entry';
+      case 'schedule_conflict':
+        return 'View Schedule';
+      default:
+        return 'View';
+    }
+  }
+
   // Display helpers
   itemClass(item: InboxItem): string {
     if (item.source === 'alert' && item.resolved) return 'resolved';
@@ -154,6 +220,8 @@ export class NotificationsComponent implements OnInit {
           title: n.title,
           message: n.message,
           type: n.type,
+          data: n.data || {},
+          userId: n.data?.userId,
           timestamp: n.createdAt,
           read: !!n.readAt || !!n.read,
         }));
@@ -180,6 +248,8 @@ export class NotificationsComponent implements OnInit {
           type: a.type,
           priority: a.priority,
           employeeName: a.employeeName,
+          userId: a.userId,
+          data: a.data || {},
           timestamp: a.timestamp,
           resolved: false,
         }));
