@@ -150,15 +150,24 @@
     (click)="$event.stopPropagation()"
   >
     <div class="edit-mini-form">
-      <select [(ngModel)]="editEntry.projectId" class="mini-select">
+      <select [(ngModel)]="editEntry.projectId" class="mini-select" (change)="onProjectChange()">
         <option value="">Project...</option>
         <option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</option>
+      </select>
+      <select
+        [(ngModel)]="editEntry.routeId"
+        class="mini-select"
+        *ngIf="routesForProject.length > 0"
+      >
+        <option value="">Route...</option>
+        <option *ngFor="let r of routesForProject" [value]="r.routeId">{{ r.label }}</option>
       </select>
       <input
         type="text"
         [(ngModel)]="editEntry.routeId"
         placeholder="Route ID"
         class="mini-input"
+        *ngIf="routesForProject.length === 0"
       />
       <div class="time-row">
         <input type="time" [(ngModel)]="editEntry.shiftStart" class="mini-input" />

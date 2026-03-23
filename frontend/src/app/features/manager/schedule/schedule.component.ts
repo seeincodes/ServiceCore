@@ -284,6 +284,36 @@ export class ScheduleComponent implements OnInit {
     });
   }
 
+  get routesForProject(): { routeId: string; label: string }[] {
+    const pid = this.editEntry.projectId;
+    if (!pid) return [];
+    // Get unique routes from templates that match this project
+    const seen = new Set<string>();
+    const routes: { routeId: string; label: string }[] = [];
+    for (const tpl of this.templates) {
+      if (tpl.projectId === pid && tpl.routeId && !seen.has(tpl.routeId)) {
+        seen.add(tpl.routeId);
+        routes.push({ routeId: tpl.routeId, label: tpl.routeId });
+      }
+    }
+    return routes;
+  }
+
+  onProjectChange(): void {
+    const routes = this.routesForProject;
+    if (routes.length > 0) {
+      this.editEntry.routeId = routes[0].routeId;
+    } else {
+      this.editEntry.routeId = '';
+    }
+    // Also auto-fill shift times from the first matching template
+    const tpl = this.templates.find((t) => t.projectId === this.editEntry.projectId);
+    if (tpl) {
+      this.editEntry.shiftStart = tpl.shiftStart;
+      this.editEntry.shiftEnd = tpl.shiftEnd;
+    }
+  }
+
   // From template
   applyTemplate(template: ShiftTemplate): void {
     this.editEntry.projectId = template.projectId;
@@ -299,18 +329,25 @@ export class ScheduleComponent implements OnInit {
 
   private loadTemplates(): void {
     this.templatesLoading = true;
-    this.http
-      .get<{ data: ShiftTemplate[] }>(`${this.apiUrl}/manager/schedule/templates`)
-      .subscribe({
-        next: (res) => {
-          this.templates = res.data || [];
-          this.templatesLoading = false;
-        },
-        error: () => {
-          this.templates = [];
-          this.templatesLoading = false;
-        },
-      });
+    this.http.get<any>(`${this.apiUrl}/manager/shift-templates`).subscribe({
+      next: (res) => {
+        const raw = res.data?.templates || res.data || [];
+        this.templates = raw.map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          shiftStart: t.shift_start || t.shiftStart,
+          shiftEnd: t.shift_end || t.shiftEnd,
+          projectId: t.project_id || t.projectId,
+          routeId: t.route_id || t.routeId,
+          color: t.color,
+        }));
+        this.templatesLoading = false;
+      },
+      error: () => {
+        this.templates = [];
+        this.templatesLoading = false;
+      },
+    });
   }
 
   openAddTemplate(): void {
