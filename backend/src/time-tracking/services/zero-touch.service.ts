@@ -516,6 +516,8 @@ export async function midnightAutoClose(): Promise<void> {
     .whereNull('clock_out')
     .select('id', 'org_id', 'user_id', 'clock_in', 'route_id');
 
+  const MAX_SHIFT_HOURS = 14;
+
   for (const entry of openEntries) {
     const clockInTime = new Date(entry.clock_in);
     const now = new Date();
@@ -523,9 +525,10 @@ export async function midnightAutoClose(): Promise<void> {
     // Only close entries from today or earlier (not future-dated)
     if (clockInTime > now) continue;
 
-    // Set clock_out to give exactly 8 hours from clock_in
-    const eightHoursLater = new Date(clockInTime.getTime() + 8 * 60 * 60 * 1000);
-    const clockOutTime = eightHoursLater < now ? eightHoursLater : now;
+    // Cap at 14 hours from clock-in
+    const clockOutTime = new Date(clockInTime.getTime() + MAX_SHIFT_HOURS * 60 * 60 * 1000);
+    const hoursLogged =
+      Math.round(((clockOutTime.getTime() - clockInTime.getTime()) / (1000 * 60 * 60)) * 100) / 100;
 
     await db('clock_entries').where({ id: entry.id }).update({
       clock_out: clockOutTime,
@@ -541,8 +544,8 @@ export async function midnightAutoClose(): Promise<void> {
         entryId: entry.id,
         clockIn: entry.clock_in,
         clockOut: clockOutTime,
-        hoursLogged: 8,
-        reason: 'Employee forgot to clock out. Auto-closed at midnight with 8h default.',
+        hoursLogged,
+        reason: `Employee forgot to clock out. Auto-closed at midnight (capped at ${MAX_SHIFT_HOURS}h).`,
       }),
     });
 
@@ -552,7 +555,7 @@ export async function midnightAutoClose(): Promise<void> {
       type: 'midnight_auto_close',
       priority: 'critical',
       title: 'Forgot to clock out',
-      message: '8 hours auto-logged. Please review and adjust if needed.',
+      message: `${hoursLogged}h auto-logged (capped at ${MAX_SHIFT_HOURS}h). Please review and adjust if needed.`,
       userId: entry.user_id,
       data: { entryId: entry.id },
     });
@@ -563,19 +566,22 @@ export async function midnightAutoClose(): Promise<void> {
       await enqueueNotification({
         type: 'sms',
         to: user.phone,
-        body: `TimeKeeper: You forgot to clock out today. We've logged 8 hours for you. Your manager will review.`,
+        body: `TimeKeeper: You forgot to clock out today. We've logged ${hoursLogged} hours for you. Your manager will review.`,
       });
     }
 
     logger.info('Midnight auto-close', {
       entryId: entry.id,
       userId: entry.user_id,
-      hoursLogged: 8,
+      hoursLogged,
     });
   }
 
   if (openEntries.length > 0) {
-    logger.info(`Midnight auto-close completed`, { count: openEntries.length });
+    logger.info(`Midnight auto-close completed`, {
+      count: openEntries.length,
+      maxShiftHours: MAX_SHIFT_HOURS,
+    });
   }
 }
 

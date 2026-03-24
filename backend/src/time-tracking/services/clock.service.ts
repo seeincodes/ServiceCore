@@ -4,7 +4,7 @@ import { emitToOrg } from '../../shared/websocket/socket';
 import { postClockEvent } from '../../dispatcher/services/dispatcher.service';
 import { checkBuddyPunch, checkGeofence } from './location.service';
 
-const MAX_HOURS_PER_DAY = 16;
+const MAX_HOURS_PER_DAY = 14;
 
 export interface ClockInParams {
   orgId: string;
